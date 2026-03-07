@@ -1,5 +1,8 @@
 import { Resend } from "resend";
 
+// Skip this route during static export (GitHub Pages). It requires a server runtime (Vercel).
+export const dynamic = "force-static";
+
 export async function GET(req: Request) {
   console.error(`[contact] ⚠️  GET received — browser converted POST→GET via cached 301 redirect. URL: ${(req as { url?: string }).url}. Clear browser cache.`);
   return new Response("Method Not Allowed — use POST", { status: 405 });

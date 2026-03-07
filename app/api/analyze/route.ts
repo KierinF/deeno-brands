@@ -1,5 +1,8 @@
 import { NextRequest } from "next/server";
 
+// Skip this route during static export (GitHub Pages). It requires a server runtime (Vercel).
+export const dynamic = "force-static";
+
 // ─── Rate limiting ─────────────────────────────────────────────────────────────
 // In-memory store: Map<ip, { count: number; windowStart: number }>
 // Limits: 5 scans/hour per IP, 100 scans/day globally

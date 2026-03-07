@@ -1,7 +1,7 @@
 "use client";
 
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useRef, useCallback } from "react";
 import { X } from "lucide-react";
 
 // ─── Cactus obstacle ─────────────────────────────────────────────────────────
@@ -221,36 +221,43 @@ export default function Hero() {
           </motion.div>
         ) : (
           /* ── NORMAL HERO ────────────────────────────── */
-          <motion.div key="hero" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: "absolute", inset: 0 }}>
-
-            {/* ── Dino image — upper center, z-index 10 (floats above text) ── */}
+          <motion.div
+            key="hero"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              paddingTop: "5vh",
+            }}
+          >
+            {/* ── Dino image — centered in flow, z-index 10 floats above text ── */}
             <motion.div
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-              style={{
-                position: "absolute",
-                top: "5vh",
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 10,
-                textAlign: "center",
-              }}
+              style={{ zIndex: 10, position: "relative", textAlign: "center", flexShrink: 0 }}
             >
               <button
                 onClick={activateGame}
                 title="Click to play"
                 aria-label="Start dino game"
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block" }}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", margin: "0 auto" }}
               >
                 <img
                   src="/dino.png"
                   alt="Pixel dinosaur"
                   style={{
-                    height: "clamp(180px, 42vh, 360px)",
+                    height: "clamp(160px, 36vh, 300px)",
                     width: "auto",
                     imageRendering: "pixelated",
                     display: "block",
+                    margin: "0 auto",
                     transition: "transform 0.25s ease",
                   }}
                   onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
@@ -268,23 +275,21 @@ export default function Hero() {
               </div>
             </motion.div>
 
-            {/* ── Content block — bottom half, overlaps dino feet ── */}
+            {/* ── Content block — slight negative margin pulls it up to overlap dino feet ── */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
                 zIndex: 1,
+                marginTop: "clamp(-32px, -3.5vh, -16px)",
                 textAlign: "center",
-                padding: "0 24px 3vh",
+                padding: "0 24px clamp(12px, 2vh, 28px)",
+                width: "100%",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "clamp(6px, 1.2vh, 14px)",
+                gap: "clamp(8px, 1.2vh, 16px)",
               }}
             >
               {/* Headline — ToyFight pill words */}
@@ -335,32 +340,39 @@ export default function Hero() {
                 We help HVAC, plumbing, and home service businesses evolve through more calls, booked jobs, and real revenue.
               </p>
 
-              {/* Stats — inline row */}
+              {/* Stats — single no-wrap row */}
               <div
                 style={{
                   paddingTop: "clamp(6px, 1vh, 12px)",
                   borderTop: "1px solid rgba(28,25,23,0.1)",
                   width: "100%",
-                  maxWidth: 680,
+                  maxWidth: 720,
                   display: "flex",
                   justifyContent: "center",
-                  flexWrap: "wrap",
-                  gap: "clamp(12px, 2vw, 32px)",
+                  alignItems: "center",
+                  flexWrap: "nowrap",
+                  gap: "clamp(10px, 2vw, 28px)",
+                  overflow: "hidden",
                 }}
               >
                 {[
-                  { n: "70%", l: "of homeowners google before calling" },
-                  { n: "2.5×", l: "LSA vs standard PPC conversion" },
-                  { n: "15×", l: "more revenue from phone leads" },
-                ].map(s => (
-                  <div key={s.n} style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-                    <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(10px, 1.4vw, 16px)", color: "#1C1917", lineHeight: 1 }}>
-                      {s.n}
-                    </span>
-                    <span style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(9px, 0.9vw, 11px)", color: "#8B7F72" }}>
-                      {s.l}
-                    </span>
-                  </div>
+                  { n: "70%", l: "homeowners google first" },
+                  { n: "2.5×", l: "LSA vs standard PPC" },
+                  { n: "15×", l: "more from phone leads" },
+                ].map((s, i) => (
+                  <React.Fragment key={s.n}>
+                    {i > 0 && (
+                      <span style={{ color: "rgba(28,25,23,0.2)", fontSize: 14, flexShrink: 0 }}>·</span>
+                    )}
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 5, flexShrink: 0 }}>
+                      <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(9px, 1.2vw, 14px)", color: "#1C1917", lineHeight: 1 }}>
+                        {s.n}
+                      </span>
+                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(9px, 0.85vw, 11px)", color: "#8B7F72", whiteSpace: "nowrap" }}>
+                        {s.l}
+                      </span>
+                    </div>
+                  </React.Fragment>
                 ))}
               </div>
             </motion.div>

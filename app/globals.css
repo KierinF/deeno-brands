@@ -1,30 +1,24 @@
 @import "@fontsource-variable/inter";
-@import "@fontsource/playfair-display/400.css";
-@import "@fontsource/playfair-display/700.css";
-@import "@fontsource/playfair-display/900.css";
+@import "@fontsource/press-start-2p";
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg);
+  --color-foreground: var(--dark);
   --font-sans: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-pixel: "Press Start 2P", monospace;
   --font-mono: "SF Mono", "Fira Code", "Fira Mono", monospace;
 }
 
 :root {
-  --background: #0E0B07;
-  --foreground: #F2E8D5;
-  --accent: #8B5CF6;
-  --accent-muted: rgba(139, 92, 246, 0.14);
-  --surface: #181410;
-  --surface-2: #211E17;
-  --gold: #C9A84C;
-  --gold-muted: rgba(201, 168, 76, 0.15);
-  --danger: #D4522A;
-  --border: rgba(242, 232, 213, 0.07);
-  --border-gold: rgba(201, 168, 76, 0.25);
-  --text-muted: rgba(242, 232, 213, 0.4);
+  --bg: #EDEAE0;
+  --dark: #1C1917;
+  --purple: #8B5CF6;
+  --purple-muted: rgba(139, 92, 246, 0.12);
+  --amber: #C9A84C;
+  --muted: #8B7F72;
+  --border: rgba(28, 25, 23, 0.1);
+  --surface: #E5E1D6;
 }
 
 * { box-sizing: border-box; }
@@ -32,8 +26,8 @@
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--dark);
   font-family: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -45,24 +39,25 @@ body {
   * { cursor: none !important; }
 }
 
-/* Grain / noise texture overlay */
+/* Grain texture */
 body::after {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.035;
+  opacity: 0.025;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 200px 200px;
 }
 
-/* Playfair display utility */
-.font-display {
-  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+/* Pixel font utility */
+.font-pixel {
+  font-family: "Press Start 2P", monospace;
 }
 
+/* Gradient text */
 .gradient-text {
   background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 55%, #C4B5FD 100%);
   -webkit-background-clip: text;
@@ -70,11 +65,29 @@ body::after {
   background-clip: text;
 }
 
-.gold-text {
-  background: linear-gradient(135deg, #C9A84C 0%, #E8C87A 60%, #C9A84C 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Pill component base */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  font-family: "Press Start 2P", monospace;
+  line-height: 1.2;
+}
+
+.pill-dark {
+  background: #1C1917;
+  color: #EDEAE0;
+}
+
+.pill-purple {
+  background: #8B5CF6;
+  color: #fff;
+}
+
+.pill-outline {
+  background: transparent;
+  border: 2px solid #1C1917;
+  color: #1C1917;
 }
 
 /* Clip reveal utility */
@@ -82,23 +95,6 @@ body::after {
   display: inline-block;
   overflow: hidden;
   vertical-align: bottom;
-}
-
-/* Specimen card */
-.specimen-card {
-  background: var(--surface-2);
-  border: 1px solid var(--border-gold);
-}
-
-/* Exhibit section label */
-.exhibit-label {
-  font-family: "Inter Variable", "Inter", sans-serif;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
-  opacity: 0.8;
 }
 
 /* Infinite marquee */
@@ -129,27 +125,6 @@ body::after {
   animation-play-state: paused;
 }
 
-/* Dot grid bg (warm variant) */
-.dot-grid {
-  background-image: radial-gradient(circle, rgba(242,232,213,0.05) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-/* Gold grid */
-.gold-grid {
-  background-image: radial-gradient(circle, rgba(201,168,76,0.07) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-
-/* Slowly rotating ring */
-@keyframes spin-slow {
-  to { transform: rotate(360deg); }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 25s linear infinite;
-}
-
 /* Terminal cursor blink */
 @keyframes blink {
   0%, 100% { opacity: 1; }
@@ -160,30 +135,17 @@ body::after {
   display: inline-block;
   width: 8px;
   height: 14px;
-  background: var(--gold);
+  background: #C9A84C;
   animation: blink 1s step-end infinite;
   vertical-align: text-bottom;
   margin-left: 2px;
 }
 
-/* Italic utility */
-.italic-light {
-  font-style: italic;
-  font-weight: 300;
+/* Slowly rotating ring */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
 }
 
-/* Scan line for terminal effect */
-@keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-.scan-line {
-  position: fixed;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(transparent, rgba(201,168,76,0.08), transparent);
-  animation: scan 8s linear infinite;
-  pointer-events: none;
+.animate-spin-slow {
+  animation: spin-slow 25s linear infinite;
 }

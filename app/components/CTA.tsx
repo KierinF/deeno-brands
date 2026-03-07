@@ -2,17 +2,9 @@
 
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useRef, useState } from "react";
-import { Phone, Mail, ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
-import MagneticButton from "./MagneticButton";
+import { Phone, Mail, ArrowRight, Loader2 } from "lucide-react";
 
 type FormState = "idle" | "submitting" | "success";
-
-const perks = [
-  "Free 30-min strategy call — no pitch",
-  "Full competitor analysis included",
-  "Zero commitment required",
-  "Results within 30 days or we adjust",
-];
 
 export default function CTA() {
   const ref = useRef(null);
@@ -23,112 +15,101 @@ export default function CTA() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormState("submitting");
-    await new Promise((r) => setTimeout(r, 1400));
+    await new Promise(r => setTimeout(r, 1400));
     setFormState("success");
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    background: "#fff",
+    border: "1.5px solid rgba(28,25,23,0.15)",
+    borderRadius: 8,
+    padding: "11px 14px",
+    fontSize: 13,
+    color: "#1C1917",
+    fontFamily: "inherit",
+    outline: "none",
+    transition: "border-color 0.2s",
+  };
+
   return (
-    <section id="contact" ref={ref} style={{ background: "#F5EDD8", color: "#1A1510" }}>
-      <div className="max-w-6xl mx-auto px-6 py-28">
+    <section id="contact" ref={ref} style={{ background: "#1C1917", paddingTop: 80, paddingBottom: 80 }}>
+      <div className="max-w-6xl mx-auto px-6">
         <div className="grid lg:grid-cols-[1fr_420px] gap-16 items-start">
           {/* Left */}
           <motion.div
-            initial={{ opacity: 0, x: -24 }}
+            initial={{ opacity: 0, x: -20 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+            transition={{ duration: 0.6 }}
           >
-            <span
+            <p
               style={{
-                fontFamily: '"SF Mono","Fira Code",monospace',
+                fontFamily: '"Press Start 2P", monospace',
                 fontSize: 9,
-                letterSpacing: "0.2em",
-                color: "rgba(201,168,76,0.6)",
-                textTransform: "uppercase",
-                display: "block",
-                marginBottom: 16,
+                letterSpacing: "0.08em",
+                color: "rgba(237,234,224,0.3)",
+                marginBottom: 24,
               }}
             >
-              [ BEGIN SURVIVAL PROTOCOL ]
-            </span>
+              GET STARTED
+            </p>
             <h2
-              className="mb-6"
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontSize: "clamp(32px, 5vw, 68px)",
-                color: "#1A1510",
-                lineHeight: 1.15,
-                letterSpacing: "-0.02em",
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: "clamp(18px, 3vw, 40px)",
+                color: "#EDEAE0",
+                lineHeight: 1.5,
+                letterSpacing: "0.04em",
+                marginBottom: 24,
               }}
             >
-              Ready to evolve?
+              Ready to<br />evolve?
             </h2>
-            <p className="leading-relaxed mb-10 max-w-md text-[15px]" style={{ color: "rgba(26,21,16,0.5)" }}>
-              Book your free growth audit. We&apos;ll review your current marketing,
-              identify quick wins, and show you exactly how we&apos;d take your
-              business to #1 in your market.
+            <p style={{ fontSize: 15, color: "rgba(237,234,224,0.45)", lineHeight: 1.7, marginBottom: 32, maxWidth: 380 }}>
+              Free 30-min strategy call. We&apos;ll show you exactly what&apos;s broken and how to fix it.
+              No pitch, no pressure.
             </p>
 
-            <div className="space-y-4 mb-12">
-              {perks.map((p) => (
-                <div key={p} className="flex items-center gap-3">
-                  <CheckCircle2 size={14} style={{ color: "#8B5CF6", flexShrink: 0 }} />
-                  <span className="text-sm" style={{ color: "rgba(26,21,16,0.55)" }}>{p}</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+              {[
+                "Free competitor analysis included",
+                "Zero commitment required",
+                "Results within 30 days or we adjust",
+                "1 client per trade per city",
+              ].map(p => (
+                <div key={p} style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <span style={{ color: "#8B5CF6", fontSize: 12, flexShrink: 0 }}>—</span>
+                  <span style={{ fontSize: 13, color: "rgba(237,234,224,0.45)" }}>{p}</span>
                 </div>
               ))}
             </div>
 
-            {/* Contact */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <a
-                href="tel:+16315214302"
-                className="flex items-center gap-3 rounded-xl px-5 py-3.5 transition-colors"
-                style={{ background: "rgba(26,21,16,0.06)", border: "1px solid rgba(26,21,16,0.1)" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(26,21,16,0.1)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "rgba(26,21,16,0.06)")}
-              >
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(139,92,246,0.1)" }}
-                >
-                  <Phone size={13} style={{ color: "#8B5CF6" }} />
-                </div>
-                <div>
-                  <div className="text-[10px]" style={{ color: "rgba(26,21,16,0.4)" }}>Call us</div>
-                  <div className="font-semibold text-sm" style={{ color: "#1A1510" }}>(631) 521-4302</div>
-                </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <a href="tel:+16315214302" style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(237,234,224,0.35)", textDecoration: "none", fontSize: 13, transition: "color 0.15s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#EDEAE0")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(237,234,224,0.35)")}>
+                <Phone size={13} style={{ color: "#8B5CF6", flexShrink: 0 }} />
+                (631) 521-4302
               </a>
-              <a
-                href="mailto:kierin@deenobrands.agency"
-                className="flex items-center gap-3 rounded-xl px-5 py-3.5 transition-colors"
-                style={{ background: "rgba(26,21,16,0.06)", border: "1px solid rgba(26,21,16,0.1)" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(26,21,16,0.1)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "rgba(26,21,16,0.06)")}
-              >
-                <div
-                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-                  style={{ background: "rgba(139,92,246,0.1)" }}
-                >
-                  <Mail size={13} style={{ color: "#8B5CF6" }} />
-                </div>
-                <div>
-                  <div className="text-[10px]" style={{ color: "rgba(26,21,16,0.4)" }}>Email</div>
-                  <div className="font-semibold text-sm" style={{ color: "#1A1510" }}>kierin@deenobrands.agency</div>
-                </div>
+              <a href="mailto:kierin@deenobrands.agency" style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(237,234,224,0.35)", textDecoration: "none", fontSize: 13, transition: "color 0.15s" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#EDEAE0")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(237,234,224,0.35)")}>
+                <Mail size={13} style={{ color: "#8B5CF6", flexShrink: 0 }} />
+                kierin@deenobrands.agency
               </a>
             </div>
           </motion.div>
 
-          {/* Form card */}
+          {/* Form */}
           <motion.div
-            initial={{ opacity: 0, x: 24 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
-            className="rounded-2xl overflow-hidden"
+            transition={{ duration: 0.6, delay: 0.1 }}
             style={{
-              background: "#fff",
-              border: "1px solid rgba(26,21,16,0.08)",
-              boxShadow: "0 4px 40px rgba(26,21,16,0.08)",
-              minHeight: 500,
+              background: "#EDEAE0",
+              borderRadius: 12,
+              overflow: "hidden",
+              minHeight: 480,
             }}
           >
             <AnimatePresence mode="wait">
@@ -136,236 +117,135 @@ export default function CTA() {
                 <motion.div
                   key="form"
                   initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.3 }}
-                  className="p-7"
+                  exit={{ opacity: 0, y: -16 }}
+                  transition={{ duration: 0.25 }}
+                  style={{ padding: 28 }}
                 >
                   <h3
-                    className="mb-1"
                     style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: 22,
-                      color: "#1A1510",
+                      fontFamily: '"Press Start 2P", monospace',
+                      fontSize: 12,
+                      color: "#1C1917",
+                      marginBottom: 6,
+                      lineHeight: 1.5,
                     }}
                   >
-                    Get Your Free Audit
+                    Free Audit
                   </h3>
-                  <p className="text-sm mb-6" style={{ color: "rgba(26,21,16,0.4)" }}>Takes 2 minutes. No spam, ever.</p>
+                  <p style={{ fontSize: 12, color: "#8B7F72", marginBottom: 20 }}>2 minutes. No spam, ever.</p>
 
-                  <form className="space-y-4" onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-2 gap-3">
-                      {["First Name", "Last Name"].map((label) => (
+                  <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                      {["First Name", "Last Name"].map(label => (
                         <div key={label}>
-                          <label className="text-xs mb-1.5 block" style={{ color: "rgba(26,21,16,0.4)" }}>{label}</label>
-                          <input
-                            type="text"
-                            required
-                            placeholder={label === "First Name" ? "John" : "Smith"}
-                            className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
-                            style={{
-                              background: "#F5EDD8",
-                              border: "1px solid #DDD4C0",
-                              color: "#1A1510",
-                            }}
+                          <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>{label}</label>
+                          <input type="text" required placeholder={label === "First Name" ? "John" : "Smith"} style={inputStyle}
                             onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                            onBlur={e => (e.target.style.borderColor = "#DDD4C0")}
+                            onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                           />
                         </div>
                       ))}
                     </div>
-
                     <div>
-                      <label className="text-xs mb-1.5 block" style={{ color: "rgba(26,21,16,0.4)" }}>Business Email</label>
-                      <input
-                        type="email"
-                        required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="you@yourbusiness.com"
-                        className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
-                        style={{ background: "#F5EDD8", border: "1px solid #DDD4C0", color: "#1A1510" }}
+                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Business Email</label>
+                      <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbusiness.com" style={inputStyle}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "#DDD4C0")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       />
                     </div>
-
                     <div>
-                      <label className="text-xs mb-1.5 block" style={{ color: "rgba(26,21,16,0.4)" }}>Phone Number</label>
-                      <input
-                        type="tel"
-                        placeholder="(555) 000-0000"
-                        className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors"
-                        style={{ background: "#F5EDD8", border: "1px solid #DDD4C0", color: "#1A1510" }}
+                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Phone</label>
+                      <input type="tel" placeholder="(555) 000-0000" style={inputStyle}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "#DDD4C0")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       />
                     </div>
-
                     <div>
-                      <label className="text-xs mb-1.5 block" style={{ color: "rgba(26,21,16,0.4)" }}>Your Trade</label>
-                      <select
-                        className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors appearance-none"
-                        style={{ background: "#F5EDD8", border: "1px solid #DDD4C0", color: "rgba(26,21,16,0.6)" }}
+                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Your Trade</label>
+                      <select style={{ ...inputStyle, appearance: "none" }}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "#DDD4C0")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       >
-                        <option value="">Select your trade...</option>
-                        {["HVAC", "Plumbing", "Roofing", "Electrical", "Landscaping", "Pest Control", "Cleaning", "Other"].map(
-                          (t) => <option key={t} value={t}>{t}</option>
-                        )}
+                        <option value="">Select trade...</option>
+                        {["HVAC", "Plumbing", "Roofing", "Electrical", "Landscaping", "Pest Control", "Cleaning", "Other"].map(t => (
+                          <option key={t}>{t}</option>
+                        ))}
                       </select>
                     </div>
-
                     <div>
-                      <label className="text-xs mb-1.5 block" style={{ color: "rgba(26,21,16,0.4)" }}>Monthly Marketing Budget</label>
-                      <select
-                        className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none transition-colors appearance-none"
-                        style={{ background: "#F5EDD8", border: "1px solid #DDD4C0", color: "rgba(26,21,16,0.6)" }}
+                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Monthly Budget</label>
+                      <select style={{ ...inputStyle, appearance: "none" }}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "#DDD4C0")}
+                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       >
                         <option value="">Select budget...</option>
-                        {["Under $1,000", "$1,000–$3,000", "$3,000–$7,000", "$7,000–$15,000", "$15,000+"].map(
-                          (b) => <option key={b} value={b}>{b}</option>
-                        )}
+                        {["Under $1k", "$1k–$3k", "$3k–$7k", "$7k–$15k", "$15k+"].map(b => (
+                          <option key={b}>{b}</option>
+                        ))}
                       </select>
                     </div>
-
-                    <MagneticButton className="w-full" strength={0.15}>
-                      <button
-                        type="submit"
-                        disabled={formState === "submitting"}
-                        className="w-full text-white font-bold py-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 text-sm"
-                        style={{
-                          background: formState === "submitting" ? "rgba(139,92,246,0.7)" : "#8B5CF6",
-                        }}
-                        onMouseEnter={e => {
-                          if (formState !== "submitting") {
-                            (e.currentTarget as HTMLButtonElement).style.background = "#7C3AED";
-                            (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 8px 30px rgba(139,92,246,0.4)";
-                          }
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLButtonElement).style.background = "#8B5CF6";
-                          (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-                        }}
-                      >
-                        {formState === "submitting" ? (
-                          <>
-                            <Loader2 size={15} className="animate-spin" />
-                            Sending...
-                          </>
-                        ) : (
-                          <>
-                            Book My Free Audit
-                            <ArrowRight size={15} />
-                          </>
-                        )}
-                      </button>
-                    </MagneticButton>
-
-                    <p className="text-center text-xs" style={{ color: "rgba(26,21,16,0.25)" }}>
-                      No credit card. No commitment. Just a real strategy call.
+                    <button
+                      type="submit"
+                      disabled={formState === "submitting"}
+                      style={{
+                        width: "100%",
+                        padding: "14px",
+                        background: "#8B5CF6",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 8,
+                        fontFamily: '"Press Start 2P", monospace',
+                        fontSize: 9,
+                        letterSpacing: "0.08em",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                        transition: "background 0.15s",
+                      }}
+                      onMouseEnter={e => { if (formState !== "submitting") (e.currentTarget.style.background = "#7C3AED"); }}
+                      onMouseLeave={e => (e.currentTarget.style.background = "#8B5CF6")}
+                    >
+                      {formState === "submitting" ? (
+                        <><Loader2 size={14} className="animate-spin" /> SENDING...</>
+                      ) : (
+                        <>BOOK FREE AUDIT <ArrowRight size={13} /></>
+                      )}
+                    </button>
+                    <p style={{ textAlign: "center", fontSize: 10, color: "rgba(28,25,23,0.25)" }}>
+                      No credit card. No commitment.
                     </p>
                   </form>
                 </motion.div>
               ) : (
                 <motion.div
                   key="success"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                  className="p-7 flex flex-col items-center justify-center text-center h-full"
-                  style={{ minHeight: 500 }}
+                  transition={{ duration: 0.4 }}
+                  style={{ padding: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 480 }}
                 >
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
-                    className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
-                    style={{ background: "rgba(139,92,246,0.1)" }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+                    style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(139,92,246,0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}
                   >
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-                      <motion.path
-                        d="M5 14l7 7L23 7"
-                        stroke="#8B5CF6"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-                      />
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <motion.path d="M4 12l6 6L20 6" stroke="#8B5CF6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.3 }} />
                     </svg>
                   </motion.div>
-
-                  <motion.h3
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="mb-3"
-                    style={{
-                      fontFamily: "'Playfair Display', Georgia, serif",
-                      fontSize: 26,
-                      color: "#1A1510",
-                    }}
-                  >
+                  <h3 style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 16, color: "#1C1917", marginBottom: 12 }}>
                     You&apos;re in.
-                  </motion.h3>
-
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.55 }}
-                    className="text-sm leading-relaxed mb-8 max-w-xs"
-                    style={{ color: "rgba(26,21,16,0.5)" }}
-                  >
-                    We&apos;ll reach out within 24 hours
-                    {email ? ` at ${email}` : ""}.
-                    <br />Kierin personally reviews every submission.
-                  </motion.p>
-
-                  <motion.div
-                    initial={{ scaleX: 0 }}
-                    animate={{ scaleX: 1 }}
-                    transition={{ delay: 0.6, duration: 0.5 }}
-                    className="w-16 h-px mb-8"
-                    style={{ background: "rgba(26,21,16,0.1)" }}
-                  />
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.7 }}
-                    className="space-y-3 w-full max-w-xs"
-                  >
-                    <p
-                      className="text-xs uppercase mb-3"
-                      style={{
-                        fontFamily: '"SF Mono","Fira Code",monospace',
-                        letterSpacing: "0.15em",
-                        color: "rgba(26,21,16,0.35)",
-                      }}
-                    >
-                      Or reach us directly
-                    </p>
-                    <a
-                      href="tel:+16315214302"
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
-                      style={{ background: "rgba(26,21,16,0.04)", border: "1px solid rgba(26,21,16,0.08)" }}
-                    >
-                      <Phone size={13} style={{ color: "#8B5CF6", flexShrink: 0 }} />
-                      <span className="font-semibold text-sm" style={{ color: "#1A1510" }}>(631) 521-4302</span>
-                    </a>
-                    <a
-                      href="mailto:kierin@deenobrands.agency"
-                      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-colors"
-                      style={{ background: "rgba(26,21,16,0.04)", border: "1px solid rgba(26,21,16,0.08)" }}
-                    >
-                      <Mail size={13} style={{ color: "#8B5CF6", flexShrink: 0 }} />
-                      <span className="font-semibold text-sm" style={{ color: "#1A1510" }}>kierin@deenobrands.agency</span>
-                    </a>
-                  </motion.div>
+                  </h3>
+                  <p style={{ fontSize: 13, color: "#8B7F72", lineHeight: 1.6, marginBottom: 24, maxWidth: 260 }}>
+                    We&apos;ll reach out within 24 hours{email ? ` at ${email}` : ""}. Kierin personally reviews every submission.
+                  </p>
+                  <a href="tel:+16315214302" style={{ fontSize: 13, color: "#1C1917", textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
+                    <Phone size={13} style={{ color: "#8B5CF6" }} /> (631) 521-4302
+                  </a>
                 </motion.div>
               )}
             </AnimatePresence>

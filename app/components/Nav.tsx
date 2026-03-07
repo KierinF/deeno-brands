@@ -7,7 +7,6 @@ import ExtinctionTerminal from "./ExtinctionTerminal";
 
 const links = [
   { label: "SERVICES", href: "#services" },
-  { label: "EVIDENCE", href: "#proof" },
   { label: "CONTACT", href: "#contact" },
 ];
 
@@ -86,6 +85,7 @@ export default function Nav() {
                   letterSpacing: "0.05em",
                   background: "transparent",
                   border: "1px solid transparent",
+                  textDecoration: "none",
                 }}
                 onMouseEnter={e => {
                   (e.currentTarget as HTMLAnchorElement).style.color = "#1C1917";
@@ -103,18 +103,8 @@ export default function Nav() {
             ))}
           </div>
 
-          {/* Right: email + scan button */}
-          <div className="hidden md:flex items-center gap-3">
-            <span
-              style={{
-                fontFamily: '"SF Mono","Fira Code",monospace',
-                fontSize: 10,
-                color: "rgba(28,25,23,0.4)",
-                letterSpacing: "0.06em",
-              }}
-            >
-              kierin@deenobrands.agency
-            </span>
+          {/* Right: audit button only */}
+          <div className="hidden md:flex items-center">
             <button
               onClick={() => setTerminalOpen(true)}
               style={{
@@ -126,19 +116,20 @@ export default function Nav() {
                 color: "#EDEAE0",
                 border: "none",
                 letterSpacing: "0.05em",
+                cursor: "pointer",
               }}
               onMouseEnter={e => (e.currentTarget.style.background = "#3D3430")}
               onMouseLeave={e => (e.currentTarget.style.background = "#1C1917")}
               data-cursor-hover
             >
-              SCAN SITE
+              FREE EXTINCTION AUDIT
             </button>
           </div>
 
-          {/* Mobile */}
+          {/* Mobile hamburger */}
           <button
             className="md:hidden"
-            style={{ color: "#1C1917" }}
+            style={{ color: "#1C1917", background: "none", border: "none", cursor: "pointer" }}
             onClick={() => setMobileOpen(!mobileOpen)}
           >
             <AnimatePresence mode="wait">
@@ -177,6 +168,7 @@ export default function Nav() {
                       fontSize: 9,
                       color: "rgba(28,25,23,0.5)",
                       letterSpacing: "0.05em",
+                      textDecoration: "none",
                     }}
                   >
                     {l.label}
@@ -195,9 +187,10 @@ export default function Nav() {
                     letterSpacing: "0.05em",
                     alignSelf: "flex-start",
                     marginTop: 4,
+                    cursor: "pointer",
                   }}
                 >
-                  SCAN SITE
+                  FREE EXTINCTION AUDIT
                 </button>
               </div>
             </motion.div>

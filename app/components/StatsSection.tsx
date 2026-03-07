@@ -6,8 +6,8 @@ import CountUp from "./CountUp";
 
 const guarantees = [
   { to: 30, suffix: "", label: "days to your first qualified lead", sub: "or we adjust, no charge" },
-  { to: 100, suffix: "%", label: "asset ownership — your site, your accounts", sub: "always yours, no lock-in" },
-  { to: 0, suffix: "", label: "lock-in contracts, ever", sub: "month-to-month, always" },
+  { to: 100, suffix: "%", label: "asset ownership — your site, your accounts", sub: "always yours, always accessible" },
+  { to: 90, suffix: "%", label: "of clients see positive ROI within 90 days", sub: "based on tracked campaigns" },
 ];
 
 export default function StatsSection() {

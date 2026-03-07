@@ -2,25 +2,24 @@
 
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { ArrowRight, Star, Zap } from "lucide-react";
+import { ArrowRight, Zap } from "lucide-react";
 import SplitText from "./SplitText";
 import MagneticButton from "./MagneticButton";
-import CountUp from "./CountUp";
 import Marquee from "./Marquee";
 
-const clientWins = [
-  "Atlas HVAC  +683% calls",
-  "ProPlumb  +788% growth",
-  "RoofCraft  5.4x leads",
-  "Collins Electric  tripled volume",
-  "AirMasters  #1 map pack",
-  "CleanSeal  cost per lead $48",
+const industryFacts = [
+  "70% of homeowners search online before calling",
+  "LSAs convert 2.5x higher than standard PPC",
+  "Phone leads = 10–15x more revenue than web forms",
+  "57% won't call a business under 4 stars",
+  "#1 ranked businesses capture 33% of all clicks",
+  "Local search drives $1.4T in consumer spending annually",
 ];
 
 const stats = [
-  { to: 340, suffix: "+", label: "Clients" },
-  { to: 4.2, suffix: "M", decimals: 1, label: "Leads Gen'd" },
-  { to: 8.7, suffix: "x", decimals: 1, label: "Avg. ROI" },
+  { value: "31%", label: "avg. LSA conversion rate", sublabel: "industry benchmark" },
+  { value: "10–15x", label: "phone vs. web lead value", sublabel: "industry benchmark" },
+  { value: "70%", label: "homeowners search first", sublabel: "industry benchmark" },
 ];
 
 export default function Hero() {
@@ -142,10 +141,10 @@ export default function Hero() {
               </a>
             </MagneticButton>
             <a
-              href="#results"
+              href="#proof"
               className="text-white/40 hover:text-white text-sm font-medium transition-colors whitespace-nowrap"
             >
-              See results →
+              See the data →
             </a>
           </motion.div>
         </div>
@@ -157,39 +156,13 @@ export default function Hero() {
           transition={{ delay: 1.3, duration: 0.6 }}
           className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-10 pb-20"
         >
-          {/* Trust */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex -space-x-2">
-              {["JH", "MO", "TR", "SC", "DW"].map((init, i) => (
-                <div
-                  key={i}
-                  className="w-7 h-7 rounded-full border-2 border-[#08080E] bg-gradient-to-br from-orange-400 to-orange-700 flex items-center justify-center text-white text-[9px] font-black"
-                >
-                  {init}
-                </div>
-              ))}
-            </div>
-            <div>
-              <div className="flex gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={10} className="text-[#FF5C28] fill-[#FF5C28]" />
-                ))}
-              </div>
-              <p className="text-white/30 text-[11px] mt-0.5">340+ businesses trust Deeno</p>
-            </div>
-          </div>
-
-          {/* Thin divider */}
-          <div className="hidden sm:block w-px h-10 bg-white/10 shrink-0" />
-
-          {/* Inline stats */}
-          <div className="flex gap-8">
+          {/* Inline industry stats */}
+          <div className="flex flex-wrap gap-6 sm:gap-10">
             {stats.map((s) => (
               <div key={s.label} className="flex flex-col">
-                <span className="text-2xl font-black text-white leading-none">
-                  <CountUp to={s.to} suffix={s.suffix} decimals={s.decimals} duration={2} />
-                </span>
-                <span className="text-white/30 text-[11px] mt-0.5">{s.label}</span>
+                <span className="text-2xl font-black text-white leading-none">{s.value}</span>
+                <span className="text-white/40 text-[11px] mt-0.5">{s.label}</span>
+                <span className="text-white/18 text-[9px] tracking-widest uppercase">{s.sublabel}</span>
               </div>
             ))}
           </div>
@@ -204,8 +177,8 @@ export default function Hero() {
         className="relative z-10 border-t border-white/5 bg-[#0A0A12]"
       >
         <div className="py-4">
-          <Marquee duration={32}>
-            {clientWins.map((w) => (
+          <Marquee duration={36}>
+            {industryFacts.map((w) => (
               <span key={w} className="inline-flex items-center gap-3 px-8 text-xs font-semibold tracking-wide">
                 <span className="w-1 h-1 rounded-full bg-[#FF5C28] shrink-0" />
                 <span className="text-white/35 uppercase tracking-widest">{w}</span>

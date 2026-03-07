@@ -3,24 +3,28 @@ import Hero from "./components/Hero";
 import StatsSection from "./components/StatsSection";
 import PainPoints from "./components/PainPoints";
 import Services from "./components/Services";
-import Results from "./components/Results";
+import ProofSection from "./components/ProofSection";
 import Process from "./components/Process";
-import Testimonials from "./components/Testimonials";
+import EarlyAccess from "./components/EarlyAccess";
 import FAQ from "./components/FAQ";
 import CTA from "./components/CTA";
 import Footer from "./components/Footer";
+import SectionIndicator from "./components/SectionIndicator";
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#08080E] text-white">
+      <SectionIndicator />
       <Nav />
-      <Hero />
+      <section id="hero">
+        <Hero />
+      </section>
       <StatsSection />
       <PainPoints />
       <Services />
-      <Results />
+      <ProofSection />
       <Process />
-      <Testimonials />
+      <EarlyAccess />
       <FAQ />
       <CTA />
       <Footer />

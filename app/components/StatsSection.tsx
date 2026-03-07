@@ -40,7 +40,7 @@ export default function StatsSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
             gap: 1,
             background: "rgba(237,234,224,0.08)",
           }}

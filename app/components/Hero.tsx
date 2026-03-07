@@ -242,6 +242,7 @@ export default function Hero() {
     borderRadius: 100,
     // Balanced internal padding; marginRight adds gap OUTSIDE the pill before "MARKETING"
     padding: "0.18em 0.65em 0.18em 0.85em",
+    lineHeight: 1,
     display: "inline-block",
     whiteSpace: "nowrap",
     marginRight: "0.55em",

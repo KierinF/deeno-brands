@@ -69,12 +69,12 @@ const testimonials = [
 function TestimonialCard({ t }: { t: typeof testimonials[0] }) {
   return (
     <div className="w-[340px] mx-3 bg-[#0F0F18] border border-white/6 rounded-2xl p-6 shrink-0">
-      <Quote size={18} className="text-[#FF5C28]/35 mb-4" />
+      <Quote size={18} className="text-[#8B5CF6]/35 mb-4" />
       <p className="text-white/60 text-sm leading-relaxed mb-5 line-clamp-4">
         &ldquo;{t.text}&rdquo;
       </p>
       <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF5C28] to-orange-700 flex items-center justify-center text-white text-[10px] font-black shrink-0">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#8B5CF6] to-orange-700 flex items-center justify-center text-white text-[10px] font-black shrink-0">
           {t.avatar}
         </div>
         <div className="min-w-0">
@@ -83,7 +83,7 @@ function TestimonialCard({ t }: { t: typeof testimonials[0] }) {
         </div>
         <div className="ml-auto flex shrink-0">
           {[...Array(t.rating)].map((_, i) => (
-            <Star key={i} size={10} className="text-[#FF5C28] fill-[#FF5C28]" />
+            <Star key={i} size={10} className="text-[#8B5CF6] fill-[#8B5CF6]" />
           ))}
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function Testimonials() {
   return (
     <section id="testimonials" ref={ref} className="py-32 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] rounded-full bg-[#FF5C28]/4 blur-[100px]" />
+        <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] rounded-full bg-[#8B5CF6]/4 blur-[100px]" />
       </div>
 
       <div className="max-w-6xl mx-auto px-6 relative mb-14">
@@ -111,7 +111,7 @@ export default function Testimonials() {
           transition={{ duration: 0.7 }}
           className="text-center"
         >
-          <span className="text-[#FF5C28] text-xs font-semibold tracking-widest uppercase mb-4 block">
+          <span className="text-[#8B5CF6] text-xs font-semibold tracking-widest uppercase mb-4 block">
             Testimonials
           </span>
           <h2 className="text-4xl md:text-6xl font-black tracking-[-0.03em] leading-tight">

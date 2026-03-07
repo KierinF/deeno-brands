@@ -46,8 +46,8 @@ const caseStudies = [
     after: { calls: "118/mo", cpl: "$55", rank: "Paid + Organic" },
     headline: "5.4x",
     subline: "lead volume, 74% lower CPL",
-    tint: "rgba(255,92,40,0.04)",
-    accentColor: "#FF5C28",
+    tint: "rgba(139,92,246,0.04)",
+    accentColor: "#8B5CF6",
   },
 ];
 
@@ -145,7 +145,7 @@ export default function Results() {
           animate={labelInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
         >
-          <span className="text-[#FF5C28] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
+          <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
             Client results
           </span>
           <div className="flex items-end justify-between flex-wrap gap-4">
@@ -182,13 +182,13 @@ export default function Results() {
         >
           {/* Progress bar along bottom */}
           <motion.div
-            className="absolute bottom-0 left-0 h-px bg-[#FF5C28]/40"
+            className="absolute bottom-0 left-0 h-px bg-[#8B5CF6]/40"
             style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
           />
 
           {/* Slide number indicator — bottom left */}
           <div className="absolute bottom-8 left-6 flex items-center gap-3 z-10">
-            <TrendingUp size={14} className="text-[#FF5C28]" />
+            <TrendingUp size={14} className="text-[#8B5CF6]" />
             <div className="flex gap-2">
               {caseStudies.map((c, i) => (
                 <motion.div
@@ -198,7 +198,7 @@ export default function Results() {
                     background: useTransform(
                       scrollYProgress,
                       [i / 3, (i + 0.5) / 3],
-                      ["rgba(255,255,255,0.15)", "#FF5C28"]
+                      ["rgba(255,255,255,0.15)", "#8B5CF6"]
                     ),
                   }}
                 />

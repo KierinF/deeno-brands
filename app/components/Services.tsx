@@ -37,7 +37,7 @@ const services = [
       "Conversion tracking & CPA optimization",
     ],
     result: "Avg. 6.8x ROAS across client accounts",
-    color: "#FF5C28",
+    color: "#8B5CF6",
   },
   {
     num: "03",
@@ -80,7 +80,7 @@ export default function Services() {
 
   return (
     <section id="services" ref={ref} className="py-32 px-6 relative overflow-hidden">
-      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#FF5C28]/4 blur-[120px] pointer-events-none" />
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#8B5CF6]/4 blur-[120px] pointer-events-none" />
 
       <div className="max-w-5xl mx-auto relative">
         <motion.div
@@ -89,7 +89,7 @@ export default function Services() {
           transition={{ duration: 0.7 }}
           className="mb-16"
         >
-          <span className="text-[#FF5C28] text-xs font-semibold tracking-widest uppercase mb-4 block">
+          <span className="text-[#8B5CF6] text-xs font-semibold tracking-widest uppercase mb-4 block">
             What we do
           </span>
           <h2 className="text-4xl md:text-6xl font-black tracking-[-0.03em] leading-tight max-w-xl">

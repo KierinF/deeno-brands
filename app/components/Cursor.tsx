@@ -95,7 +95,7 @@ export default function Cursor() {
         animate={{
           opacity: visible ? 1 : 0,
           scale: hovering ? 2.2 : clicking ? 0.8 : 1,
-          borderColor: hovering ? "#FF5C28" : "rgba(255,255,255,0.35)",
+          borderColor: hovering ? "#8B5CF6" : "rgba(255,255,255,0.35)",
         }}
         transition={{ duration: 0.2 }}
       >

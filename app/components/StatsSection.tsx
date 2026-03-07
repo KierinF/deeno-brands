@@ -10,7 +10,7 @@ const guarantees = [
     suffix: "",
     label: "days to your first\nqualified lead",
     sublabel: "or we adjust strategy, no charge",
-    color: "#FF5C28",
+    color: "#8B5CF6",
   },
   {
     to: 100,
@@ -49,7 +49,7 @@ export default function StatsSection() {
           transition={{ duration: 0.5 }}
           className="mb-8"
         >
-          <span className="text-[#FF5C28] text-[10px] font-bold tracking-[0.3em] uppercase">
+          <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase">
             Our guarantees
           </span>
         </motion.div>
@@ -59,7 +59,7 @@ export default function StatsSection() {
           initial={{ scaleX: 0 }}
           animate={inView ? { scaleX: 1 } : {}}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
-          className="h-px bg-[#FF5C28]/60 origin-left mb-16"
+          className="h-px bg-[#8B5CF6]/60 origin-left mb-16"
         />
 
         {/* Guarantees grid */}
@@ -103,7 +103,7 @@ export default function StatsSection() {
           initial={{ scaleX: 0 }}
           animate={inView ? { scaleX: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
-          className="h-px bg-[#FF5C28]/30 origin-left mt-16"
+          className="h-px bg-[#8B5CF6]/30 origin-left mt-16"
         />
       </div>
     </section>

@@ -50,7 +50,7 @@ export default function FAQ() {
           transition={{ duration: 0.7 }}
           className="text-center mb-14"
         >
-          <span className="text-[#FF5C28] text-xs font-semibold tracking-widest uppercase mb-4 block">
+          <span className="text-[#8B5CF6] text-xs font-semibold tracking-widest uppercase mb-4 block">
             FAQ
           </span>
           <h2 className="text-4xl md:text-5xl font-black tracking-tight">
@@ -78,7 +78,7 @@ export default function FAQ() {
                 </span>
                 <div className="shrink-0 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center">
                   {open === i ? (
-                    <Minus size={12} className="text-[#FF5C28]" />
+                    <Minus size={12} className="text-[#8B5CF6]" />
                   ) : (
                     <Plus size={12} className="text-white/40" />
                   )}

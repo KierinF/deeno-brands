@@ -37,7 +37,7 @@ export default function PainPoints() {
           BEFORE
         </span>
         <span
-          className="absolute right-[-2vw] top-1/2 -translate-y-1/2 font-black text-[#FF5C28]/[0.06] select-none leading-none"
+          className="absolute right-[-2vw] top-1/2 -translate-y-1/2 font-black text-[#8B5CF6]/[0.06] select-none leading-none"
           style={{ fontSize: "clamp(60px, 10vw, 130px)" }}
         >
           AFTER
@@ -60,7 +60,7 @@ export default function PainPoints() {
           transition={{ duration: 0.6 }}
           className="mb-20"
         >
-          <span className="text-[#FF5C28] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
+          <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
             The difference
           </span>
           <h2
@@ -117,10 +117,10 @@ export default function PainPoints() {
               transition={{ duration: 0.5, delay: 0.35 }}
               className="flex items-center gap-3 mb-10"
             >
-              <div className="w-5 h-5 rounded-full border border-[#FF5C28]/30 flex items-center justify-center">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#FF5C28]" />
+              <div className="w-5 h-5 rounded-full border border-[#8B5CF6]/30 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6]" />
               </div>
-              <span className="text-[#FF5C28] text-xs font-semibold uppercase tracking-widest">
+              <span className="text-[#8B5CF6] text-xs font-semibold uppercase tracking-widest">
                 With Deeno
               </span>
             </motion.div>
@@ -134,7 +134,7 @@ export default function PainPoints() {
                   transition={{ duration: 0.5, delay: 0.45 + i * 0.07 }}
                   className="flex items-start gap-4 group"
                 >
-                  <span className="text-[#FF5C28]/60 font-light text-sm mt-0.5 shrink-0">→</span>
+                  <span className="text-[#8B5CF6]/60 font-light text-sm mt-0.5 shrink-0">→</span>
                   <span className="text-white/70 text-sm leading-relaxed group-hover:text-white transition-colors">
                     {gain}
                   </span>

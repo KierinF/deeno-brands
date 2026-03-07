@@ -1,5 +1,19 @@
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 
+function DinoMark({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="white" aria-hidden="true">
+      <path d="M 0 0 C -1.2 -1.5 -1.2 -7.5 0 -11 C 1.2 -7.5 1.2 -1.5 0 0 Z"
+        transform="translate(12,16)" />
+      <path d="M 0 0 C -1.2 -1.5 -1.2 -7.5 0 -11 C 1.2 -7.5 1.2 -1.5 0 0 Z"
+        transform="translate(12,16) rotate(-36)" />
+      <path d="M 0 0 C -1.2 -1.5 -1.2 -7.5 0 -11 C 1.2 -7.5 1.2 -1.5 0 0 Z"
+        transform="translate(12,16) rotate(36)" />
+      <ellipse cx="12" cy="21" rx="2.2" ry="1.6" />
+    </svg>
+  );
+}
+
 const footerLinks = {
   Services: ["SEO & Local SEO", "Google Ads", "Website Design", "Social Media"],
   Company: ["About Us", "Case Studies", "Blog", "Careers"],
@@ -13,12 +27,12 @@ export default function Footer() {
       {/* Top strip */}
       <div className="border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-[#FF5C28] flex items-center justify-center">
-              <span className="text-white font-black text-xs">D</span>
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-[#8B5CF6] flex items-center justify-center">
+              <DinoMark size={16} />
             </div>
             <span className="text-white font-bold tracking-tight">
-              Deeno<span className="text-[#FF5C28]">.</span>
+              Deeno<span className="text-[#8B5CF6]">.</span>
             </span>
           </div>
           <a

@@ -61,7 +61,7 @@ export default function SectionIndicator() {
               height: active === i ? 8 : 5,
               backgroundColor:
                 active === i
-                  ? "#FF5C28"
+                  ? "#8B5CF6"
                   : hovered === i
                   ? "rgba(255,255,255,0.5)"
                   : "rgba(255,255,255,0.15)",
@@ -89,7 +89,7 @@ export default function SectionIndicator() {
           {active === i && (
             <motion.div
               layoutId="activeGlow"
-              className="absolute w-3 h-3 rounded-full bg-[#FF5C28]/25 blur-sm"
+              className="absolute w-3 h-3 rounded-full bg-[#8B5CF6]/25 blur-sm"
               transition={{ duration: 0.3 }}
             />
           )}

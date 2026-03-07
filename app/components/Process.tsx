@@ -83,7 +83,7 @@ function StepRow({
             transition={{ duration: 0.55, delay: 0.1 + index * 0.06, ease: [0.16, 1, 0.3, 1] }}
             className="relative z-10 flex flex-col gap-1.5"
           >
-            <span className="text-[#FF5C28] font-black text-xs tracking-[0.25em] tabular-nums">
+            <span className="text-[#8B5CF6] font-black text-xs tracking-[0.25em] tabular-nums">
               {step.num}
             </span>
             <span className="text-white/18 text-[10px] uppercase tracking-widest">{step.duration}</span>
@@ -169,7 +169,7 @@ export default function Process() {
             className="flex flex-col md:flex-row md:items-end justify-between gap-6"
           >
             <div>
-              <span className="text-[#FF5C28] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
+              <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
                 How it works
               </span>
               <h2
@@ -218,7 +218,7 @@ export default function Process() {
         >
           <a
             href="#contact"
-            className="inline-flex items-center gap-2.5 bg-[#FF5C28] text-white font-bold px-7 py-3.5 rounded-xl text-sm hover:bg-[#e64f20] transition-colors hover:shadow-[0_0_30px_rgba(255,92,40,0.35)]"
+            className="inline-flex items-center gap-2.5 bg-[#8B5CF6] text-white font-bold px-7 py-3.5 rounded-xl text-sm hover:bg-[#7C3AED] transition-colors hover:shadow-[0_0_30px_rgba(139,92,246,0.35)]"
           >
             Start your audit
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

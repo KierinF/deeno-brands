@@ -35,7 +35,7 @@ export default function EarlyAccess() {
   return (
     <section id="early-access" ref={ref} className="py-32 px-6 relative overflow-hidden">
       {/* Background glow */}
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#FF5C28]/4 blur-[150px] pointer-events-none rounded-full translate-x-1/3 translate-y-1/3" />
+      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#8B5CF6]/4 blur-[150px] pointer-events-none rounded-full translate-x-1/3 translate-y-1/3" />
 
       <div className="max-w-6xl mx-auto relative">
         <div className="grid lg:grid-cols-[1fr_360px] gap-16 lg:gap-20 items-start">
@@ -46,7 +46,7 @@ export default function EarlyAccess() {
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6 }}
             >
-              <span className="text-[#FF5C28] text-[10px] font-bold tracking-[0.3em] uppercase mb-6 block">
+              <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-6 block">
                 Now accepting clients
               </span>
             </motion.div>
@@ -80,7 +80,7 @@ export default function EarlyAccess() {
                   transition={{ duration: 0.5, delay: 0.4 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
                   className="flex items-start gap-5 group"
                 >
-                  <span className="text-[#FF5C28] font-bold text-base shrink-0 mt-0.5 group-hover:translate-x-1 transition-transform duration-200">
+                  <span className="text-[#8B5CF6] font-bold text-base shrink-0 mt-0.5 group-hover:translate-x-1 transition-transform duration-200">
                     {b.arrow}
                   </span>
                   <div>
@@ -101,7 +101,7 @@ export default function EarlyAccess() {
                 href="#contact"
                 className="inline-flex items-center gap-3 text-white font-bold text-sm group"
               >
-                <span className="w-9 h-9 rounded-full bg-[#FF5C28] flex items-center justify-center group-hover:bg-[#e64f20] transition-colors">
+                <span className="w-9 h-9 rounded-full bg-[#8B5CF6] flex items-center justify-center group-hover:bg-[#7C3AED] transition-colors">
                   <ArrowRight size={15} />
                 </span>
                 Apply for a founding spot
@@ -135,7 +135,7 @@ export default function EarlyAccess() {
                 initial={{ scaleY: 0 }}
                 animate={inView ? { scaleY: 1 } : {}}
                 transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-0 top-8 bottom-8 w-px bg-[#FF5C28]/40 origin-top"
+                className="absolute left-0 top-8 bottom-8 w-px bg-[#8B5CF6]/40 origin-top"
               />
 
               {/* Spot badge */}
@@ -143,10 +143,10 @@ export default function EarlyAccess() {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
                 transition={{ duration: 0.5, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute top-0 right-0 w-20 h-20 rounded-full border border-[#FF5C28]/30 flex items-center justify-center"
+                className="absolute top-0 right-0 w-20 h-20 rounded-full border border-[#8B5CF6]/30 flex items-center justify-center"
               >
                 <div className="text-center">
-                  <div className="text-[#FF5C28] font-black text-xl leading-none">1</div>
+                  <div className="text-[#8B5CF6] font-black text-xl leading-none">1</div>
                   <div className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">per city</div>
                 </div>
               </motion.div>

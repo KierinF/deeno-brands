@@ -79,7 +79,7 @@ function StatRow({ stat, index }: { stat: typeof stats[0]; index: number }) {
           <p className="text-white/55 text-sm md:text-base leading-relaxed mb-2 max-w-lg">
             {stat.label}
           </p>
-          <p className="text-[#FF5C28] text-sm font-semibold italic">
+          <p className="text-[#8B5CF6] text-sm font-semibold italic">
             {stat.context}
           </p>
         </motion.div>
@@ -116,7 +116,7 @@ export default function ProofSection() {
   return (
     <section id="proof" className="py-32 px-6 relative overflow-hidden">
       {/* Subtle background gradient */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#FF5C28]/3 blur-[120px] pointer-events-none rounded-full" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#8B5CF6]/3 blur-[120px] pointer-events-none rounded-full" />
 
       <div className="max-w-6xl mx-auto relative">
         {/* Header */}
@@ -126,7 +126,7 @@ export default function ProofSection() {
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[#FF5C28] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
+            <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
               The proof
             </span>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -148,7 +148,7 @@ export default function ProofSection() {
             initial={{ scaleX: 0 }}
             animate={inView ? { scaleX: 1 } : {}}
             transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="h-px bg-[#FF5C28]/40 origin-left mt-10"
+            className="h-px bg-[#8B5CF6]/40 origin-left mt-10"
           />
         </div>
 

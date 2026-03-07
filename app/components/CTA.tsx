@@ -39,7 +39,7 @@ export default function CTA() {
             animate={inView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
           >
-            <span className="text-[#FF5C28] text-[10px] font-bold tracking-[0.3em] uppercase mb-6 block">
+            <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-6 block">
               Get started
             </span>
             <h2
@@ -59,7 +59,7 @@ export default function CTA() {
             <div className="space-y-4 mb-12">
               {perks.map((p) => (
                 <div key={p} className="flex items-center gap-3">
-                  <CheckCircle2 size={15} className="text-[#FF5C28] shrink-0" />
+                  <CheckCircle2 size={15} className="text-[#8B5CF6] shrink-0" />
                   <span className="text-[#0A0A0A]/60 text-sm">{p}</span>
                 </div>
               ))}
@@ -71,8 +71,8 @@ export default function CTA() {
                 href="tel:+16315214302"
                 className="flex items-center gap-3 bg-[#0A0A0A]/5 hover:bg-[#0A0A0A]/8 border border-[#0A0A0A]/10 rounded-xl px-5 py-3.5 transition-colors"
               >
-                <div className="w-8 h-8 rounded-lg bg-[#FF5C28]/10 flex items-center justify-center shrink-0">
-                  <Phone size={14} className="text-[#FF5C28]" />
+                <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center shrink-0">
+                  <Phone size={14} className="text-[#8B5CF6]" />
                 </div>
                 <div>
                   <div className="text-[#0A0A0A]/40 text-[11px]">Call us</div>
@@ -83,8 +83,8 @@ export default function CTA() {
                 href="mailto:kierin@deenobrands.agency"
                 className="flex items-center gap-3 bg-[#0A0A0A]/5 hover:bg-[#0A0A0A]/8 border border-[#0A0A0A]/10 rounded-xl px-5 py-3.5 transition-colors"
               >
-                <div className="w-8 h-8 rounded-lg bg-[#FF5C28]/10 flex items-center justify-center shrink-0">
-                  <Mail size={14} className="text-[#FF5C28]" />
+                <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/10 flex items-center justify-center shrink-0">
+                  <Mail size={14} className="text-[#8B5CF6]" />
                 </div>
                 <div>
                   <div className="text-[#0A0A0A]/40 text-[11px]">Email</div>
@@ -123,7 +123,7 @@ export default function CTA() {
                             type="text"
                             required
                             placeholder={label === "First Name" ? "John" : "Smith"}
-                            className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#0A0A0A]/25 focus:outline-none focus:border-[#FF5C28]/50 transition-colors"
+                            className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#0A0A0A]/25 focus:outline-none focus:border-[#8B5CF6]/50 transition-colors"
                           />
                         </div>
                       ))}
@@ -137,7 +137,7 @@ export default function CTA() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@yourbusiness.com"
-                        className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#0A0A0A]/25 focus:outline-none focus:border-[#FF5C28]/50 transition-colors"
+                        className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#0A0A0A]/25 focus:outline-none focus:border-[#8B5CF6]/50 transition-colors"
                       />
                     </div>
 
@@ -146,13 +146,13 @@ export default function CTA() {
                       <input
                         type="tel"
                         placeholder="(555) 000-0000"
-                        className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#0A0A0A]/25 focus:outline-none focus:border-[#FF5C28]/50 transition-colors"
+                        className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A] placeholder-[#0A0A0A]/25 focus:outline-none focus:border-[#8B5CF6]/50 transition-colors"
                       />
                     </div>
 
                     <div>
                       <label className="text-[#0A0A0A]/40 text-xs mb-1.5 block">Your Trade</label>
-                      <select className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A]/70 focus:outline-none focus:border-[#FF5C28]/50 transition-colors appearance-none">
+                      <select className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A]/70 focus:outline-none focus:border-[#8B5CF6]/50 transition-colors appearance-none">
                         <option value="">Select your trade...</option>
                         {["HVAC", "Plumbing", "Roofing", "Electrical", "Landscaping", "Pest Control", "Cleaning", "Other"].map(
                           (t) => <option key={t} value={t}>{t}</option>
@@ -162,7 +162,7 @@ export default function CTA() {
 
                     <div>
                       <label className="text-[#0A0A0A]/40 text-xs mb-1.5 block">Monthly Marketing Budget</label>
-                      <select className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A]/70 focus:outline-none focus:border-[#FF5C28]/50 transition-colors appearance-none">
+                      <select className="w-full bg-[#F0EBE3] border border-[#D8D3CB] rounded-xl px-4 py-3 text-sm text-[#0A0A0A]/70 focus:outline-none focus:border-[#8B5CF6]/50 transition-colors appearance-none">
                         <option value="">Select budget...</option>
                         {["Under $1,000", "$1,000–$3,000", "$3,000–$7,000", "$7,000–$15,000", "$15,000+"].map(
                           (b) => <option key={b} value={b}>{b}</option>
@@ -174,7 +174,7 @@ export default function CTA() {
                       <button
                         type="submit"
                         disabled={formState === "submitting"}
-                        className="w-full bg-[#FF5C28] hover:bg-[#e64f20] disabled:bg-[#FF5C28]/70 text-white font-bold py-4 rounded-xl transition-all duration-200 hover:shadow-[0_8px_30px_rgba(255,92,40,0.4)] flex items-center justify-center gap-2 text-sm"
+                        className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] disabled:bg-[#8B5CF6]/70 text-white font-bold py-4 rounded-xl transition-all duration-200 hover:shadow-[0_8px_30px_rgba(139,92,246,0.4)] flex items-center justify-center gap-2 text-sm"
                       >
                         {formState === "submitting" ? (
                           <>
@@ -209,12 +209,12 @@ export default function CTA() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ duration: 0.5, delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
-                    className="w-16 h-16 rounded-full bg-[#FF5C28]/10 flex items-center justify-center mb-6"
+                    className="w-16 h-16 rounded-full bg-[#8B5CF6]/10 flex items-center justify-center mb-6"
                   >
                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
                       <motion.path
                         d="M5 14l7 7L23 7"
-                        stroke="#FF5C28"
+                        stroke="#8B5CF6"
                         strokeWidth="2.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -266,14 +266,14 @@ export default function CTA() {
                       href="tel:+16315214302"
                       className="flex items-center gap-3 bg-[#0A0A0A]/4 hover:bg-[#0A0A0A]/7 border border-[#0A0A0A]/8 rounded-xl px-4 py-3 transition-colors"
                     >
-                      <Phone size={13} className="text-[#FF5C28] shrink-0" />
+                      <Phone size={13} className="text-[#8B5CF6] shrink-0" />
                       <span className="text-[#0A0A0A] font-semibold text-sm">(631) 521-4302</span>
                     </a>
                     <a
                       href="mailto:kierin@deenobrands.agency"
                       className="flex items-center gap-3 bg-[#0A0A0A]/4 hover:bg-[#0A0A0A]/7 border border-[#0A0A0A]/8 rounded-xl px-4 py-3 transition-colors"
                     >
-                      <Mail size={13} className="text-[#FF5C28] shrink-0" />
+                      <Mail size={13} className="text-[#8B5CF6] shrink-0" />
                       <span className="text-[#0A0A0A] font-semibold text-sm">kierin@deenobrands.agency</span>
                     </a>
                   </motion.div>

@@ -1,5 +1,6 @@
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
+import StatsSection from "./components/StatsSection";
 import PainPoints from "./components/PainPoints";
 import Services from "./components/Services";
 import Results from "./components/Results";
@@ -14,6 +15,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#08080E] text-white">
       <Nav />
       <Hero />
+      <StatsSection />
       <PainPoints />
       <Services />
       <Results />

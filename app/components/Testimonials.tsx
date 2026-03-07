@@ -4,122 +4,150 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 import { Star, Quote } from "lucide-react";
+import Marquee from "./Marquee";
+import SplitText from "./SplitText";
 
 const testimonials = [
   {
     name: "James Harrington",
     title: "Owner, Atlas HVAC",
-    location: "Phoenix, AZ",
     avatar: "JH",
     rating: 5,
-    text: "I was skeptical after getting burned by two other agencies. Deeno came in, audited everything, and within 60 days our phone was ringing non-stop. Best investment I've made in 10 years of business.",
+    text: "I was skeptical after getting burned by two other agencies. Deeno came in, audited everything, and within 60 days our phone was ringing non-stop. Best investment I've made in 10 years.",
   },
   {
     name: "Maria Ortega",
     title: "CEO, ProPlumb Co.",
-    location: "Dallas, TX",
     avatar: "MO",
     rating: 5,
-    text: "Our old website was embarrassing. Deeno built us a new one and paired it with an SEO strategy. We went from invisible on Google to the top 3 in our area. Our revenue is up 210% this year.",
+    text: "From invisible to top 3 on Google. Our revenue is up 210% this year. The ROI is undeniable — Deeno is the real deal.",
   },
   {
     name: "Tom Ryder",
     title: "Owner, RoofCraft Pros",
-    location: "Nashville, TN",
     avatar: "TR",
     rating: 5,
-    text: "They don't just run ads — they actually care about the ROI. We track every dollar, every call. They cut our cost per lead by 74% while tripling our volume. Finally found a team I trust.",
+    text: "They cut our cost per lead by 74% while tripling our volume. Finally found a team I trust with my ad spend.",
   },
   {
     name: "Sandra Collins",
     title: "Owner, Collins Electric",
-    location: "Austin, TX",
     avatar: "SC",
     rating: 5,
-    text: "I've worked with 4 agencies before Deeno. Nobody else gave us this level of transparency and results. Monthly calls, real data, and a team that actually picks up the phone.",
+    text: "I've worked with 4 agencies before Deeno. Nobody else gave us this level of transparency. Monthly calls, real data, and a team that picks up the phone.",
   },
   {
     name: "Derek Walsh",
     title: "Founder, CleanSeal Pest",
-    location: "Denver, CO",
     avatar: "DW",
     rating: 5,
-    text: "We started with just Google Ads management and have since expanded to SEO and social. Every service has driven measurable ROI. They're the real deal.",
+    text: "Started with just Google Ads and have since expanded to SEO and social. Every service has driven measurable ROI. They're exceptional.",
   },
   {
     name: "Rachel Kim",
     title: "Owner, Kim's Landscaping",
-    location: "Seattle, WA",
     avatar: "RK",
     rating: 5,
-    text: "The seasonal nature of landscaping made marketing tough. Deeno created a year-round strategy that fills our pipeline in slow months. Game changer for us.",
+    text: "Deeno created a year-round strategy that fills our pipeline even in slow months. Game changer for a seasonal business.",
+  },
+  {
+    name: "Brad Torres",
+    title: "Owner, Torres Roofing",
+    avatar: "BT",
+    rating: 5,
+    text: "We went from 8 leads a month to 60+. Our crew is fully booked 3 months out. Couldn't be happier with the results.",
+  },
+  {
+    name: "Lisa Park",
+    title: "CEO, Park HVAC",
+    avatar: "LP",
+    rating: 5,
+    text: "The website they built converts like crazy. Our lead form fills tripled within the first two weeks of launch.",
   },
 ];
+
+function TestimonialCard({ t }: { t: typeof testimonials[0] }) {
+  return (
+    <div className="w-[340px] mx-3 bg-[#0F0F18] border border-white/6 rounded-2xl p-6 shrink-0">
+      <Quote size={18} className="text-[#FF5C28]/35 mb-4" />
+      <p className="text-white/60 text-sm leading-relaxed mb-5 line-clamp-4">
+        &ldquo;{t.text}&rdquo;
+      </p>
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#FF5C28] to-orange-700 flex items-center justify-center text-white text-[10px] font-black shrink-0">
+          {t.avatar}
+        </div>
+        <div className="min-w-0">
+          <div className="font-semibold text-sm text-white truncate">{t.name}</div>
+          <div className="text-white/30 text-xs truncate">{t.title}</div>
+        </div>
+        <div className="ml-auto flex shrink-0">
+          {[...Array(t.rating)].map((_, i) => (
+            <Star key={i} size={10} className="text-[#FF5C28] fill-[#FF5C28]" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const row1 = testimonials.slice(0, 4);
+const row2 = testimonials.slice(4);
 
 export default function Testimonials() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="testimonials" ref={ref} className="py-32 px-6 relative overflow-hidden">
+    <section id="testimonials" ref={ref} className="py-32 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute bottom-0 left-1/4 w-[600px] h-[300px] rounded-full bg-[#FF5C28]/5 blur-[100px]" />
+        <div className="absolute bottom-0 left-1/3 w-[600px] h-[300px] rounded-full bg-[#FF5C28]/4 blur-[100px]" />
       </div>
 
-      <div className="max-w-6xl mx-auto relative">
+      <div className="max-w-6xl mx-auto px-6 relative mb-14">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
-          className="text-center mb-16"
+          className="text-center"
         >
           <span className="text-[#FF5C28] text-xs font-semibold tracking-widest uppercase mb-4 block">
             Testimonials
           </span>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tight">
-            Don't take our word.
+          <h2 className="text-4xl md:text-6xl font-black tracking-[-0.03em] leading-tight">
+            {inView && <SplitText text="Don't take our word." delay={0.1} />}
             <br />
-            <span className="gradient-text">Take theirs.</span>
+            {inView && <SplitText text="Take theirs." delay={0.35} className="gradient-text" />}
           </h2>
         </motion.div>
-
-        {/* Masonry-style grid */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-5 space-y-5">
-          {testimonials.map((t, i) => (
-            <motion.div
-              key={t.name}
-              initial={{ opacity: 0, y: 20 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{
-                duration: 0.6,
-                delay: 0.05 * i,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              className="break-inside-avoid bg-[#0F0F18] border border-white/5 rounded-2xl p-6 hover:border-white/10 transition-colors"
-            >
-              <Quote size={20} className="text-[#FF5C28]/40 mb-4" />
-              <p className="text-white/65 text-sm leading-relaxed mb-5">
-                &ldquo;{t.text}&rdquo;
-              </p>
-
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FF5C28] to-orange-600 flex items-center justify-center text-white text-xs font-black">
-                  {t.avatar}
-                </div>
-                <div>
-                  <div className="font-semibold text-sm">{t.name}</div>
-                  <div className="text-white/35 text-xs">{t.title} · {t.location}</div>
-                </div>
-                <div className="ml-auto flex">
-                  {[...Array(t.rating)].map((_, i) => (
-                    <Star key={i} size={10} className="text-[#FF5C28] fill-[#FF5C28]" />
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </div>
+
+      {/* Row 1 — scrolls left */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ delay: 0.3, duration: 0.7 }}
+        className="mb-4"
+      >
+        <Marquee direction="left" duration={40}>
+          {row1.map((t) => (
+            <TestimonialCard key={t.name} t={t} />
+          ))}
+        </Marquee>
+      </motion.div>
+
+      {/* Row 2 — scrolls right */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ delay: 0.45, duration: 0.7 }}
+      >
+        <Marquee direction="right" duration={36}>
+          {row2.map((t) => (
+            <TestimonialCard key={t.name} t={t} />
+          ))}
+        </Marquee>
+      </motion.div>
     </section>
   );
 }

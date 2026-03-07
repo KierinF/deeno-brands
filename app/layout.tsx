@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Cursor from "./components/Cursor";
 
 export const metadata: Metadata = {
   title: "Deeno Brands | Home Services Marketing Agency",
@@ -22,9 +23,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className="antialiased"
-      >
+      <body className="antialiased">
+        <Cursor />
         {children}
       </body>
     </html>

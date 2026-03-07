@@ -1,41 +1,37 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { ClipboardList, Lightbulb, Rocket, BarChart3 } from "lucide-react";
+import SplitText from "./SplitText";
 
 const steps = [
   {
     num: "01",
     icon: ClipboardList,
     title: "Free Growth Audit",
-    description:
-      "We dig into your current marketing, competitors, and local market. No fluff — you get a real analysis of what's working, what's broken, and where the money is.",
+    description: "We dig into your current marketing, competitors, and local market. You get a real analysis of what's broken and where the money is.",
     duration: "Week 1",
   },
   {
     num: "02",
     icon: Lightbulb,
     title: "Custom Strategy",
-    description:
-      "We build a 90-day roadmap specific to your trade, market, and goals. Every channel has a purpose. Every dollar has a destination.",
+    description: "We build a 90-day roadmap specific to your trade, market, and goals. Every channel has a purpose. Every dollar has a destination.",
     duration: "Week 1–2",
   },
   {
     num: "03",
     icon: Rocket,
     title: "Launch & Execute",
-    description:
-      "Our team goes heads-down on building campaigns, optimizing your site, and getting your GMB firing. Most clients see results within 30 days.",
+    description: "Our team builds campaigns, optimizes your site, and gets your GMB firing. Most clients see leads within 30 days.",
     duration: "Week 2–4",
   },
   {
     num: "04",
     icon: BarChart3,
     title: "Report & Scale",
-    description:
-      "Monthly calls, transparent dashboards, and data-driven decisions. When something works, we double down. We scale what converts.",
+    description: "Monthly strategy calls, transparent dashboards, data-driven decisions. We scale what converts and cut what doesn't.",
     duration: "Ongoing",
   },
 ];
@@ -45,8 +41,15 @@ export default function Process() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="process" ref={ref} className="py-32 px-6 relative">
-      <div className="max-w-6xl mx-auto">
+    <section id="process" ref={ref} className="py-32 px-6 relative overflow-hidden">
+      {/* Background large text watermark */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+        <span className="text-[20vw] font-black text-white/[0.015] select-none tracking-tighter leading-none">
+          PROCESS
+        </span>
+      </div>
+
+      <div className="max-w-5xl mx-auto relative">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -56,65 +59,59 @@ export default function Process() {
           <span className="text-[#FF5C28] text-xs font-semibold tracking-widest uppercase mb-4 block">
             How it works
           </span>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
-            From audit to
+          <h2 className="text-4xl md:text-6xl font-black tracking-[-0.03em] leading-tight">
+            {inView && <SplitText text="Audit to booked jobs" delay={0.1} />}
             <br />
-            <span className="gradient-text">booked jobs in 30 days.</span>
+            {inView && <SplitText text="in 30 days." delay={0.35} className="gradient-text" />}
           </h2>
         </motion.div>
 
-        {/* Steps */}
-        <div className="relative">
-          {/* Connector line */}
-          <div className="absolute left-[28px] lg:left-1/2 top-12 bottom-12 w-px bg-gradient-to-b from-[#FF5C28]/30 via-[#FF5C28]/10 to-transparent hidden sm:block lg:hidden" />
+        <div className="grid lg:grid-cols-4 gap-5">
+          {steps.map((step, i) => {
+            const Icon = step.icon;
+            return (
+              <motion.div
+                key={step.num}
+                initial={{ opacity: 0, y: 30 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{
+                  duration: 0.6,
+                  delay: 0.15 + i * 0.12,
+                  ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+                }}
+                className="relative group"
+              >
+                {/* Connector */}
+                {i < 3 && (
+                  <motion.div
+                    initial={{ scaleX: 0 }}
+                    animate={inView ? { scaleX: 1 } : {}}
+                    transition={{ delay: 0.5 + i * 0.2, duration: 0.5 }}
+                    className="hidden lg:block absolute top-[2.75rem] left-full w-5 h-px bg-gradient-to-r from-[#FF5C28]/40 to-white/10 origin-left z-10"
+                  />
+                )}
 
-          <div className="space-y-8 lg:space-y-0 lg:grid lg:grid-cols-4 lg:gap-6">
-            {steps.map((step, i) => {
-              const Icon = step.icon;
-              return (
-                <motion.div
-                  key={step.num}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={inView ? { opacity: 1, y: 0 } : {}}
-                  transition={{
-                    duration: 0.6,
-                    delay: 0.1 + i * 0.12,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="relative"
-                >
-                  {/* Connector arrow on desktop */}
-                  {i < 3 && (
-                    <div className="hidden lg:block absolute top-8 right-0 translate-x-1/2 z-10">
-                      <div className="w-3 h-px bg-white/10" />
+                <div className="bg-[#0F0F18] border border-white/5 rounded-2xl p-6 h-full group-hover:border-[#FF5C28]/15 transition-all duration-300 group-hover:-translate-y-1">
+                  {/* Number watermark */}
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-11 h-11 rounded-xl bg-[#FF5C28]/10 border border-[#FF5C28]/20 flex items-center justify-center">
+                      <Icon size={18} className="text-[#FF5C28]" />
                     </div>
-                  )}
-
-                  <div className="bg-[#0F0F18] border border-white/5 rounded-2xl p-6 h-full hover:border-[#FF5C28]/15 transition-colors">
-                    {/* Step number + icon */}
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-12 h-12 rounded-xl bg-[#FF5C28]/10 border border-[#FF5C28]/20 flex items-center justify-center">
-                        <Icon size={20} className="text-[#FF5C28]" />
-                      </div>
-                      <span className="text-white/15 font-black text-2xl">
-                        {step.num}
-                      </span>
-                    </div>
-
-                    {/* Duration badge */}
-                    <div className="inline-block bg-white/5 text-white/40 text-xs px-2.5 py-1 rounded-full mb-3">
-                      {step.duration}
-                    </div>
-
-                    <h3 className="text-lg font-bold mb-2">{step.title}</h3>
-                    <p className="text-white/45 text-sm leading-relaxed">
-                      {step.description}
-                    </p>
+                    <span className="text-[#FF5C28]/20 font-black text-4xl leading-none">
+                      {step.num}
+                    </span>
                   </div>
-                </motion.div>
-              );
-            })}
-          </div>
+
+                  <div className="inline-block bg-white/5 text-white/35 text-xs px-2.5 py-1 rounded-full mb-3">
+                    {step.duration}
+                  </div>
+
+                  <h3 className="text-base font-bold mb-2 text-white/90">{step.title}</h3>
+                  <p className="text-white/40 text-sm leading-relaxed">{step.description}</p>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>

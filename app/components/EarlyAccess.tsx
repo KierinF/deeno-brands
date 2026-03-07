@@ -3,26 +3,21 @@
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
-import SplitText from "./SplitText";
 
 const benefits = [
   {
-    arrow: "→",
     title: "Direct access to Kierin",
     detail: "No account managers, no handoffs. You work directly with the founder.",
   },
   {
-    arrow: "→",
     title: "Founding rate locked for 12 months",
     detail: "Early clients get our best pricing, frozen for a full year. Guaranteed in writing.",
   },
   {
-    arrow: "→",
     title: "Week-1 onboarding, results tracked from day one",
     detail: "Campaigns live within 7 days. Full tracking stack installed before anything runs.",
   },
   {
-    arrow: "→",
     title: "First-mover advantage in your market",
     detail: "We take one client per trade per city. Your competitor can't come in once you're in.",
   },
@@ -33,12 +28,21 @@ export default function EarlyAccess() {
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="early-access" ref={ref} className="py-32 px-6 relative overflow-hidden">
-      {/* Background glow */}
-      <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-[#8B5CF6]/4 blur-[150px] pointer-events-none rounded-full translate-x-1/3 translate-y-1/3" />
+    <section id="early-access" ref={ref} className="py-32 px-6 relative overflow-hidden" style={{ background: "#181410" }}>
+      {/* Warm glow */}
+      <div
+        className="absolute bottom-0 right-0 pointer-events-none"
+        style={{
+          width: 600, height: 600,
+          borderRadius: "50%",
+          background: "rgba(139,92,246,0.04)",
+          filter: "blur(150px)",
+          transform: "translate(33%, 33%)",
+        }}
+      />
 
       <div className="max-w-6xl mx-auto relative">
-        <div className="grid lg:grid-cols-[1fr_360px] gap-16 lg:gap-20 items-start">
+        <div className="grid lg:grid-cols-[1fr_340px] gap-16 lg:gap-20 items-start">
           {/* Left column */}
           <div>
             <motion.div
@@ -46,46 +50,81 @@ export default function EarlyAccess() {
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6 }}
             >
-              <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-6 block">
-                Now accepting clients
+              <span
+                style={{
+                  fontFamily: '"SF Mono","Fira Code",monospace',
+                  fontSize: 10,
+                  letterSpacing: "0.2em",
+                  color: "rgba(201,168,76,0.65)",
+                  textTransform: "uppercase",
+                  display: "block",
+                  marginBottom: 20,
+                }}
+              >
+                [ EXHIBIT 06 // FOUNDING COHORT ]
               </span>
             </motion.div>
 
-            <h2
-              className="font-black tracking-[-0.04em] leading-tight text-white mb-8"
-              style={{ fontSize: "clamp(38px, 5.5vw, 80px)" }}
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              animate={inView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.7, delay: 0.1 }}
+              className="mb-8"
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: "clamp(34px, 5vw, 72px)",
+                color: "#F2E8D5",
+                lineHeight: 1.15,
+                letterSpacing: "-0.02em",
+              }}
             >
-              {inView && <SplitText text="Get in before" delay={0.1} />}
+              Join the living.
               <br />
-              {inView && <SplitText text="everyone else." delay={0.3} className="gradient-text" />}
-            </h2>
+              <span className="gradient-text">Before it&apos;s too late.</span>
+            </motion.h2>
 
             <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.35 }}
-              className="text-white/45 text-base leading-relaxed mb-14 max-w-lg"
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="leading-relaxed mb-14 max-w-lg text-base"
+              style={{ color: "rgba(242,232,213,0.4)" }}
             >
-              We&apos;re selectively onboarding our first clients in 2025. We only take one business per
-              trade per city — so the window for your market is open right now, and may not be for long.
+              We&apos;re selectively documenting the first businesses that chose to evolve.
+              One client per trade per city — the window for your market is open now,
+              and may not be for long.
             </motion.p>
 
             {/* Benefits list */}
-            <div className="space-y-8 mb-14">
+            <div className="space-y-7 mb-14">
               {benefits.map((b, i) => (
                 <motion.div
                   key={b.title}
                   initial={{ opacity: 0, x: -16 }}
                   animate={inView ? { opacity: 1, x: 0 } : {}}
-                  transition={{ duration: 0.5, delay: 0.4 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 0.5, delay: 0.35 + i * 0.08 }}
                   className="flex items-start gap-5 group"
                 >
-                  <span className="text-[#8B5CF6] font-bold text-base shrink-0 mt-0.5 group-hover:translate-x-1 transition-transform duration-200">
-                    {b.arrow}
+                  <span
+                    style={{ color: "#C9A84C", fontSize: 14, flexShrink: 0, marginTop: 2 }}
+                    className="group-hover:translate-x-0.5 transition-transform duration-200"
+                  >
+                    →
                   </span>
                   <div>
-                    <div className="text-white font-semibold text-base mb-1">{b.title}</div>
-                    <div className="text-white/35 text-sm leading-relaxed">{b.detail}</div>
+                    <div
+                      className="mb-1"
+                      style={{
+                        fontFamily: "'Playfair Display', Georgia, serif",
+                        fontSize: 16,
+                        color: "#F2E8D5",
+                      }}
+                    >
+                      {b.title}
+                    </div>
+                    <div className="text-sm leading-relaxed" style={{ color: "rgba(242,232,213,0.35)" }}>
+                      {b.detail}
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -95,13 +134,17 @@ export default function EarlyAccess() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.75 }}
+              transition={{ duration: 0.5, delay: 0.72 }}
             >
               <a
                 href="#contact"
-                className="inline-flex items-center gap-3 text-white font-bold text-sm group"
+                className="inline-flex items-center gap-3 font-bold text-sm group"
+                style={{ color: "#F2E8D5" }}
               >
-                <span className="w-9 h-9 rounded-full bg-[#8B5CF6] flex items-center justify-center group-hover:bg-[#7C3AED] transition-colors">
+                <span
+                  className="w-9 h-9 rounded-full flex items-center justify-center transition-colors group-hover:opacity-80"
+                  style={{ background: "#8B5CF6" }}
+                >
                   <ArrowRight size={15} />
                 </span>
                 Apply for a founding spot
@@ -109,45 +152,70 @@ export default function EarlyAccess() {
             </motion.div>
           </div>
 
-          {/* Right column — large typographic element */}
+          {/* Right column — typographic */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={inView ? { opacity: 1 } : {}}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="hidden lg:flex items-center justify-center relative"
           >
-            {/* FOUNDING vertical text */}
-            <div className="relative h-[500px] flex items-center justify-center">
+            <div className="relative h-[480px] flex items-center justify-center">
+              {/* FOUNDING vertical text */}
               <span
-                className="font-black text-white/[0.04] select-none leading-none tracking-[-0.04em]"
+                className="select-none leading-none"
                 style={{
-                  fontSize: "clamp(60px, 7vw, 110px)",
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: "clamp(55px, 7vw, 100px)",
+                  color: "rgba(201,168,76,0.06)",
                   writingMode: "vertical-rl",
                   textOrientation: "mixed",
                   transform: "rotate(180deg)",
+                  letterSpacing: "-0.02em",
                 }}
               >
                 FOUNDING
               </span>
 
-              {/* Thin vertical orange accent line */}
+              {/* Gold accent line */}
               <motion.div
                 initial={{ scaleY: 0 }}
                 animate={inView ? { scaleY: 1 } : {}}
                 transition={{ duration: 1, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-0 top-8 bottom-8 w-px bg-[#8B5CF6]/40 origin-top"
+                className="absolute left-0 top-8 bottom-8 w-px origin-top"
+                style={{ background: "rgba(201,168,76,0.3)" }}
               />
 
               {/* Spot badge */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.5, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute top-0 right-0 w-20 h-20 rounded-full border border-[#8B5CF6]/30 flex items-center justify-center"
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="absolute top-0 right-0 w-20 h-20 rounded-full flex items-center justify-center"
+                style={{ border: "1px solid rgba(201,168,76,0.25)" }}
               >
                 <div className="text-center">
-                  <div className="text-[#8B5CF6] font-black text-xl leading-none">1</div>
-                  <div className="text-white/30 text-[8px] uppercase tracking-widest mt-0.5">per city</div>
+                  <div
+                    style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: 22,
+                      color: "#C9A84C",
+                      lineHeight: 1,
+                    }}
+                  >
+                    1
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: '"SF Mono","Fira Code",monospace',
+                      fontSize: 7,
+                      letterSpacing: "0.15em",
+                      color: "rgba(201,168,76,0.4)",
+                      textTransform: "uppercase",
+                      marginTop: 3,
+                    }}
+                  >
+                    per city
+                  </div>
                 </div>
               </motion.div>
 
@@ -155,12 +223,33 @@ export default function EarlyAccess() {
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={inView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.5, delay: 0.85, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute bottom-6 right-0 w-20 h-20 rounded-full border border-white/8 flex items-center justify-center"
+                transition={{ duration: 0.5, delay: 0.85 }}
+                className="absolute bottom-6 right-0 w-20 h-20 rounded-full flex items-center justify-center"
+                style={{ border: "1px solid rgba(242,232,213,0.08)" }}
               >
                 <div className="text-center">
-                  <div className="text-white/50 font-black text-xl leading-none">1</div>
-                  <div className="text-white/20 text-[8px] uppercase tracking-widest mt-0.5">per trade</div>
+                  <div
+                    style={{
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontSize: 22,
+                      color: "rgba(242,232,213,0.4)",
+                      lineHeight: 1,
+                    }}
+                  >
+                    1
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: '"SF Mono","Fira Code",monospace',
+                      fontSize: 7,
+                      letterSpacing: "0.15em",
+                      color: "rgba(242,232,213,0.2)",
+                      textTransform: "uppercase",
+                      marginTop: 3,
+                    }}
+                  >
+                    per trade
+                  </div>
                 </div>
               </motion.div>
             </div>

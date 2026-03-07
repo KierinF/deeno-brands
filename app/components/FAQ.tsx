@@ -1,7 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useRef, useState } from "react";
 import { Plus, Minus } from "lucide-react";
 
@@ -42,45 +41,72 @@ export default function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
 
   return (
-    <section id="faq" ref={ref} className="py-32 px-6">
+    <section id="faq" ref={ref} className="py-32 px-6" style={{ background: "#0E0B07" }}>
       <div className="max-w-3xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.7 }}
-          className="text-center mb-14"
+          className="text-center mb-16"
         >
-          <span className="text-[#8B5CF6] text-xs font-semibold tracking-widest uppercase mb-4 block">
-            FAQ
+          <span
+            style={{
+              fontFamily: '"SF Mono","Fira Code",monospace',
+              fontSize: 10,
+              letterSpacing: "0.2em",
+              color: "rgba(201,168,76,0.65)",
+              textTransform: "uppercase",
+              display: "block",
+              marginBottom: 16,
+            }}
+          >
+            [ EXHIBIT 07 // FIELD ENQUIRIES ]
           </span>
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight">
+          <h2
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "clamp(28px, 4.5vw, 54px)",
+              color: "#F2E8D5",
+              lineHeight: 1.2,
+              letterSpacing: "-0.02em",
+            }}
+          >
             Questions we get
             <br />
             <span className="gradient-text">all the time.</span>
           </h2>
         </motion.div>
 
-        <div className="space-y-3">
+        <div className="space-y-0" style={{ borderTop: "1px solid rgba(201,168,76,0.12)" }}>
           {faqs.map((faq, i) => (
             <motion.div
               key={faq.q}
               initial={{ opacity: 0, y: 12 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.05 * i }}
-              className="bg-[#0F0F18] border border-white/5 rounded-xl overflow-hidden hover:border-white/8 transition-colors"
+              style={{ borderBottom: "1px solid rgba(201,168,76,0.12)" }}
             >
               <button
                 onClick={() => setOpen(open === i ? null : i)}
-                className="w-full text-left px-6 py-5 flex items-center justify-between gap-4"
+                className="w-full text-left px-0 py-5 flex items-center justify-between gap-4"
               >
-                <span className="font-semibold text-sm md:text-base text-white/85 group-hover:text-white">
+                <span
+                  className="font-medium text-sm md:text-base transition-colors"
+                  style={{ color: open === i ? "#F2E8D5" : "rgba(242,232,213,0.7)" }}
+                >
                   {faq.q}
                 </span>
-                <div className="shrink-0 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center">
+                <div
+                  className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-all"
+                  style={{
+                    background: open === i ? "rgba(201,168,76,0.12)" : "rgba(242,232,213,0.04)",
+                    border: `1px solid ${open === i ? "rgba(201,168,76,0.3)" : "rgba(242,232,213,0.08)"}`,
+                  }}
+                >
                   {open === i ? (
-                    <Minus size={12} className="text-[#8B5CF6]" />
+                    <Minus size={11} style={{ color: "#C9A84C" }} />
                   ) : (
-                    <Plus size={12} className="text-white/40" />
+                    <Plus size={11} style={{ color: "rgba(242,232,213,0.35)" }} />
                   )}
                 </div>
               </button>
@@ -94,7 +120,14 @@ export default function FAQ() {
                     transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-5 text-white/45 text-sm leading-relaxed border-t border-white/5 pt-4">
+                    <div
+                      className="pb-5 text-sm leading-relaxed"
+                      style={{
+                        color: "rgba(242,232,213,0.4)",
+                        borderTop: "1px solid rgba(201,168,76,0.08)",
+                        paddingTop: 12,
+                      }}
+                    >
                       {faq.a}
                     </div>
                   </motion.div>

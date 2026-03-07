@@ -1,6 +1,6 @@
-import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
+"use client";
 
-function DinoMark({ size = 20 }: { size?: number }) {
+function DinoMark({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="white" aria-hidden="true">
       <path d="M 0 0 C -1.2 -1.5 -1.2 -7.5 0 -11 C 1.2 -7.5 1.2 -1.5 0 0 Z"
@@ -15,29 +15,41 @@ function DinoMark({ size = 20 }: { size?: number }) {
 }
 
 const footerLinks = {
-  Services: ["SEO & Local SEO", "Google Ads", "Website Design", "Social Media"],
-  Company: ["About Us", "Case Studies", "Blog", "Careers"],
+  Services: ["SEO & Local SEO", "Google & Meta Ads", "Website Design", "Social Media"],
+  Company: ["About", "Contact"],
   Trades: ["HVAC", "Plumbing", "Roofing", "Electrical", "Landscaping"],
   Legal: ["Privacy Policy", "Terms of Service"],
 };
 
 export default function Footer() {
   return (
-    <footer className="bg-[#08080E] border-t border-white/5">
+    <footer style={{ background: "#0E0B07", borderTop: "1px solid rgba(201,168,76,0.1)" }}>
       {/* Top strip */}
-      <div className="border-b border-white/5">
+      <div style={{ borderBottom: "1px solid rgba(201,168,76,0.08)" }}>
         <div className="max-w-6xl mx-auto px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#8B5CF6] flex items-center justify-center">
+            <div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "#8B5CF6" }}
+            >
               <DinoMark size={16} />
             </div>
-            <span className="text-white font-bold tracking-tight">
-              Deeno<span className="text-[#8B5CF6]">.</span>
+            <span
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontSize: 17,
+                color: "#F2E8D5",
+              }}
+            >
+              Deeno<span style={{ color: "#8B5CF6" }}>.</span>
             </span>
           </div>
           <a
             href="mailto:kierin@deenobrands.agency"
-            className="text-white/30 hover:text-white text-sm transition-colors"
+            className="text-sm transition-colors"
+            style={{ color: "rgba(242,232,213,0.25)" }}
+            onMouseEnter={e => (e.currentTarget.style.color = "#F2E8D5")}
+            onMouseLeave={e => (e.currentTarget.style.color = "rgba(242,232,213,0.25)")}
           >
             kierin@deenobrands.agency
           </a>
@@ -48,32 +60,54 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-14">
           {/* Brand col */}
           <div className="col-span-2 md:col-span-1">
-            <p className="text-white/25 text-sm leading-relaxed mb-6 max-w-[180px]">
-              Home Services Marketing. Built for trades that want to win.
+            <p
+              className="text-sm leading-relaxed mb-6 max-w-[180px]"
+              style={{
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontStyle: "italic",
+                color: "rgba(242,232,213,0.2)",
+              }}
+            >
+              Helping home services survive the extinction.
             </p>
-            <div className="flex gap-2.5">
-              {[Facebook, Instagram, Linkedin, Twitter].map((Icon, i) => (
-                <a
-                  key={i}
-                  href="#"
-                  className="w-8 h-8 rounded-lg bg-white/4 hover:bg-white/8 flex items-center justify-center transition-colors"
-                >
-                  <Icon size={13} className="text-white/35" />
-                </a>
-              ))}
+            <div
+              style={{
+                fontFamily: '"SF Mono","Fira Code",monospace',
+                fontSize: 8,
+                letterSpacing: "0.15em",
+                color: "rgba(201,168,76,0.25)",
+                textTransform: "uppercase",
+              }}
+            >
+              EST. 2025 // HOME SERVICES
             </div>
           </div>
 
           {/* Link groups */}
           {Object.entries(footerLinks).map(([group, links]) => (
             <div key={group}>
-              <h4 className="text-white/35 text-[10px] font-semibold uppercase tracking-widest mb-4">
+              <h4
+                className="mb-4"
+                style={{
+                  fontFamily: '"SF Mono","Fira Code",monospace',
+                  fontSize: 9,
+                  letterSpacing: "0.18em",
+                  color: "rgba(201,168,76,0.4)",
+                  textTransform: "uppercase",
+                }}
+              >
                 {group}
               </h4>
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-white/25 hover:text-white/60 text-sm transition-colors">
+                    <a
+                      href="#"
+                      className="text-sm transition-colors"
+                      style={{ color: "rgba(242,232,213,0.22)" }}
+                      onMouseEnter={e => (e.currentTarget.style.color = "rgba(242,232,213,0.6)")}
+                      onMouseLeave={e => (e.currentTarget.style.color = "rgba(242,232,213,0.22)")}
+                    >
                       {link}
                     </a>
                   </li>
@@ -84,12 +118,29 @@ export default function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-white/5 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-white/15 text-xs">
-            © 2025 Deeno Brands LLC. All rights reserved.
+        <div
+          className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3"
+          style={{ borderTop: "1px solid rgba(201,168,76,0.08)" }}
+        >
+          <p
+            className="text-xs"
+            style={{
+              fontFamily: '"SF Mono","Fira Code",monospace',
+              color: "rgba(242,232,213,0.12)",
+              letterSpacing: "0.06em",
+            }}
+          >
+            © 2025 DEENO BRANDS LLC. ALL RIGHTS RESERVED.
           </p>
-          <p className="text-white/10 text-xs">
-            Helping home service businesses dominate since 2019.
+          <p
+            className="text-xs"
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontStyle: "italic",
+              color: "rgba(242,232,213,0.1)",
+            }}
+          >
+            Helping home services survive the extinction.
           </p>
         </div>
       </div>

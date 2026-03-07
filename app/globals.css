@@ -1,22 +1,30 @@
 @import "@fontsource-variable/inter";
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/700.css";
+@import "@fontsource/playfair-display/900.css";
 @import "tailwindcss";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: "SF Mono", "Fira Code", monospace;
+  --font-display: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-mono: "SF Mono", "Fira Code", "Fira Mono", monospace;
 }
 
 :root {
-  --background: #08080E;
-  --foreground: #FFFFFF;
+  --background: #0E0B07;
+  --foreground: #F2E8D5;
   --accent: #8B5CF6;
-  --accent-muted: rgba(139, 92, 246, 0.12);
-  --surface: #0F0F18;
-  --surface-2: #16161F;
-  --border: rgba(255, 255, 255, 0.07);
-  --text-muted: rgba(255, 255, 255, 0.45);
+  --accent-muted: rgba(139, 92, 246, 0.14);
+  --surface: #181410;
+  --surface-2: #211E17;
+  --gold: #C9A84C;
+  --gold-muted: rgba(201, 168, 76, 0.15);
+  --danger: #D4522A;
+  --border: rgba(242, 232, 213, 0.07);
+  --border-gold: rgba(201, 168, 76, 0.25);
+  --text-muted: rgba(242, 232, 213, 0.4);
 }
 
 * { box-sizing: border-box; }
@@ -32,7 +40,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Hide default cursor on desktop - custom cursor handles it */
+/* Hide default cursor on desktop */
 @media (pointer: fine) {
   * { cursor: none !important; }
 }
@@ -44,14 +52,26 @@ body::after {
   inset: 0;
   pointer-events: none;
   z-index: 9999;
-  opacity: 0.04;
+  opacity: 0.035;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
   background-repeat: repeat;
   background-size: 200px 200px;
 }
 
+/* Playfair display utility */
+.font-display {
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+}
+
 .gradient-text {
   background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 55%, #C4B5FD 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #C9A84C 0%, #E8C87A 60%, #C9A84C 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -62,6 +82,23 @@ body::after {
   display: inline-block;
   overflow: hidden;
   vertical-align: bottom;
+}
+
+/* Specimen card */
+.specimen-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-gold);
+}
+
+/* Exhibit section label */
+.exhibit-label {
+  font-family: "Inter Variable", "Inter", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.8;
 }
 
 /* Infinite marquee */
@@ -92,10 +129,16 @@ body::after {
   animation-play-state: paused;
 }
 
-/* Dot grid bg */
+/* Dot grid bg (warm variant) */
 .dot-grid {
-  background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(242,232,213,0.05) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+/* Gold grid */
+.gold-grid {
+  background-image: radial-gradient(circle, rgba(201,168,76,0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 /* Slowly rotating ring */
@@ -107,8 +150,40 @@ body::after {
   animation: spin-slow 25s linear infinite;
 }
 
+/* Terminal cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: var(--gold);
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+}
+
 /* Italic utility */
 .italic-light {
   font-style: italic;
   font-weight: 300;
+}
+
+/* Scan line for terminal effect */
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scan-line {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(transparent, rgba(201,168,76,0.08), transparent);
+  animation: scan 8s linear infinite;
+  pointer-events: none;
 }

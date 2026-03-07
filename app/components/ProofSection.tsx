@@ -14,7 +14,7 @@ const stats = [
   },
   {
     number: 2.5,
-    suffix: "x",
+    suffix: "×",
     decimals: 1,
     label: "higher conversion rate for Google Local Services Ads vs. standard PPC",
     context: "The channel most agencies ignore.",
@@ -22,7 +22,7 @@ const stats = [
   },
   {
     number: 15,
-    suffix: "x",
+    suffix: "×",
     label: "more revenue from phone call leads vs. web form submissions",
     context: "Calls close. Forms don't.",
     source: "CallRail",
@@ -46,20 +46,25 @@ function StatRow({ stat, index }: { stat: typeof stats[0]; index: number }) {
         initial={{ scaleX: 0 }}
         animate={inView ? { scaleX: 1 } : {}}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute top-0 left-0 right-0 h-px bg-white/6 origin-left"
+        className="absolute top-0 left-0 right-0 h-px origin-left"
+        style={{ background: "rgba(201,168,76,0.1)" }}
       />
 
-      <div className="grid grid-cols-[1fr_2fr] md:grid-cols-[280px_1fr_200px] gap-0 items-center py-10 md:py-12 group">
+      <div className="grid grid-cols-[1fr_2fr] md:grid-cols-[260px_1fr_200px] gap-0 items-center py-10 md:py-12">
         {/* Number */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={inView ? { opacity: 1, x: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.1 + index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-          className="relative"
         >
           <span
-            className="font-black text-white leading-none"
-            style={{ fontSize: "clamp(56px, 9vw, 120px)", letterSpacing: "-0.04em" }}
+            className="leading-none"
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: "clamp(52px, 8vw, 110px)",
+              color: "#F2E8D5",
+              letterSpacing: "-0.03em",
+            }}
           >
             {inView ? (
               <CountUp to={stat.number} suffix={stat.suffix} decimals={stat.decimals} duration={2} />
@@ -76,23 +81,40 @@ function StatRow({ stat, index }: { stat: typeof stats[0]; index: number }) {
           transition={{ duration: 0.55, delay: 0.17 + index * 0.05 }}
           className="pl-6 md:pl-10 pr-4"
         >
-          <p className="text-white/55 text-sm md:text-base leading-relaxed mb-2 max-w-lg">
+          <p className="text-sm md:text-base leading-relaxed mb-2 max-w-lg" style={{ color: "rgba(242,232,213,0.45)" }}>
             {stat.label}
           </p>
-          <p className="text-[#8B5CF6] text-sm font-semibold italic">
+          <p
+            className="text-sm font-semibold"
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontStyle: "italic",
+              color: "#8B5CF6",
+            }}
+          >
             {stat.context}
           </p>
         </motion.div>
 
-        {/* Source — desktop only */}
+        {/* Source */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}
           transition={{ duration: 0.4, delay: 0.3 + index * 0.05 }}
           className="hidden md:flex justify-end"
         >
-          <span className="text-white/18 text-[10px] uppercase tracking-widest text-right">
-            Source:<br />{stat.source}
+          <span
+            className="text-right"
+            style={{
+              fontFamily: '"SF Mono","Fira Code",monospace',
+              fontSize: 9,
+              letterSpacing: "0.14em",
+              color: "rgba(201,168,76,0.25)",
+              textTransform: "uppercase",
+              lineHeight: 1.8,
+            }}
+          >
+            SOURCE:<br />{stat.source}
           </span>
         </motion.div>
       </div>
@@ -102,7 +124,8 @@ function StatRow({ stat, index }: { stat: typeof stats[0]; index: number }) {
           initial={{ scaleX: 0 }}
           animate={inView ? { scaleX: 1 } : {}}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute bottom-0 left-0 right-0 h-px bg-white/6 origin-left"
+          className="absolute bottom-0 left-0 right-0 h-px origin-left"
+          style={{ background: "rgba(201,168,76,0.1)" }}
         />
       )}
     </div>
@@ -114,30 +137,58 @@ export default function ProofSection() {
   const inView = useInView(headerRef, { once: true, margin: "-80px" });
 
   return (
-    <section id="proof" className="py-32 px-6 relative overflow-hidden">
-      {/* Subtle background gradient */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#8B5CF6]/3 blur-[120px] pointer-events-none rounded-full" />
+    <section id="proof" className="py-32 px-6 relative overflow-hidden" style={{ background: "#181410" }}>
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
+        style={{
+          width: 800, height: 400,
+          borderRadius: "50%",
+          background: "rgba(139,92,246,0.03)",
+          filter: "blur(120px)",
+        }}
+      />
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header */}
         <div ref={headerRef} className="mb-20">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={inView ? { opacity: 1, y: 0 } : {}}
             transition={{ duration: 0.6 }}
           >
-            <span className="text-[#8B5CF6] text-[10px] font-bold tracking-[0.3em] uppercase mb-4 block">
-              The proof
+            <span
+              style={{
+                fontFamily: '"SF Mono","Fira Code",monospace',
+                fontSize: 10,
+                letterSpacing: "0.2em",
+                color: "rgba(201,168,76,0.65)",
+                textTransform: "uppercase",
+                display: "block",
+                marginBottom: 20,
+              }}
+            >
+              [ EXHIBIT 04 // THE EVIDENCE ]
             </span>
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
               <h2
-                className="font-black tracking-[-0.04em] leading-tight text-white"
-                style={{ fontSize: "clamp(40px, 6vw, 88px)" }}
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontSize: "clamp(36px, 5.5vw, 80px)",
+                  color: "#F2E8D5",
+                  lineHeight: 1.15,
+                  letterSpacing: "-0.02em",
+                }}
               >
                 Why digital marketing<br />
-                <span className="text-white/30">can&apos;t wait.</span>
+                <span style={{ color: "rgba(242,232,213,0.28)" }}>can&apos;t wait.</span>
               </h2>
-              <p className="text-white/22 text-sm font-light italic max-w-xs leading-relaxed hidden md:block">
+              <p
+                className="text-sm hidden md:block max-w-xs leading-relaxed"
+                style={{
+                  fontFamily: "'Playfair Display', Georgia, serif",
+                  fontStyle: "italic",
+                  color: "rgba(242,232,213,0.2)",
+                }}
+              >
                 Industry data, independently verified.<br />
                 This is the market you&apos;re competing in.
               </p>
@@ -148,24 +199,28 @@ export default function ProofSection() {
             initial={{ scaleX: 0 }}
             animate={inView ? { scaleX: 1 } : {}}
             transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="h-px bg-[#8B5CF6]/40 origin-left mt-10"
+            className="h-px origin-left mt-10"
+            style={{ background: "rgba(201,168,76,0.25)" }}
           />
         </div>
 
-        {/* Stat rows */}
         <div>
           {stats.map((stat, i) => (
             <StatRow key={stat.source + i} stat={stat} index={i} />
           ))}
         </div>
 
-        {/* Footer note */}
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="mt-10 text-white/15 text-xs"
+          className="mt-10 text-xs"
+          style={{
+            fontFamily: '"SF Mono","Fira Code",monospace',
+            color: "rgba(242,232,213,0.12)",
+            letterSpacing: "0.06em",
+          }}
         >
           Data from publicly available industry research. We cite sources because we believe in honesty.
         </motion.p>

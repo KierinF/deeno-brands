@@ -10,10 +10,12 @@ import FAQ from "./components/FAQ";
 import CTA from "./components/CTA";
 import Footer from "./components/Footer";
 import SectionIndicator from "./components/SectionIndicator";
+import Intro from "./components/Intro";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#08080E] text-white">
+    <main className="min-h-screen" style={{ background: "#0E0B07", color: "#F2E8D5" }}>
+      <Intro />
       <SectionIndicator />
       <Nav />
       <section id="hero">

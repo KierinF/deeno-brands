@@ -1,6 +1,12 @@
 import { Resend } from "resend";
 
+export async function GET(req: Request) {
+  console.error(`[contact] ⚠️  GET received — browser converted POST→GET via cached 301 redirect. URL: ${(req as { url?: string }).url}. Clear browser cache.`);
+  return new Response("Method Not Allowed — use POST", { status: 405 });
+}
+
 export async function POST(req: Request) {
+  console.log(`[contact] POST received — url: ${(req as { url?: string }).url}`);
   try {
     const data = await req.json();
     const { firstName, lastName, email, phone, trade, budget, source, website } = data;

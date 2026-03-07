@@ -7,26 +7,32 @@ const services = [
   {
     num: "01",
     title: "SEO & Local SEO",
-    result: "Avg. 3× more organic traffic in 90 days",
-    desc: "Rank #1 on Google Maps and organic search for every keyword your customers search. GMB, links, on-page — the works.",
+    result: "Rank where your customers search",
+    desc: "Dominate Google Maps and organic search for every keyword your customers type. GMB, links, on-page — the works.",
   },
   {
     num: "02",
     title: "Google & Meta Ads",
-    result: "Avg. 6.8× ROAS across client accounts",
-    desc: "Hyper-targeted LSAs, PPC, and social ads that deliver booked appointments. Not just clicks.",
+    result: "Booked jobs, not just clicks",
+    desc: "Hyper-targeted LSAs, PPC, and paid social that deliver booked appointments — not vanity metrics.",
   },
   {
     num: "03",
     title: "Website Design",
-    result: "Avg. 4.1× more leads from existing traffic",
-    desc: "Custom, mobile-first sites that convert visitors into phone calls. Live within 48 hours.",
+    result: "Built to convert, not just look good",
+    desc: "Custom, mobile-first sites that turn visitors into phone calls. Live within 48 hours.",
   },
   {
     num: "04",
-    title: "Social Media",
-    result: "Avg. 2.3× increase in brand search volume",
-    desc: "Finished jobs become content. Content becomes trust. Trust becomes phone calls.",
+    title: "Branding",
+    result: "Look like the obvious choice",
+    desc: "Logo, colors, voice, and visual system that make your business look polished and trustworthy before anyone calls.",
+  },
+  {
+    num: "05",
+    title: "Growth Operations",
+    result: "Systems that run while you work",
+    desc: "CRM setup, inbound call routing, scheduling automation, reporting dashboards — the back-end that turns leads into revenue.",
   },
 ];
 

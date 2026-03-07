@@ -109,7 +109,8 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
     onAuditProgress?.(10);
 
     try {
-      const res = await fetch("/api/analyze", {
+      // Use trailing-slash URL so browser cache 301 redirects (from old config) don't convert POST→GET
+      const res = await fetch("/api/analyze/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: trimmed }),
@@ -165,7 +166,7 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
     setPhase("email");
     // Send lead data via contact API
     try {
-      await fetch("/api/contact", {
+      await fetch("/api/contact/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), source: "audit-report", website: url }),
@@ -176,7 +177,7 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
   async function submitPhone() {
     if (!phone.trim()) return;
     try {
-      await fetch("/api/contact", {
+      await fetch("/api/contact/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), phone: phone.trim(), source: "audit-report", website: url }),

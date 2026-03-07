@@ -240,9 +240,7 @@ export default function Hero() {
     background: "rgba(237, 234, 224, 0.90)",
     border: "1px solid rgba(28,25,23,0.1)",
     borderRadius: 100,
-    // Balanced internal padding; marginRight adds gap OUTSIDE the pill before "MARKETING"
-    padding: "0.18em 0.65em 0.18em 0.85em",
-    lineHeight: 1,
+    padding: "0.4em 0.85em",
     display: "inline-block",
     whiteSpace: "nowrap",
     marginRight: "0.55em",
@@ -428,7 +426,7 @@ export default function Hero() {
 
                 <a
                   href="#contact"
-                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(8px, 0.9vw, 10px)", padding: "clamp(12px,1.7vh,17px) clamp(18px,2vw,26px)", borderRadius: 9999, background: "transparent", color: "rgba(28,25,23,0.4)", border: "1.5px solid rgba(28,25,23,0.15)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.15s" }}
+                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(9px, 1.05vw, 12px)", padding: "clamp(13px,1.8vh,18px) clamp(20px,2.2vw,30px)", borderRadius: 9999, background: "transparent", color: "rgba(28,25,23,0.4)", border: "1.5px solid rgba(28,25,23,0.15)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.15s", display: "inline-flex", alignItems: "center" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(28,25,23,0.4)"; (e.currentTarget as HTMLAnchorElement).style.color = "#1C1917"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(28,25,23,0.15)"; (e.currentTarget as HTMLAnchorElement).style.color = "rgba(28,25,23,0.4)"; }}
                 >

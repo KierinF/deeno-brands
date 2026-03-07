@@ -159,7 +159,15 @@ Add ANTHROPIC_API_KEY to .env.local for real AI analysis.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 }
 
+// If GET is received it means the browser converted POST→GET via a cached 301 redirect.
+// Clear browser cache to fix. This log helps confirm the diagnosis.
+export async function GET(req: NextRequest) {
+  console.error(`[analyze] ⚠️  GET received — browser followed cached 301 redirect (POST converted to GET). URL: ${req.url}. User must clear browser cache or the fetch URL must avoid the cached path.`);
+  return new Response("Method Not Allowed — use POST. If you're seeing this, your browser converted a POST to GET via a cached redirect. Clear browser cache.", { status: 405 });
+}
+
 export async function POST(req: NextRequest) {
+  console.log(`[analyze] POST received — url: ${req.url} — ip: ${getIP(req)}`);
   // Rate limiting — check before doing anything expensive
   const ip = getIP(req);
   const limit = checkRateLimit(ip);

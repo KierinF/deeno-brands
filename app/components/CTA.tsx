@@ -18,7 +18,7 @@ export default function CTA() {
     setFormState("submitting");
     try {
       const fd = new FormData(e.currentTarget);
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/contact/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

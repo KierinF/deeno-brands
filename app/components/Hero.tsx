@@ -10,6 +10,7 @@ const SERVICES = [
   { word: "PLUMBING",     img: "/plumbing.png" },
   { word: "ELECTRICIAN",  img: "/electrician.png" },
   { word: "PEST REMOVAL", img: "/pest-removal.png" },
+  { word: "ROOFING",      img: "/roofing.png" },
 ];
 
 // ─── Cactus obstacle ─────────────────────────────────────────────────────────
@@ -33,7 +34,7 @@ const DINO_X = 60;
 const CACTUS_W = 28;
 const JUMP_V = -11;
 const GRAVITY = 0.55;
-const SPEED_START = 5;
+const SPEED_START = 7;
 const SPEED_INC = 0.0008;
 
 interface CactusObj { id: number; x: number; h: number }
@@ -113,10 +114,11 @@ function DinoGame({ dinoSrc, onClose }: { dinoSrc: string; onClose: () => void }
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.code === "Space" || e.code === "ArrowUp") { e.preventDefault(); jump(); }
+      if (e.code === "Escape") { e.preventDefault(); onClose(); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [jump]);
+  }, [jump, onClose]);
 
   return (
     <div ref={containerRef} style={{ width: "100%", maxWidth: 860, margin: "0 auto", userSelect: "none" }} onClick={phase !== "dead" ? jump : undefined}>
@@ -127,8 +129,8 @@ function DinoGame({ dinoSrc, onClose }: { dinoSrc: string; onClose: () => void }
           <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 10, color: "#1C1917" }}>{String(score).padStart(5, "0")}</span>
           <button
             onClick={e => { e.stopPropagation(); onClose(); }}
-            title="Close game"
-            style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 9, color: "rgba(28,25,23,0.45)", background: "none", border: "1px solid rgba(28,25,23,0.15)", borderRadius: 4, padding: "4px 8px", cursor: "pointer", lineHeight: 1 }}
+            title="Close game (ESC)"
+            style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 13, color: "rgba(28,25,23,0.45)", background: "none", border: "1px solid rgba(28,25,23,0.15)", borderRadius: 4, padding: "6px 12px", cursor: "pointer", lineHeight: 1 }}
             onMouseEnter={e => { e.currentTarget.style.color = "#1C1917"; e.currentTarget.style.borderColor = "rgba(28,25,23,0.4)"; }}
             onMouseLeave={e => { e.currentTarget.style.color = "rgba(28,25,23,0.45)"; e.currentTarget.style.borderColor = "rgba(28,25,23,0.15)"; }}
           >
@@ -153,7 +155,7 @@ function DinoGame({ dinoSrc, onClose }: { dinoSrc: string; onClose: () => void }
         ))}
         {phase === "idle" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <p style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 11, color: "rgba(28,25,23,0.5)" }}>PRESS SPACE OR TAP TO START</p>
+            <p style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 9, color: "rgba(28,25,23,0.5)", textAlign: "center", padding: "0 16px" }}>PRESS SPACE OR TAP TO START · ESC TO EXIT</p>
           </div>
         )}
         {phase === "dead" && (
@@ -238,9 +240,12 @@ export default function Hero() {
     background: "rgba(237, 234, 224, 0.90)",
     border: "1px solid rgba(28,25,23,0.1)",
     borderRadius: 100,
-    padding: "0.4em 1em 0.4em 0.85em",
-    display: "inline",
+    // Balanced internal padding; marginRight adds gap OUTSIDE the pill before "MARKETING"
+    padding: "0.4em 0.65em 0.4em 0.85em",
+    display: "inline-block",
     whiteSpace: "nowrap",
+    marginRight: "0.55em",
+    verticalAlign: "middle",
   };
   const purplePill: React.CSSProperties = {
     background: "rgba(139, 92, 246, 0.1)",
@@ -452,9 +457,9 @@ export default function Hero() {
                 }}
               >
                 {[
-                  { n: "4.9★", l: "avg. client satisfaction" },
-                  { n: "3.2×", l: "return on ad spend" },
-                  { n: "93%", l: "renew after year one" },
+                  { n: "76%", l: "of local searches end in a call" },
+                  { n: "3×", l: "more leads from Local Service Ads" },
+                  { n: "$18K", l: "avg. HVAC replacement value" },
                 ].map((s, i) => (
                   <React.Fragment key={s.n}>
                     {i > 0 && (

@@ -99,6 +99,8 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
     const trimmed = url.trim();
     if (!trimmed) return;
 
+    console.log("[audit] ▶ runScan triggered — scanning url:", trimmed);
+
     abortRef.current = new AbortController();
     streamStartedRef.current = false;
     linesReceivedRef.current = 0;
@@ -108,16 +110,22 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
     onAuditStart?.();
     onAuditProgress?.(10);
 
+    const fetchUrl = "/api/analyze/";
+    console.log("[audit] fetching:", fetchUrl, "method: POST");
+
     try {
-      // Use trailing-slash URL so browser cache 301 redirects (from old config) don't convert POST→GET
-      const res = await fetch("/api/analyze/", {
+      const res = await fetch(fetchUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url: trimmed }),
         signal: abortRef.current.signal,
+        cache: "reload",
       });
 
+      console.log("[audit] response — status:", res.status, res.statusText, "| final url:", res.url, "| ok:", res.ok);
+
       if (!res.ok || !res.body) {
+        console.error("[audit] ✗ request failed — status:", res.status, "| This may be a 405 (wrong method) or 404 (route not found). Final URL after redirects:", res.url);
         setLines(prev => [...prev, "", `> Error: ${res.status} — ${res.statusText}`]);
         setPhase("done");
         onAuditDone?.();
@@ -155,6 +163,7 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
 
     } catch (err: unknown) {
       if ((err as { name?: string }).name === "AbortError") return;
+      console.error("[audit] ✗ fetch threw error:", err);
       setLines(prev => [...prev, "", "> Scan aborted — could not reach the URL."]);
       setPhase("done");
       onAuditDone?.();

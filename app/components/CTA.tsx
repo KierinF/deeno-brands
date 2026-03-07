@@ -15,24 +15,33 @@ export default function CTA() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("[contact] ▶ form submit triggered");
     setFormState("submitting");
     try {
       const fd = new FormData(e.currentTarget);
+      const payload = {
+        firstName: fd.get("firstName"),
+        lastName: fd.get("lastName"),
+        email: fd.get("email"),
+        phone: fd.get("phone"),
+        trade: fd.get("trade"),
+        budget: fd.get("budget"),
+      };
+      console.log("[contact] sending to /api/contact/ — payload:", payload);
       const res = await fetch("/api/contact/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: fd.get("firstName"),
-          lastName: fd.get("lastName"),
-          email: fd.get("email"),
-          phone: fd.get("phone"),
-          trade: fd.get("trade"),
-          budget: fd.get("budget"),
-        }),
+        body: JSON.stringify(payload),
+        cache: "reload",
       });
-      if (!res.ok) throw new Error("send failed");
+      console.log("[contact] response — status:", res.status, res.statusText, "| final url:", res.url, "| ok:", res.ok);
+      if (!res.ok) {
+        console.error("[contact] ✗ failed — status:", res.status, "url after redirects:", res.url);
+        throw new Error("send failed");
+      }
       setFormState("success");
-    } catch {
+    } catch (err) {
+      console.error("[contact] ✗ fetch error:", err);
       setFormState("error");
     }
   };

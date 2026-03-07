@@ -4,8 +4,13 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
-// ─── Rotating industry words ──────────────────────────────────────────────────
-const WORDS = ["HVAC", "PLUMBING", "ELECTRICIAN", "PEST REMOVAL"];
+// ─── Per-service images + rotating words ──────────────────────────────────────
+const SERVICES = [
+  { word: "HVAC",         img: "/hvac.png" },
+  { word: "PLUMBING",     img: "/plumbing.png" },
+  { word: "ELECTRICIAN",  img: "/electrician.png" },
+  { word: "PEST REMOVAL", img: "/pest-removal.png" },
+];
 
 // ─── Cactus obstacle ─────────────────────────────────────────────────────────
 function Cactus({ height = 60 }: { height?: number }) {
@@ -33,7 +38,7 @@ const SPEED_INC = 0.0008;
 
 interface CactusObj { id: number; x: number; h: number }
 
-function DinoGame() {
+function DinoGame({ dinoSrc }: { dinoSrc: string }) {
   const [phase, setPhase] = useState<"idle" | "running" | "dead">("idle");
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -122,7 +127,12 @@ function DinoGame() {
       <div style={{ position: "relative", height: 360, background: "#EDEAE0", border: "2px solid rgba(28,25,23,0.15)", borderRadius: 8, overflow: "hidden" }}>
         <div style={{ position: "absolute", bottom: GROUND - 2, left: 0, right: 0, height: 2, background: "rgba(28,25,23,0.2)" }} />
         <div style={{ position: "absolute", left: DINO_X, bottom: GROUND + dinoY, width: DINO_W, height: DINO_H }}>
-          <img src="/dino.png" alt="dino" style={{ width: DINO_W, height: DINO_H, objectFit: "contain", imageRendering: "pixelated" }} />
+          <img
+            src={dinoSrc}
+            alt="dino"
+            onError={e => { e.currentTarget.src = "/dino.png"; e.currentTarget.onerror = null; }}
+            style={{ width: DINO_W, height: DINO_H, objectFit: "contain", imageRendering: "pixelated" }}
+          />
         </div>
         {cacti.map(c => (
           <div key={c.id} style={{ position: "absolute", left: c.x, bottom: GROUND, width: CACTUS_W, height: c.h }}>
@@ -152,25 +162,30 @@ function DinoGame() {
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 export default function Hero() {
   const [gameActive, setGameActive] = useState(false);
+  const [gameDinoSrc, setGameDinoSrc] = useState("/dino.png");
   const [wordIdx, setWordIdx] = useState(0);
   const [wordVisible, setWordVisible] = useState(true);
 
-  // Cycle industry words with fade
+  // Cycle industry words with fade — 4s interval
   useEffect(() => {
     const id = setInterval(() => {
       setWordVisible(false);
       setTimeout(() => {
-        setWordIdx(i => (i + 1) % WORDS.length);
+        setWordIdx(i => (i + 1) % SERVICES.length);
         setWordVisible(true);
       }, 350);
-    }, 2500);
+    }, 4000);
     return () => clearInterval(id);
   }, []);
 
   function openTerminal() {
     window.dispatchEvent(new CustomEvent("deeno:openTerminal"));
   }
-  function activateGame() { setGameActive(true); document.body.style.overflow = "hidden"; }
+  function activateGame() {
+    setGameDinoSrc(SERVICES[wordIdx].img);
+    setGameActive(true);
+    document.body.style.overflow = "hidden";
+  }
   function closeGame() { setGameActive(false); document.body.style.overflow = ""; }
   useEffect(() => () => { document.body.style.overflow = ""; }, []);
 
@@ -179,7 +194,8 @@ export default function Hero() {
     background: "rgba(237, 234, 224, 0.90)",
     border: "1px solid rgba(28,25,23,0.1)",
     borderRadius: 100,
-    padding: "0.4em 0.85em",
+    // asymmetric padding: standard left, tighter right so gap to "MARKETING" is just right
+    padding: "0.4em 0.45em 0.4em 0.85em",
     display: "inline",
     whiteSpace: "nowrap",
   };
@@ -234,7 +250,7 @@ export default function Hero() {
             <p style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 9, color: "rgba(28,25,23,0.3)", letterSpacing: "0.1em", marginBottom: 24 }}>
               EXTINCTION RUN — YOUR COMPETITION SIMULATOR
             </p>
-            <DinoGame />
+            <DinoGame dinoSrc={gameDinoSrc} />
           </motion.div>
         ) : (
           /* ── NORMAL HERO ────────────────────────────── */
@@ -264,18 +280,20 @@ export default function Hero() {
                 onClick={activateGame}
                 title="Click to play"
                 aria-label="Start dino game"
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", margin: "0 auto", position: "relative", paddingBottom: 40 }}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", margin: "0 auto", position: "relative", paddingBottom: 28 }}
               >
                 <img
-                  src="/dino.png"
+                  src={SERVICES[wordIdx].img}
                   alt="Pixel dinosaur"
+                  onError={e => { e.currentTarget.src = "/dino.png"; e.currentTarget.onerror = null; }}
                   style={{
                     height: "clamp(200px, 44vh, 360px)",
                     width: "auto",
                     imageRendering: "pixelated",
                     display: "block",
                     margin: "0 auto",
-                    transition: "transform 0.25s ease",
+                    opacity: wordVisible ? 1 : 0,
+                    transition: "transform 0.25s ease, opacity 0.3s ease",
                   }}
                   onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
                   onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
@@ -290,21 +308,21 @@ export default function Hero() {
               </button>
             </motion.div>
 
-            {/* ── Content block — slight negative margin pulls it up to overlap dino feet ── */}
+            {/* ── Content block — negative margin pulls it up to overlap dino feet ── */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               style={{
                 zIndex: 1,
-                marginTop: "clamp(-32px, -3.5vh, -16px)",
+                marginTop: "clamp(-60px, -7vh, -28px)",
                 textAlign: "center",
                 padding: "0 24px clamp(12px, 2vh, 28px)",
                 width: "100%",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: "clamp(8px, 1.2vh, 16px)",
+                gap: "clamp(6px, 1vh, 12px)",
               }}
             >
               {/* Headline — ToyFight pill words */}
@@ -314,10 +332,9 @@ export default function Hero() {
                   <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: headlineSize, color: "#1C1917" }}>
                     <span style={creamPill}>
                       <span style={{ opacity: wordVisible ? 1 : 0, transition: "opacity 0.3s ease", display: "inline-block" }}>
-                        {WORDS[wordIdx]}
+                        {SERVICES[wordIdx].word}
                       </span>
-                    </span>
-                    {" "}MARKETING
+                    </span>MARKETING
                   </span>
                 </div>
                 {/* Row 2 */}
@@ -334,11 +351,11 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Buttons */}
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
+              {/* Buttons — bigger, more vertical breathing room */}
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "center", marginTop: "clamp(8px, 1.2vh, 14px)", marginBottom: "clamp(6px, 1vh, 12px)" }}>
                 <button
                   onClick={openTerminal}
-                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(7px, 0.9vw, 9px)", padding: "clamp(9px,1.2vh,13px) clamp(14px,1.6vw,22px)", borderRadius: 9999, background: "#1C1917", color: "#EDEAE0", border: "none", letterSpacing: "0.05em", cursor: "pointer", transition: "background 0.15s" }}
+                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(9px, 1.05vw, 12px)", padding: "clamp(13px,1.8vh,18px) clamp(20px,2.2vw,30px)", borderRadius: 9999, background: "#1C1917", color: "#EDEAE0", border: "none", letterSpacing: "0.05em", cursor: "pointer", transition: "background 0.15s" }}
                   onMouseEnter={e => (e.currentTarget.style.background = "#3D3430")}
                   onMouseLeave={e => (e.currentTarget.style.background = "#1C1917")}
                 >
@@ -346,7 +363,7 @@ export default function Hero() {
                 </button>
                 <a
                   href="#contact"
-                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(7px, 0.8vw, 8px)", padding: "clamp(8px,1.1vh,12px) clamp(12px,1.4vw,18px)", borderRadius: 9999, background: "transparent", color: "rgba(28,25,23,0.4)", border: "1.5px solid rgba(28,25,23,0.15)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.15s" }}
+                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(8px, 0.9vw, 10px)", padding: "clamp(12px,1.7vh,17px) clamp(18px,2vw,26px)", borderRadius: 9999, background: "transparent", color: "rgba(28,25,23,0.4)", border: "1.5px solid rgba(28,25,23,0.15)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.15s" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(28,25,23,0.4)"; (e.currentTarget as HTMLAnchorElement).style.color = "#1C1917"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(28,25,23,0.15)"; (e.currentTarget as HTMLAnchorElement).style.color = "rgba(28,25,23,0.4)"; }}
                 >
@@ -354,12 +371,12 @@ export default function Hero() {
                 </a>
               </div>
 
-              {/* Tagline */}
-              <p style={{ fontFamily: '"Inter Variable","Inter",sans-serif', fontStyle: "italic", fontSize: "clamp(11px, 1.1vw, 14px)", color: "#8B7F72", fontWeight: 300, maxWidth: 480, margin: 0, lineHeight: 1.6 }}>
+              {/* Tagline — bigger */}
+              <p style={{ fontFamily: '"Inter Variable","Inter",sans-serif', fontStyle: "italic", fontSize: "clamp(13px, 1.5vw, 18px)", color: "#8B7F72", fontWeight: 300, maxWidth: 580, margin: 0, lineHeight: 1.6 }}>
                 We help HVAC, plumbing, and home service businesses evolve through more calls, booked jobs, and real revenue.
               </p>
 
-              {/* Stats — single no-wrap row */}
+              {/* Stats — single no-wrap row, bigger */}
               <div
                 style={{
                   paddingTop: "clamp(6px, 1vh, 12px)",
@@ -381,13 +398,13 @@ export default function Hero() {
                 ].map((s, i) => (
                   <React.Fragment key={s.n}>
                     {i > 0 && (
-                      <span style={{ color: "rgba(28,25,23,0.2)", fontSize: 14, flexShrink: 0 }}>·</span>
+                      <span style={{ color: "rgba(28,25,23,0.2)", fontSize: 16, flexShrink: 0 }}>·</span>
                     )}
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 5, flexShrink: 0 }}>
-                      <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(9px, 1.2vw, 14px)", color: "#1C1917", lineHeight: 1 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexShrink: 0 }}>
+                      <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(11px, 1.5vw, 17px)", color: "#1C1917", lineHeight: 1 }}>
                         {s.n}
                       </span>
-                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(9px, 0.85vw, 11px)", color: "#8B7F72", whiteSpace: "nowrap" }}>
+                      <span style={{ fontFamily: "Inter, sans-serif", fontSize: "clamp(11px, 1vw, 14px)", color: "#8B7F72", whiteSpace: "nowrap" }}>
                         {s.l}
                       </span>
                     </div>

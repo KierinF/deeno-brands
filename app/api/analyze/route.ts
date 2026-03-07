@@ -1,5 +1,54 @@
 import { NextRequest } from "next/server";
 
+// ─── Rate limiting ─────────────────────────────────────────────────────────────
+// In-memory store: Map<ip, { count: number; windowStart: number }>
+// Limits: 5 scans/hour per IP, 100 scans/day globally
+const ipStore = new Map<string, { count: number; windowStart: number }>();
+let globalDayCount = 0;
+let globalDayStart = Date.now();
+
+const PER_IP_LIMIT = 5;      // max scans per IP per hour
+const GLOBAL_DAILY_LIMIT = 100; // total scans per day across all users
+
+function checkRateLimit(ip: string): { allowed: boolean; reason?: string } {
+  const now = Date.now();
+  const HOUR = 60 * 60 * 1000;
+  const DAY = 24 * HOUR;
+
+  // Reset global daily counter
+  if (now - globalDayStart > DAY) {
+    globalDayCount = 0;
+    globalDayStart = now;
+  }
+  if (globalDayCount >= GLOBAL_DAILY_LIMIT) {
+    return { allowed: false, reason: "Daily scan limit reached. Try again tomorrow." };
+  }
+
+  // Check per-IP hourly limit
+  const entry = ipStore.get(ip);
+  if (!entry || now - entry.windowStart > HOUR) {
+    ipStore.set(ip, { count: 1, windowStart: now });
+  } else {
+    if (entry.count >= PER_IP_LIMIT) {
+      const resetIn = Math.ceil((HOUR - (now - entry.windowStart)) / 60000);
+      return { allowed: false, reason: `Too many scans. Try again in ${resetIn} minute${resetIn === 1 ? "" : "s"}.` };
+    }
+    entry.count++;
+  }
+
+  globalDayCount++;
+  return { allowed: true };
+}
+
+// ─── Extract IP from request ───────────────────────────────────────────────────
+function getIP(req: NextRequest): string {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ||
+    req.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
 // Extracts useful SEO/marketing signals from raw HTML
 function extractSignals(html: string, url: string) {
   const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/si);
@@ -111,6 +160,16 @@ Add ANTHROPIC_API_KEY to .env.local for real AI analysis.
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limiting — check before doing anything expensive
+  const ip = getIP(req);
+  const limit = checkRateLimit(ip);
+  if (!limit.allowed) {
+    return new Response(
+      `> Rate limit reached.\n> ${limit.reason}\n`,
+      { status: 429, headers: { "Content-Type": "text/plain" } }
+    );
+  }
+
   const { url } = await req.json() as { url: string };
 
   if (!url || typeof url !== "string") {

@@ -5,12 +5,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  async rewrites() {
-    return [
-      { source: "/api/analyze/", destination: "/api/analyze" },
-      { source: "/api/contact/", destination: "/api/contact" },
-    ];
-  },
 };
 
 export default nextConfig;

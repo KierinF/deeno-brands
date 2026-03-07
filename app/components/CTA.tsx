@@ -27,8 +27,8 @@ export default function CTA() {
         trade: fd.get("trade"),
         budget: fd.get("budget"),
       };
-      console.log("[contact] sending to /api/contact/ — payload:", payload);
-      const res = await fetch("/api/contact/", {
+      console.log("[contact] sending to /api/contact — payload:", payload);
+      const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import ExtinctionTerminal from "./ExtinctionTerminal";
 
 // ─── Per-service images + rotating words ──────────────────────────────────────
 const SERVICES = [
@@ -26,9 +26,9 @@ function Cactus({ height = 60 }: { height?: number }) {
 }
 
 // ─── Dino Game ────────────────────────────────────────────────────────────────
-const GROUND = 108;
-const DINO_W = 80;
-const DINO_H = 100;
+const GROUND = 120;
+const DINO_W = 110;
+const DINO_H = 140;
 const DINO_X = 60;
 const CACTUS_W = 28;
 const JUMP_V = -11;
@@ -38,7 +38,7 @@ const SPEED_INC = 0.0008;
 
 interface CactusObj { id: number; x: number; h: number }
 
-function DinoGame({ dinoSrc }: { dinoSrc: string }) {
+function DinoGame({ dinoSrc, onClose }: { dinoSrc: string; onClose: () => void }) {
   const [phase, setPhase] = useState<"idle" | "running" | "dead">("idle");
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -94,7 +94,7 @@ function DinoGame({ dinoSrc }: { dinoSrc: string }) {
       cactiRef.current = cactiRef.current.map(c => ({ ...c, x: c.x - speedRef.current })).filter(c => c.x > -60);
       scoreRef.current = Math.floor(fc / 6);
       const hit = cactiRef.current.some(c =>
-        (DINO_X + DINO_W - 10) > (c.x + 4) && DINO_X < (c.x + CACTUS_W - 4) &&
+        (DINO_X + DINO_W - 14) > (c.x + 4) && DINO_X < (c.x + CACTUS_W - 4) &&
         dinoYRef.current + GROUND < GROUND + c.h
       );
       if (hit) {
@@ -120,9 +120,21 @@ function DinoGame({ dinoSrc }: { dinoSrc: string }) {
 
   return (
     <div ref={containerRef} style={{ width: "100%", maxWidth: 860, margin: "0 auto", userSelect: "none" }} onClick={phase !== "dead" ? jump : undefined}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+      {/* HUD row: HI score | current score | X close */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
         <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 10, color: "rgba(28,25,23,0.4)" }}>HI {String(highScore).padStart(5, "0")}</span>
-        <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 10, color: "#1C1917" }}>{String(score).padStart(5, "0")}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 10, color: "#1C1917" }}>{String(score).padStart(5, "0")}</span>
+          <button
+            onClick={e => { e.stopPropagation(); onClose(); }}
+            title="Close game"
+            style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 9, color: "rgba(28,25,23,0.45)", background: "none", border: "1px solid rgba(28,25,23,0.15)", borderRadius: 4, padding: "4px 8px", cursor: "pointer", lineHeight: 1 }}
+            onMouseEnter={e => { e.currentTarget.style.color = "#1C1917"; e.currentTarget.style.borderColor = "rgba(28,25,23,0.4)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "rgba(28,25,23,0.45)"; e.currentTarget.style.borderColor = "rgba(28,25,23,0.15)"; }}
+          >
+            ✕
+          </button>
+        </div>
       </div>
       <div style={{ position: "relative", height: 360, background: "#EDEAE0", border: "2px solid rgba(28,25,23,0.15)", borderRadius: 8, overflow: "hidden" }}>
         <div style={{ position: "absolute", bottom: GROUND - 2, left: 0, right: 0, height: 2, background: "rgba(28,25,23,0.2)" }} />
@@ -165,6 +177,39 @@ export default function Hero() {
   const [gameDinoSrc, setGameDinoSrc] = useState("/dino.png");
   const [wordIdx, setWordIdx] = useState(0);
   const [wordVisible, setWordVisible] = useState(true);
+  const [terminalOpen, setTerminalOpen] = useState(false);
+
+  // Audit progress bar state
+  const [auditState, setAuditState] = useState<"idle" | "running" | "done">("idle");
+  const [auditProgress, setAuditProgress] = useState(0);
+  const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Tick progress toward 90% while running (~40s to reach 90%)
+  useEffect(() => {
+    if (auditState === "running") {
+      setAuditProgress(0);
+      progressTimerRef.current = setInterval(() => {
+        setAuditProgress(p => {
+          if (p >= 90) { clearInterval(progressTimerRef.current!); return 90; }
+          // Ease: faster at start, slower near 90
+          const step = Math.max(0.3, (90 - p) * 0.012);
+          return Math.min(90, p + step);
+        });
+      }, 500);
+    } else {
+      if (progressTimerRef.current) { clearInterval(progressTimerRef.current); progressTimerRef.current = null; }
+    }
+    return () => { if (progressTimerRef.current) clearInterval(progressTimerRef.current); };
+  }, [auditState]);
+
+  // Auto-reset after 10 min of "done"
+  useEffect(() => {
+    if (auditState === "done") {
+      resetTimerRef.current = setTimeout(() => setAuditState("idle"), 10 * 60 * 1000);
+    }
+    return () => { if (resetTimerRef.current) clearTimeout(resetTimerRef.current); };
+  }, [auditState]);
 
   // Cycle industry words with fade — 4s interval
   useEffect(() => {
@@ -178,9 +223,8 @@ export default function Hero() {
     return () => clearInterval(id);
   }, []);
 
-  function openTerminal() {
-    window.dispatchEvent(new CustomEvent("deeno:openTerminal"));
-  }
+  function openTerminal() { setTerminalOpen(true); }
+  function closeTerminal() { setTerminalOpen(false); }
   function activateGame() {
     setGameDinoSrc(SERVICES[wordIdx].img);
     setGameActive(true);
@@ -194,8 +238,8 @@ export default function Hero() {
     background: "rgba(237, 234, 224, 0.90)",
     border: "1px solid rgba(28,25,23,0.1)",
     borderRadius: 100,
-    // asymmetric padding: standard left, tighter right so gap to "MARKETING" is just right
-    padding: "0.4em 0.45em 0.4em 0.85em",
+    // 0.6em right gives a comfortable gap before "MARKETING" without double-space
+    padding: "0.4em 0.6em 0.4em 0.85em",
     display: "inline",
     whiteSpace: "nowrap",
   };
@@ -212,6 +256,11 @@ export default function Hero() {
   const headlineSize = "clamp(15px, 2.8vw, 40px)";
   const sublineSize = "clamp(12px, 1.8vw, 24px)";
 
+  const auditLabel =
+    auditState === "idle" ? "FREE EXTINCTION AUDIT" :
+    auditState === "running" ? "SEE AUDIT" :
+    "AUDIT DONE — VIEW REPORT";
+
   return (
     <section
       style={{
@@ -221,22 +270,6 @@ export default function Hero() {
         background: "#EDEAE0",
       }}
     >
-      {/* Game X button */}
-      <AnimatePresence>
-        {gameActive && (
-          <motion.button
-            key="game-x"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            onClick={closeGame}
-            style={{ position: "fixed", top: 20, right: 24, zIndex: 200, width: 40, height: 40, borderRadius: "50%", background: "#1C1917", color: "#EDEAE0", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-          >
-            <X size={18} />
-          </motion.button>
-        )}
-      </AnimatePresence>
-
       <AnimatePresence mode="wait">
         {gameActive ? (
           /* ── GAME MODE ─────────────────────────────── */
@@ -250,7 +283,7 @@ export default function Hero() {
             <p style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 9, color: "rgba(28,25,23,0.3)", letterSpacing: "0.1em", marginBottom: 24 }}>
               EXTINCTION RUN — YOUR COMPETITION SIMULATOR
             </p>
-            <DinoGame dinoSrc={gameDinoSrc} />
+            <DinoGame dinoSrc={gameDinoSrc} onClose={closeGame} />
           </motion.div>
         ) : (
           /* ── NORMAL HERO ────────────────────────────── */
@@ -269,7 +302,7 @@ export default function Hero() {
               paddingTop: "5vh",
             }}
           >
-            {/* ── Dino image — centered in flow, z-index 10 floats above text ── */}
+            {/* ── Dino image ── */}
             <motion.div
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -280,7 +313,7 @@ export default function Hero() {
                 onClick={activateGame}
                 title="Click to play"
                 aria-label="Start dino game"
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", margin: "0 auto", position: "relative", paddingBottom: 28 }}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", margin: "0 auto" }}
               >
                 <img
                   src={SERVICES[wordIdx].img}
@@ -298,17 +331,10 @@ export default function Hero() {
                   onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
                   onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
                 />
-                {/* Arrow pointing up at dino */}
-                <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)" }}>
-                  <svg width="50" height="36" viewBox="0 0 50 36" fill="none">
-                    <path d="M8 34 C8 16 36 16 40 4" stroke="rgba(28,25,23,0.22)" strokeWidth="1.5" strokeDasharray="3 3" strokeLinecap="round" />
-                    <path d="M36 2 L42 6 L38 10" stroke="rgba(28,25,23,0.22)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                </div>
               </button>
             </motion.div>
 
-            {/* ── Content block — negative margin pulls it up to overlap dino feet ── */}
+            {/* ── Content block ── */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -325,9 +351,8 @@ export default function Hero() {
                 gap: "clamp(6px, 1vh, 12px)",
               }}
             >
-              {/* Headline — ToyFight pill words */}
+              {/* Headline */}
               <div style={{ lineHeight: 1.6 }}>
-                {/* Row 1 */}
                 <div style={{ marginBottom: "0.3em" }}>
                   <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: headlineSize, color: "#1C1917" }}>
                     <span style={creamPill}>
@@ -337,13 +362,11 @@ export default function Hero() {
                     </span>MARKETING
                   </span>
                 </div>
-                {/* Row 2 */}
                 <div style={{ marginBottom: "0.3em" }}>
                   <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: sublineSize, color: "#8B7F72" }}>
                     that&apos;s not from
                   </span>
                 </div>
-                {/* Row 3 */}
                 <div>
                   <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: headlineSize, color: "#8B5CF6" }}>
                     <span style={purplePill}>67 MILLION YEARS AGO</span>
@@ -351,16 +374,53 @@ export default function Hero() {
                 </div>
               </div>
 
-              {/* Buttons — bigger, more vertical breathing room */}
+              {/* Buttons */}
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "center", marginTop: "clamp(8px, 1.2vh, 14px)", marginBottom: "clamp(6px, 1vh, 12px)" }}>
+                {/* Progress-aware audit button */}
                 <button
                   onClick={openTerminal}
-                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(9px, 1.05vw, 12px)", padding: "clamp(13px,1.8vh,18px) clamp(20px,2.2vw,30px)", borderRadius: 9999, background: "#1C1917", color: "#EDEAE0", border: "none", letterSpacing: "0.05em", cursor: "pointer", transition: "background 0.15s" }}
+                  style={{
+                    fontFamily: '"Press Start 2P", monospace',
+                    fontSize: "clamp(9px, 1.05vw, 12px)",
+                    padding: "clamp(13px,1.8vh,18px) clamp(20px,2.2vw,30px)",
+                    borderRadius: 9999,
+                    background: "#1C1917",
+                    color: "#EDEAE0",
+                    border: "none",
+                    letterSpacing: "0.05em",
+                    cursor: "pointer",
+                    transition: "background 0.15s",
+                    position: "relative",
+                    overflow: "hidden",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.5em",
+                  }}
                   onMouseEnter={e => (e.currentTarget.style.background = "#3D3430")}
                   onMouseLeave={e => (e.currentTarget.style.background = "#1C1917")}
                 >
-                  FREE EXTINCTION AUDIT →
+                  {/* Progress bar fill */}
+                  {auditState !== "idle" && (
+                    <span style={{
+                      position: "absolute",
+                      top: 0, bottom: 0, left: 0,
+                      width: `${auditProgress}%`,
+                      background: "rgba(139,92,246,0.35)",
+                      transition: "width 0.5s ease",
+                      borderRadius: "inherit",
+                      pointerEvents: "none",
+                    }} />
+                  )}
+                  <span style={{ position: "relative", zIndex: 1 }}>{auditLabel}</span>
+                  <svg
+                    width="1em" height="1em" viewBox="0 0 16 16" fill="none"
+                    stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+                    style={{ position: "relative", zIndex: 1, flexShrink: 0 }}
+                  >
+                    <path d="M2 8h12M9 3l5 5-5 5" />
+                  </svg>
                 </button>
+
                 <a
                   href="#contact"
                   style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(8px, 0.9vw, 10px)", padding: "clamp(12px,1.7vh,17px) clamp(18px,2vw,26px)", borderRadius: 9999, background: "transparent", color: "rgba(28,25,23,0.4)", border: "1.5px solid rgba(28,25,23,0.15)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.15s" }}
@@ -371,12 +431,12 @@ export default function Hero() {
                 </a>
               </div>
 
-              {/* Tagline — bigger */}
+              {/* Tagline */}
               <p style={{ fontFamily: '"Inter Variable","Inter",sans-serif', fontStyle: "italic", fontSize: "clamp(13px, 1.5vw, 18px)", color: "#8B7F72", fontWeight: 300, maxWidth: 580, margin: 0, lineHeight: 1.6 }}>
-                We help HVAC, plumbing, and home service businesses evolve through more calls, booked jobs, and real revenue.
+                We help local service businesses evolve via more calls, booked jobs, and real revenue.
               </p>
 
-              {/* Stats — single no-wrap row, bigger */}
+              {/* Stats — wrapping row */}
               <div
                 style={{
                   paddingTop: "clamp(6px, 1vh, 12px)",
@@ -386,9 +446,10 @@ export default function Hero() {
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
-                  flexWrap: "nowrap",
-                  gap: "clamp(10px, 2vw, 28px)",
-                  overflow: "hidden",
+                  flexWrap: "wrap",
+                  gap: "clamp(10px, 2vw, 24px)",
+                  rowGap: "clamp(6px, 1vh, 10px)",
+                  overflow: "visible",
                 }}
               >
                 {[
@@ -400,7 +461,7 @@ export default function Hero() {
                     {i > 0 && (
                       <span style={{ color: "rgba(28,25,23,0.2)", fontSize: 16, flexShrink: 0 }}>·</span>
                     )}
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexShrink: 0 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexShrink: 0, whiteSpace: "nowrap" }}>
                       <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(11px, 1.5vw, 17px)", color: "#1C1917", lineHeight: 1 }}>
                         {s.n}
                       </span>
@@ -412,10 +473,18 @@ export default function Hero() {
                 ))}
               </div>
             </motion.div>
-
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Extinction Terminal modal */}
+      <ExtinctionTerminal
+        open={terminalOpen}
+        onClose={closeTerminal}
+        onAuditStart={() => { setAuditState("running"); setAuditProgress(0); }}
+        onAuditProgress={(pct) => setAuditProgress(pct)}
+        onAuditDone={() => { setAuditState("done"); setAuditProgress(100); }}
+      />
     </section>
   );
 }

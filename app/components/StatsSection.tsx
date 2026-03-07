@@ -18,7 +18,7 @@ export default function StatsSection() {
     <section
       id="stats"
       ref={ref}
-      style={{ background: "#EDEAE0", paddingTop: 80, paddingBottom: 80 }}
+      style={{ background: "#1C1917", paddingTop: 80, paddingBottom: 80 }}
     >
       <div className="max-w-6xl mx-auto px-6">
         {/* Section label */}
@@ -30,7 +30,7 @@ export default function StatsSection() {
             fontFamily: '"Press Start 2P", monospace',
             fontSize: 9,
             letterSpacing: "0.08em",
-            color: "rgba(28,25,23,0.35)",
+            color: "rgba(237,234,224,0.3)",
             marginBottom: 48,
           }}
         >
@@ -42,7 +42,7 @@ export default function StatsSection() {
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gap: 1,
-            background: "rgba(28,25,23,0.1)",
+            background: "rgba(237,234,224,0.08)",
           }}
         >
           {guarantees.map((g, i) => (
@@ -52,7 +52,7 @@ export default function StatsSection() {
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: i * 0.1 }}
               style={{
-                background: "#EDEAE0",
+                background: "#1C1917",
                 padding: "clamp(24px, 4vw, 48px) clamp(20px, 3vw, 40px)",
                 display: "flex",
                 flexDirection: "column",
@@ -62,7 +62,7 @@ export default function StatsSection() {
                 style={{
                   fontFamily: '"Press Start 2P", monospace',
                   fontSize: "clamp(32px, 6vw, 80px)",
-                  color: i === 0 ? "#8B5CF6" : "#1C1917",
+                  color: i === 0 ? "#8B5CF6" : "#EDEAE0",
                   lineHeight: 1,
                   letterSpacing: "-0.02em",
                   marginBottom: 16,
@@ -70,10 +70,10 @@ export default function StatsSection() {
               >
                 {inView ? <CountUp to={g.to} suffix={g.suffix} duration={2.2} /> : `0${g.suffix}`}
               </span>
-              <span style={{ fontSize: 13, color: "rgba(28,25,23,0.5)", lineHeight: 1.5, marginBottom: 6 }}>
+              <span style={{ fontSize: 13, color: "rgba(237,234,224,0.5)", lineHeight: 1.5, marginBottom: 6 }}>
                 {g.label}
               </span>
-              <span style={{ fontFamily: '"SF Mono","Fira Code",monospace', fontSize: 9, color: "rgba(28,25,23,0.25)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              <span style={{ fontFamily: '"SF Mono","Fira Code",monospace', fontSize: 9, color: "rgba(237,234,224,0.25)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 {g.sub}
               </span>
             </motion.div>

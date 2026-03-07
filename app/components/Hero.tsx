@@ -4,6 +4,9 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 
+// ─── Rotating industry words ──────────────────────────────────────────────────
+const WORDS = ["HVAC", "PLUMBING", "ELECTRICIAN", "PEST REMOVAL"];
+
 // ─── Cactus obstacle ─────────────────────────────────────────────────────────
 function Cactus({ height = 60 }: { height?: number }) {
   return (
@@ -18,12 +21,12 @@ function Cactus({ height = 60 }: { height?: number }) {
 }
 
 // ─── Dino Game ────────────────────────────────────────────────────────────────
-const GROUND = 88;
-const DINO_W = 65;
-const DINO_H = 80;
+const GROUND = 108;
+const DINO_W = 80;
+const DINO_H = 100;
 const DINO_X = 60;
 const CACTUS_W = 28;
-const JUMP_V = -14;
+const JUMP_V = -11;
 const GRAVITY = 0.55;
 const SPEED_START = 5;
 const SPEED_INC = 0.0008;
@@ -116,7 +119,7 @@ function DinoGame() {
         <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 10, color: "rgba(28,25,23,0.4)" }}>HI {String(highScore).padStart(5, "0")}</span>
         <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 10, color: "#1C1917" }}>{String(score).padStart(5, "0")}</span>
       </div>
-      <div style={{ position: "relative", height: 280, background: "#EDEAE0", border: "2px solid rgba(28,25,23,0.15)", borderRadius: 8, overflow: "hidden" }}>
+      <div style={{ position: "relative", height: 360, background: "#EDEAE0", border: "2px solid rgba(28,25,23,0.15)", borderRadius: 8, overflow: "hidden" }}>
         <div style={{ position: "absolute", bottom: GROUND - 2, left: 0, right: 0, height: 2, background: "rgba(28,25,23,0.2)" }} />
         <div style={{ position: "absolute", left: DINO_X, bottom: GROUND + dinoY, width: DINO_W, height: DINO_H }}>
           <img src="/dino.png" alt="dino" style={{ width: DINO_W, height: DINO_H, objectFit: "contain", imageRendering: "pixelated" }} />
@@ -149,6 +152,20 @@ function DinoGame() {
 // ─── Hero ─────────────────────────────────────────────────────────────────────
 export default function Hero() {
   const [gameActive, setGameActive] = useState(false);
+  const [wordIdx, setWordIdx] = useState(0);
+  const [wordVisible, setWordVisible] = useState(true);
+
+  // Cycle industry words with fade
+  useEffect(() => {
+    const id = setInterval(() => {
+      setWordVisible(false);
+      setTimeout(() => {
+        setWordIdx(i => (i + 1) % WORDS.length);
+        setWordVisible(true);
+      }, 350);
+    }, 2500);
+    return () => clearInterval(id);
+  }, []);
 
   function openTerminal() {
     window.dispatchEvent(new CustomEvent("deeno:openTerminal"));
@@ -162,7 +179,7 @@ export default function Hero() {
     background: "rgba(237, 234, 224, 0.90)",
     border: "1px solid rgba(28,25,23,0.1)",
     borderRadius: 100,
-    padding: "0.15em 0.6em",
+    padding: "0.4em 0.85em",
     display: "inline",
     whiteSpace: "nowrap",
   };
@@ -170,14 +187,14 @@ export default function Hero() {
     background: "rgba(139, 92, 246, 0.1)",
     border: "1px solid rgba(139,92,246,0.2)",
     borderRadius: 100,
-    padding: "0.15em 0.6em",
+    padding: "0.4em 0.85em",
     display: "inline",
     color: "#8B5CF6",
     whiteSpace: "nowrap",
   };
 
-  const headlineSize = "clamp(13px, 2.4vw, 34px)";
-  const sublineSize = "clamp(10px, 1.6vw, 20px)";
+  const headlineSize = "clamp(15px, 2.8vw, 40px)";
+  const sublineSize = "clamp(12px, 1.8vw, 24px)";
 
   return (
     <section
@@ -247,13 +264,13 @@ export default function Hero() {
                 onClick={activateGame}
                 title="Click to play"
                 aria-label="Start dino game"
-                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", margin: "0 auto" }}
+                style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "block", margin: "0 auto", position: "relative", paddingBottom: 40 }}
               >
                 <img
                   src="/dino.png"
                   alt="Pixel dinosaur"
                   style={{
-                    height: "clamp(160px, 36vh, 300px)",
+                    height: "clamp(200px, 44vh, 360px)",
                     width: "auto",
                     imageRendering: "pixelated",
                     display: "block",
@@ -263,16 +280,14 @@ export default function Hero() {
                   onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.04)")}
                   onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
                 />
+                {/* Arrow pointing up at dino */}
+                <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)" }}>
+                  <svg width="50" height="36" viewBox="0 0 50 36" fill="none">
+                    <path d="M8 34 C8 16 36 16 40 4" stroke="rgba(28,25,23,0.22)" strokeWidth="1.5" strokeDasharray="3 3" strokeLinecap="round" />
+                    <path d="M36 2 L42 6 L38 10" stroke="rgba(28,25,23,0.22)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
               </button>
-
-              {/* "your competition" label */}
-              <div style={{ marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                <span style={{ display: "inline-block", width: 24, borderTop: "1px dashed rgba(28,25,23,0.25)" }} />
-                <span style={{ fontFamily: '"SF Mono","Fira Code",monospace', fontSize: 9, color: "rgba(28,25,23,0.35)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-                  your competition
-                </span>
-                <span style={{ display: "inline-block", width: 24, borderTop: "1px dashed rgba(28,25,23,0.25)" }} />
-              </div>
             </motion.div>
 
             {/* ── Content block — slight negative margin pulls it up to overlap dino feet ── */}
@@ -297,7 +312,11 @@ export default function Hero() {
                 {/* Row 1 */}
                 <div style={{ marginBottom: "0.3em" }}>
                   <span style={{ fontFamily: '"Press Start 2P", monospace', fontSize: headlineSize, color: "#1C1917" }}>
-                    <span style={creamPill}>HOME SERVICES</span>
+                    <span style={creamPill}>
+                      <span style={{ opacity: wordVisible ? 1 : 0, transition: "opacity 0.3s ease", display: "inline-block" }}>
+                        {WORDS[wordIdx]}
+                      </span>
+                    </span>
                     {" "}MARKETING
                   </span>
                 </div>

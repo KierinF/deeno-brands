@@ -4,19 +4,37 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useRef, useState } from "react";
 import { Phone, Mail, ArrowRight, Loader2 } from "lucide-react";
 
-type FormState = "idle" | "submitting" | "success";
+type FormState = "idle" | "submitting" | "success" | "error";
 
 export default function CTA() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: "-80px" });
   const [formState, setFormState] = useState<FormState>("idle");
   const [email, setEmail] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setFormState("submitting");
-    await new Promise(r => setTimeout(r, 1400));
-    setFormState("success");
+    try {
+      const fd = new FormData(e.currentTarget);
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: fd.get("firstName"),
+          lastName: fd.get("lastName"),
+          email: fd.get("email"),
+          phone: fd.get("phone"),
+          trade: fd.get("trade"),
+          budget: fd.get("budget"),
+        }),
+      });
+      if (!res.ok) throw new Error("send failed");
+      setFormState("success");
+    } catch {
+      setFormState("error");
+    }
   };
 
   const inputStyle: React.CSSProperties = {
@@ -134,12 +152,12 @@ export default function CTA() {
                   </h3>
                   <p style={{ fontSize: 12, color: "#8B7F72", marginBottom: 20 }}>2 minutes. No spam, ever.</p>
 
-                  <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <form ref={formRef} onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      {["First Name", "Last Name"].map(label => (
-                        <div key={label}>
-                          <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>{label}</label>
-                          <input type="text" required placeholder={label === "First Name" ? "John" : "Smith"} style={inputStyle}
+                      {[{ label: "First Name", name: "firstName", placeholder: "John" }, { label: "Last Name", name: "lastName", placeholder: "Smith" }].map(f => (
+                        <div key={f.name}>
+                          <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>{f.label}</label>
+                          <input type="text" name={f.name} required placeholder={f.placeholder} style={inputStyle}
                             onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
                             onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                           />
@@ -148,21 +166,21 @@ export default function CTA() {
                     </div>
                     <div>
                       <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Business Email</label>
-                      <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbusiness.com" style={inputStyle}
+                      <input type="email" name="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbusiness.com" style={inputStyle}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
                         onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       />
                     </div>
                     <div>
                       <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Phone</label>
-                      <input type="tel" placeholder="(555) 000-0000" style={inputStyle}
+                      <input type="tel" name="phone" placeholder="(555) 000-0000" style={inputStyle}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
                         onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       />
                     </div>
                     <div>
                       <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Your Trade</label>
-                      <select style={{ ...inputStyle, appearance: "none" }}
+                      <select name="trade" style={{ ...inputStyle, appearance: "none" }}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
                         onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       >
@@ -174,7 +192,7 @@ export default function CTA() {
                     </div>
                     <div>
                       <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Monthly Budget</label>
-                      <select style={{ ...inputStyle, appearance: "none" }}
+                      <select name="budget" style={{ ...inputStyle, appearance: "none" }}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
                         onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       >
@@ -190,25 +208,27 @@ export default function CTA() {
                       style={{
                         width: "100%",
                         padding: "14px",
-                        background: "#8B5CF6",
+                        background: formState === "error" ? "#DC2626" : "#8B5CF6",
                         color: "#fff",
                         border: "none",
                         borderRadius: 8,
                         fontFamily: '"Press Start 2P", monospace',
                         fontSize: 9,
                         letterSpacing: "0.08em",
-                        cursor: "pointer",
+                        cursor: formState === "submitting" ? "not-allowed" : "pointer",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         gap: 8,
                         transition: "background 0.15s",
                       }}
-                      onMouseEnter={e => { if (formState !== "submitting") (e.currentTarget.style.background = "#7C3AED"); }}
-                      onMouseLeave={e => (e.currentTarget.style.background = "#8B5CF6")}
+                      onMouseEnter={e => { if (formState === "idle") (e.currentTarget.style.background = "#7C3AED"); }}
+                      onMouseLeave={e => (e.currentTarget.style.background = formState === "error" ? "#DC2626" : "#8B5CF6")}
                     >
                       {formState === "submitting" ? (
                         <><Loader2 size={14} className="animate-spin" /> SENDING...</>
+                      ) : formState === "error" ? (
+                        <>FAILED — TRY AGAIN</>
                       ) : (
                         <>BOOK FREE AUDIT <ArrowRight size={13} /></>
                       )}

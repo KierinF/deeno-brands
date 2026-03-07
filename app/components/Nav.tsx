@@ -14,6 +14,7 @@ export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [terminalOpen, setTerminalOpen] = useState(false);
+  const [logoHovered, setLogoHovered] = useState(false);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -43,33 +44,63 @@ export default function Nav() {
         }}
       >
         <div
-          className="max-w-7xl mx-auto flex items-center justify-between"
-          style={{ padding: "14px 24px" }}
+          style={{
+            maxWidth: "80rem",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1fr auto 1fr",
+            alignItems: "center",
+            padding: "14px 24px",
+          }}
         >
-          {/* Logo — small dark square, ToyFight-style */}
-          <a href="#" className="flex items-center gap-0" data-cursor-hover>
+          {/* Logo — col 1, left-aligned */}
+          <a
+            href="#"
+            data-cursor-hover
+            onMouseEnter={() => setLogoHovered(true)}
+            onMouseLeave={() => setLogoHovered(false)}
+            style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
+          >
             <div
               style={{
-                width: 36,
                 height: 36,
+                width: logoHovered ? 162 : 36,
                 background: "#1C1917",
                 borderRadius: 6,
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: 8,
+                overflow: "hidden",
+                whiteSpace: "nowrap",
                 flexShrink: 0,
+                paddingLeft: logoHovered ? 10 : 8,
+                paddingRight: logoHovered ? 12 : 8,
+                transition: "width 0.3s ease, padding 0.3s ease",
               }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="#EDEAE0" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#EDEAE0" aria-hidden="true" style={{ flexShrink: 0 }}>
                 <path d="M 0 0 C -1.2 -1.5 -1.2 -7.5 0 -11 C 1.2 -7.5 1.2 -1.5 0 0 Z" transform="translate(12,16)" />
                 <path d="M 0 0 C -1.2 -1.5 -1.2 -7.5 0 -11 C 1.2 -7.5 1.2 -1.5 0 0 Z" transform="translate(12,16) rotate(-36)" />
                 <path d="M 0 0 C -1.2 -1.5 -1.2 -7.5 0 -11 C 1.2 -7.5 1.2 -1.5 0 0 Z" transform="translate(12,16) rotate(36)" />
                 <ellipse cx="12" cy="21" rx="2.2" ry="1.6" />
               </svg>
+              <span
+                style={{
+                  fontFamily: '"Press Start 2P", monospace',
+                  fontSize: 7,
+                  color: "#EDEAE0",
+                  opacity: logoHovered ? 1 : 0,
+                  transition: "opacity 0.2s ease 0.1s",
+                  letterSpacing: "0.04em",
+                  lineHeight: 1,
+                }}
+              >
+                DEENO BRANDS
+              </span>
             </div>
           </a>
 
-          {/* Desktop nav — pill items */}
+          {/* Desktop nav links — col 2, centered */}
           <div className="hidden md:flex items-center gap-2">
             {links.map((l) => (
               <a
@@ -103,8 +134,8 @@ export default function Nav() {
             ))}
           </div>
 
-          {/* Right: audit button only */}
-          <div className="hidden md:flex items-center">
+          {/* Right: audit button — col 3, right-aligned */}
+          <div className="hidden md:flex items-center justify-end">
             <button
               onClick={() => setTerminalOpen(true)}
               style={{
@@ -126,24 +157,25 @@ export default function Nav() {
             </button>
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden"
-            style={{ color: "#1C1917", background: "none", border: "none", cursor: "pointer" }}
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            <AnimatePresence mode="wait">
-              {mobileOpen ? (
-                <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                  <X size={20} />
-                </motion.div>
-              ) : (
-                <motion.div key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
-                  <Menu size={20} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </button>
+          {/* Mobile hamburger — visible on small screens, placed at end */}
+          <div className="md:hidden flex justify-end" style={{ gridColumn: "3" }}>
+            <button
+              style={{ color: "#1C1917", background: "none", border: "none", cursor: "pointer" }}
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              <AnimatePresence mode="wait">
+                {mobileOpen ? (
+                  <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <X size={20} />
+                  </motion.div>
+                ) : (
+                  <motion.div key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}>
+                    <Menu size={20} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </button>
+          </div>
         </div>
 
         {/* Mobile menu */}

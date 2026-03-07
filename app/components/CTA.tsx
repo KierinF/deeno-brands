@@ -173,7 +173,7 @@ export default function CTA() {
                     </div>
                     <div>
                       <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Phone</label>
-                      <input type="tel" name="phone" placeholder="(555) 000-0000" style={inputStyle}
+                      <input type="tel" name="phone" required placeholder="(555) 000-0000" style={inputStyle}
                         onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
                         onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
                       />

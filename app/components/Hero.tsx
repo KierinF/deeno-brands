@@ -219,7 +219,7 @@ export default function Hero() {
         setWordIdx(i => (i + 1) % SERVICES.length);
         setWordVisible(true);
       }, 350);
-    }, 4000);
+    }, 6000);
     return () => clearInterval(id);
   }, []);
 
@@ -238,8 +238,7 @@ export default function Hero() {
     background: "rgba(237, 234, 224, 0.90)",
     border: "1px solid rgba(28,25,23,0.1)",
     borderRadius: 100,
-    // 0.6em right gives a comfortable gap before "MARKETING" without double-space
-    padding: "0.4em 0.6em 0.4em 0.85em",
+    padding: "0.4em 1em 0.4em 0.85em",
     display: "inline",
     whiteSpace: "nowrap",
   };
@@ -453,9 +452,9 @@ export default function Hero() {
                 }}
               >
                 {[
-                  { n: "70%", l: "homeowners google first" },
-                  { n: "2.5×", l: "LSA vs standard PPC" },
-                  { n: "15×", l: "more from phone leads" },
+                  { n: "4.9★", l: "avg. client satisfaction" },
+                  { n: "3.2×", l: "return on ad spend" },
+                  { n: "93%", l: "renew after year one" },
                 ].map((s, i) => (
                   <React.Fragment key={s.n}>
                     {i > 0 && (

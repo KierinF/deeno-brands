@@ -377,7 +377,7 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
                       style={{
                         flex: 1,
                         overflowY: "auto",
-                        maxHeight: 280,
+                        maxHeight: 380,
                         scrollbarWidth: "none",
                         marginBottom: 12,
                       }}
@@ -438,20 +438,14 @@ export default function ExtinctionTerminal({ open, onClose, onAuditStart, onAudi
                             SEND IT →
                           </button>
                         </div>
-                        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <div style={{ marginTop: 8 }}>
                           <button
                             onClick={handleBookCall}
-                            style={{ flex: 1, padding: "8px", background: "transparent", color: "rgba(232,228,216,0.3)", border: `1px solid rgba(232,228,216,0.1)`, borderRadius: 4, fontSize: 9, fontFamily: "inherit", letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer" }}
+                            style={{ width: "100%", padding: "8px", background: "transparent", color: "rgba(232,228,216,0.3)", border: `1px solid rgba(232,228,216,0.1)`, borderRadius: 4, fontSize: 9, fontFamily: "inherit", letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer" }}
                             onMouseEnter={e => { (e.currentTarget.style.color = TEXT); (e.currentTarget.style.borderColor = "rgba(232,228,216,0.3)"); }}
                             onMouseLeave={e => { (e.currentTarget.style.color = "rgba(232,228,216,0.3)"); (e.currentTarget.style.borderColor = "rgba(232,228,216,0.1)"); }}
                           >
                             Skip — Book Free Call
-                          </button>
-                          <button
-                            onClick={() => { setPhase("idle"); setLines([]); setConnIdx(0); streamStartedRef.current = false; }}
-                            style={{ padding: "8px 12px", background: "transparent", color: "rgba(232,228,216,0.25)", border: `1px solid rgba(232,228,216,0.08)`, borderRadius: 4, fontSize: 9, fontFamily: "inherit", letterSpacing: "0.1em", textTransform: "uppercase", cursor: "pointer" }}
-                          >
-                            Rescan
                           </button>
                         </div>
                       </div>

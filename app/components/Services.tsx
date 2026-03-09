@@ -18,7 +18,7 @@ const services = [
   },
   {
     num: "03",
-    title: "Website Design",
+    title: "Website Development",
     result: "Built to convert, not just look good",
     desc: "Custom, mobile-first sites that turn visitors into phone calls. Live within 48 hours.",
   },

@@ -72,93 +72,89 @@ function extractSignals(html: string, url: string) {
 
   // Conversion signals
   const hasPhone = /(\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4})/i.test(html);
+  const hasClickToCall = /href=["']tel:/i.test(html);
   const hasCallToAction = /\b(call now|get a quote|free estimate|book now|contact us|schedule|request a call|get started)\b/i.test(html);
   const hasChat = /tawk\.to|intercom|livechat|zendesk|crisp\.chat|drift\.com/i.test(html);
   const hasBooking = /calendly|appointy|acuity|housecall|service titan|jobber|fieldedge/i.test(html);
+  const hasContactForm = /<form[^>]*>/i.test(html) && (/<input[^>]+type=["']email["']/i.test(html) || /<input[^>]+type=["']tel["']/i.test(html));
 
   // Google / local signals
   const hasGBP = /business\.google\.com|google\.com\/maps|LocalBusiness|GeoCoordinates/i.test(html);
+  const hasMapEmbed = /google\.com\/maps\/embed/i.test(html);
   const hasReviews = /google review|trustpilot|yelp|reviews|testimonial|star[s]?\s*rating|(\d\.?\d?)\s*out of\s*5/i.test(html);
   const reviewCountMatch = html.match(/(\d{1,4})\s*(review|rating)/i);
   const reviewCount = reviewCountMatch ? reviewCountMatch[1] : null;
 
   const hasSSL = url.startsWith("https://");
   const hasStructuredData = html.includes("application/ld+json");
+  // Extract schema @type if present
+  const schemaTypeMatch = html.match(/"@type"\s*:\s*"([^"]+)"/);
+  const schemaType = schemaTypeMatch ? schemaTypeMatch[1] : null;
   const hasMobileViewport = html.includes('name="viewport"') || html.includes("name='viewport'");
   const hasLocalKeywords = /\b(plumb|hvac|electric|pest|heating|cooling|drain|sewer|furnace|ac unit|air condition)\b/i.test(html);
+
+  // Images without alt text
+  const allImgs = (html.match(/<img[^>]*>/gi) ?? []).length;
+  const imgsWithAlt = (html.match(/<img[^>]+alt=["'][^"']+["'][^>]*>/gi) ?? []).length;
+  const missingAltCount = Math.max(0, allImgs - imgsWithAlt);
 
   // Estimate page count from nav links
   const navLinks = html.match(/<nav[^>]*>([\s\S]*?)<\/nav>/i)?.[1] ?? "";
   const navHrefs = [...navLinks.matchAll(/href=["']([^"'#?]+)["']/gi)].map(m => m[1]).filter(h => h.startsWith("/") || h.includes(".html"));
   const estPageCount = Math.max(4, navHrefs.length + 1);
 
-  const textSample = html
+  // Word count estimate
+  const plainText = html
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 1500);
+    .trim();
+  const wordCount = plainText.split(/\s+/).length;
+  const textSample = plainText.slice(0, 1500);
 
   return {
     title, description, h1s, h2s,
     hasGA, hasGTM, hasFBPixel, hasBingPixel,
-    hasPhone, hasCallToAction, hasChat, hasBooking,
-    hasGBP, hasReviews, reviewCount,
-    hasSSL, hasStructuredData, hasMobileViewport, hasLocalKeywords,
-    estPageCount, textSample,
+    hasPhone, hasClickToCall, hasCallToAction, hasChat, hasBooking, hasContactForm,
+    hasGBP, hasMapEmbed, hasReviews, reviewCount,
+    hasSSL, hasStructuredData, schemaType, hasMobileViewport, hasLocalKeywords,
+    missingAltCount, estPageCount, wordCount, textSample,
   };
 }
 
 // Mock results when no API key is set
 function getMockLines(url: string): string {
   const domain = url.replace(/https?:\/\/(www\.)?/, "").split("/")[0];
-  return `> Connecting to ${domain}...                  OK
-> Fetching HTML...                            OK
-
+  return `> Connecting to ${domain}...              OK
+> Fetching HTML + sitemap...               OK
 ━━━ GOOGLE PRESENCE ━━━
-> Google Business Profile signals...         NOT FOUND
-> Review count detected...                   NONE
-> Star rating visible...                     NONE
-> NAP consistency...                         PARTIAL
-SECTION SCORE: 3/10
-
-━━━ WEBSITE TECHNICAL ━━━
-> SSL certificate...                         OK
-> Mobile viewport...                         OK
-> Google Analytics...                        NOT FOUND
-> Google Tag Manager...                      NOT FOUND
-> Facebook Pixel...                          NOT FOUND
-> Estimated page count...                    ~5 pages
-> Structured data (Schema.org)...            MISSING
-SECTION SCORE: 4/10
-
-━━━ SEO ━━━
-> Page title...                              GENERIC
-> Meta description...                        MISSING
-> H1 tags present...                         1 FOUND
-> Local keywords...                          WEAK
-> Schema markup...                           NONE
-SECTION SCORE: 3/10
-
-━━━ CONVERSION ━━━
-> Phone number visible...                    NOT DETECTED
-> Strong call-to-action...                   WEAK
-> Review/trust signals...                    NONE
-> Live chat...                               NONE
-> Online booking...                          NONE
+> GBP / Maps signals...                    NOT FOUND
+> Review count in HTML...                  NONE
+> Maps embed detected...                   NO
 SECTION SCORE: 2/10
-
+━━━ WEBSITE TECHNICAL ━━━
+> SSL certificate...                       OK
+> Analytics (GA/GTM)...                    NOT FOUND
+> Schema.org markup...                     MISSING
+SECTION SCORE: 4/10
+━━━ SEO ━━━
+> Page title quality...                    GENERIC
+> Meta description...                      MISSING
+> Local keywords...                        WEAK
+SECTION SCORE: 3/10
+━━━ CONVERSION ━━━
+> Click-to-call (tel: link)...             NOT FOUND
+> Contact form detected...                 NONE
+> Online booking system...                 NONE
+SECTION SCORE: 2/10
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SCAN COMPLETE
-FINAL SCORE: 12/40 — GRADE: D
-
+FINAL SCORE: 11/40 — GRADE: D
 TOP 3 PRIORITIES:
-1. No tracking — you have no idea where leads come from
-2. Missing GBP signals — Google can't verify you're a local business
-3. CTA is buried — your phone number should be on every screen
-
-Add ANTHROPIC_API_KEY to .env.local for real AI analysis.
+1. Add GA4 + GTM — you're flying blind on where leads come from
+2. Claim and optimise your Google Business Profile immediately
+3. Put a tap-to-call button above the fold on mobile
+Set ANTHROPIC_API_KEY in Vercel env vars for real AI analysis.
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 }
 
@@ -234,79 +230,88 @@ export async function POST(req: NextRequest) {
 
   const s = extractSignals(html, fullUrl);
 
-  const systemPrompt = `You are a blunt, expert home services digital marketing auditor. You are scanning someone's website and giving a cold, honest, scored assessment in a retro terminal style. Be direct, specific, a little wry. No filler. No preamble.`;
+  // Fetch sitemap.xml to get real page count
+  let sitemapPageCount: number | null = null;
+  try {
+    const domain = new URL(fullUrl).origin;
+    const smCtrl = new AbortController();
+    const smTimeout = setTimeout(() => smCtrl.abort(), 2500);
+    const smRes = await fetch(`${domain}/sitemap.xml`, { signal: smCtrl.signal, headers: { "User-Agent": "Mozilla/5.0 (compatible; DeenoScanner/1.0)" } });
+    clearTimeout(smTimeout);
+    if (smRes.ok) {
+      const smText = await smRes.text();
+      const urlMatches = smText.match(/<loc>/g);
+      sitemapPageCount = urlMatches ? urlMatches.length : null;
+    }
+  } catch { /* non-blocking */ }
+
+  const pageCount = sitemapPageCount !== null ? `${sitemapPageCount} (from sitemap)` : `~${s.estPageCount} (estimated from nav)`;
+
+  const systemPrompt = `You are a blunt, expert home services digital marketing auditor. You scan websites and give cold, honest, scored terminal-style assessments. Be direct, specific, a little wry. No filler. No preamble. Keep output COMPACT — 3 metrics per section, no blank lines between sections.`;
 
   const userPrompt = `Auditing: ${fullUrl}
 
-TECHNICAL SIGNALS EXTRACTED:
-- Page response: ${fetchStatus} (${responseTime}ms)
+SCRAPED SIGNALS:
+- Response: ${fetchStatus} (${responseTime}ms)
 - SSL: ${s.hasSSL ? "YES" : "NO"}
 - Mobile viewport: ${s.hasMobileViewport ? "YES" : "NO"}
+- Page count: ${pageCount}
+- Word count (homepage): ~${s.wordCount}
+- Images missing alt text: ${s.missingAltCount}
 - Title: ${s.title || "NONE"}
-- Meta description: ${s.description || "NONE"}
-- H1 headings: ${s.h1s.join(" | ") || "NONE"}
-- H2 headings: ${s.h2s.join(" | ") || "NONE"}
+- Meta description: ${s.description ? s.description.slice(0, 120) : "NONE"}
+- H1: ${s.h1s.join(" | ") || "NONE"}
+- H2s: ${s.h2s.join(" | ") || "NONE"}
 - Google Analytics: ${s.hasGA ? "YES" : "NO"}
 - Google Tag Manager: ${s.hasGTM ? "YES" : "NO"}
 - Facebook Pixel: ${s.hasFBPixel ? "YES" : "NO"}
-- Bing/UET Pixel: ${s.hasBingPixel ? "YES" : "NO"}
-- Structured data: ${s.hasStructuredData ? "YES" : "NO"}
-- Estimated pages (from nav): ~${s.estPageCount}
-- Google Business Profile signals: ${s.hasGBP ? "DETECTED" : "NOT FOUND"}
-- Review signals: ${s.hasReviews ? "DETECTED" : "NONE"}
-- Review count in HTML: ${s.reviewCount ?? "NOT FOUND"}
-- Phone number found: ${s.hasPhone ? "YES" : "NO"}
-- Call-to-action text: ${s.hasCallToAction ? "YES" : "NO"}
-- Live chat widget: ${s.hasChat ? "YES" : "NO"}
-- Online booking system: ${s.hasBooking ? "YES" : "NO"}
-- Local service keywords: ${s.hasLocalKeywords ? "YES" : "NO"}
-- Page text sample: "${s.textSample.slice(0, 600)}"
+- Bing Pixel: ${s.hasBingPixel ? "YES" : "NO"}
+- Schema.org markup: ${s.hasStructuredData ? `YES (type: ${s.schemaType ?? "unknown"})` : "NO"}
+- GBP/Maps signals: ${s.hasGBP ? "DETECTED" : "NOT FOUND"}
+- Maps embed: ${s.hasMapEmbed ? "YES" : "NO"}
+- Review signals: ${s.hasReviews ? `YES (count: ${s.reviewCount ?? "unknown"})` : "NONE"}
+- Phone number in HTML: ${s.hasPhone ? "YES" : "NO"}
+- Click-to-call (tel: link): ${s.hasClickToCall ? "YES" : "NO"}
+- Contact form: ${s.hasContactForm ? "YES" : "NO"}
+- CTA text: ${s.hasCallToAction ? "YES" : "NO"}
+- Live chat: ${s.hasChat ? "YES" : "NO"}
+- Online booking: ${s.hasBooking ? "YES" : "NO"}
+- Local keywords: ${s.hasLocalKeywords ? "YES" : "NO"}
+- Page text sample: "${s.textSample.slice(0, 500)}"
 
-Write the output EXACTLY in this format — no extra text, no preamble, start immediately:
+Output EXACTLY this format — start immediately, no preamble, NO blank lines between sections:
 
 ━━━ GOOGLE PRESENCE ━━━
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
 SECTION SCORE: X/10
-
 ━━━ WEBSITE TECHNICAL ━━━
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
 SECTION SCORE: X/10
-
 ━━━ SEO ━━━
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
 SECTION SCORE: X/10
-
 ━━━ CONVERSION ━━━
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
-> [metric label padded to 38 chars]   [SHORT STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
+> [metric 38 chars]   [STATUS]
 SECTION SCORE: X/10
-
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SCAN COMPLETE
-FINAL SCORE: XX/40 — GRADE: [A/B/C/D/F with optional +/-]
-
+FINAL SCORE: XX/40 — GRADE: [A/B/C/D/F]
 TOP 3 PRIORITIES:
-1. [specific fix — 1 line, blunt, actionable]
-2. [specific fix — 1 line, blunt, actionable]
-3. [specific fix — 1 line, blunt, actionable]
-
-[One wry closing line — max 12 words]
+1. [blunt, actionable, 1 line]
+2. [blunt, actionable, 1 line]
+3. [blunt, actionable, 1 line]
+[one wry closing line, max 10 words]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-STATUS values to use: OK, FOUND, DETECTED, MISSING, NOT FOUND, WEAK, GENERIC, PARTIAL, NONE, BLOCKED, YES, NO, or a short number/value.
-Score each section honestly 1-10 based on signals. FINAL SCORE is sum of 4 sections (max 40).`;
+STATUS values: OK, FOUND, DETECTED, MISSING, NOT FOUND, WEAK, GENERIC, PARTIAL, NONE, BLOCKED, YES, NO, or a short value.
+Score each section 1-10. FINAL SCORE = sum of all 4 sections (max 40).`;
 
   // Call Claude and stream response
   const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
@@ -318,7 +323,7 @@ Score each section honestly 1-10 based on signals. FINAL SCORE is sum of 4 secti
     },
     body: JSON.stringify({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 900,
+      max_tokens: 700,
       stream: true,
       system: systemPrompt,
       messages: [{ role: "user", content: userPrompt }],

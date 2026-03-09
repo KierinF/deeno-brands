@@ -240,9 +240,10 @@ export default function Hero() {
     background: "rgba(237, 234, 224, 0.90)",
     border: "1px solid rgba(28,25,23,0.1)",
     borderRadius: 100,
-    padding: "0.4em 0.85em",
+    padding: "0.4em 0.5em 0.4em 0.85em",
     display: "inline",
     whiteSpace: "nowrap",
+    marginRight: "0.45em",
   };
   const purplePill: React.CSSProperties = {
     background: "rgba(139, 92, 246, 0.1)",
@@ -376,13 +377,12 @@ export default function Hero() {
               </div>
 
               {/* Buttons */}
-              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "stretch", justifyContent: "center", marginTop: "clamp(8px, 1.2vh, 14px)", marginBottom: "clamp(6px, 1vh, 12px)", width: "min(90%, 540px)" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginTop: "clamp(8px, 1.2vh, 14px)", marginBottom: "clamp(6px, 1vh, 12px)" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {/* Progress-aware audit button */}
                 <button
                   onClick={openTerminal}
                   style={{
-                    flex: "1 1 0",
-                    minWidth: "min-content",
                     fontFamily: '"Press Start 2P", monospace',
                     fontSize: "clamp(9px, 1.05vw, 12px)",
                     padding: "clamp(13px,1.8vh,18px) clamp(20px,2.2vw,30px)",
@@ -427,12 +427,13 @@ export default function Hero() {
 
                 <a
                   href="#contact"
-                  style={{ flex: "1 1 0", minWidth: "min-content", fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(9px, 1.05vw, 12px)", padding: "clamp(13px,1.8vh,18px) clamp(20px,2.2vw,30px)", borderRadius: 9999, background: "transparent", color: "rgba(28,25,23,0.4)", border: "1.5px solid rgba(28,25,23,0.15)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.15s", display: "inline-flex", alignItems: "center", justifyContent: "center", boxSizing: "border-box" }}
+                  style={{ fontFamily: '"Press Start 2P", monospace', fontSize: "clamp(9px, 1.05vw, 12px)", padding: "clamp(13px,1.8vh,18px) clamp(20px,2.2vw,30px)", borderRadius: 9999, background: "transparent", color: "rgba(28,25,23,0.4)", border: "1.5px solid rgba(28,25,23,0.15)", letterSpacing: "0.05em", textDecoration: "none", transition: "all 0.15s", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                   onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(28,25,23,0.4)"; (e.currentTarget as HTMLAnchorElement).style.color = "#1C1917"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(28,25,23,0.15)"; (e.currentTarget as HTMLAnchorElement).style.color = "rgba(28,25,23,0.4)"; }}
                 >
                   GET IN TOUCH
                 </a>
+              </div>
               </div>
 
               {/* Tagline */}

@@ -1,290 +1,212 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-
 const steps = [
   {
     num: "01",
-    phase: "PHASE 01 / DIAGNOSIS",
-    title: "Free Growth\nAudit",
+    timing: "Week 1",
+    title: "Build Your Commercial ICP",
     description:
-      "We dig into your current marketing, competitors, and local market. You get a real analysis of what's broken and exactly where the money is being lost.",
-    duration: "Week 1",
-    detail: "Competitor analysis · GMB review · Ad account audit · Keyword gaps",
+      "90-minute strategy call to map your best commercial clients, ideal contract types, and geographic market. We pull a verified list of target contacts from Apollo, Clay, and LinkedIn Sales Navigator. You approve it before we contact anyone.",
+    tags: ["ICP Mapping", "Contact List", "Market Research"],
   },
   {
     num: "02",
-    phase: "PHASE 02 / STRATEGY",
-    title: "Custom\nProtocol",
+    timing: "Week 2",
+    title: "Campaign Build",
     description:
-      "We build a 90-day roadmap specific to your trade, market, and goals. Every channel has a purpose. Every dollar has a destination.",
-    duration: "Week 1–2",
-    detail: "Channel mix · Budget allocation · 90-day roadmap · KPI targets",
+      "Cold email sequences written specifically for your trade and buyers. LinkedIn connection + message strategy. Phone script and call framework. Full sending infrastructure set up — domain health, warmup, deliverability. You review and approve everything.",
+    tags: ["Email Sequences", "LinkedIn Outreach", "Infrastructure"],
   },
   {
     num: "03",
-    phase: "PHASE 03 / TREATMENT",
-    title: "Launch &\nExecute",
+    timing: "Week 3–4",
+    title: "Launch & Optimize",
     description:
-      "Our team builds campaigns, optimizes your site, and gets your GMB firing on all cylinders. Most clients see qualified leads within 30 days.",
-    duration: "Week 2–4",
-    detail: "Campaign build · Site optimization · GMB setup · Tracking install",
+      "Campaigns go live across email + LinkedIn. All replies handled by Deeno — we manage objections, answer questions, push toward the meeting. Weekly reporting on emails sent, open rate, reply rate, and meetings booked.",
+    tags: ["Campaign Live", "Reply Management", "Weekly Reports"],
   },
   {
     num: "04",
-    phase: "PHASE 04 / EVOLUTION",
-    title: "Report &\nScale",
+    timing: "Ongoing",
+    title: "Qualified Meetings on Your Calendar",
     description:
-      "Monthly strategy calls, live dashboards, data-driven decisions. We scale what converts and ruthlessly cut what doesn't.",
-    duration: "Ongoing",
-    detail: "Live dashboard · Monthly calls · CPA optimization · Scale",
+      "When a prospect is ready, we book directly onto your calendar. You receive a briefing note for every meeting: company, decision-maker, what they're looking for, context from the conversation. Monthly strategy call to refine and expand.",
+    tags: ["Calendar Booking", "Meeting Briefs", "Monthly Reviews"],
   },
 ];
 
-function StepRow({ step, index, isLast }: { step: (typeof steps)[0]; index: number; isLast: boolean }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-
-  return (
-    <div ref={ref} className="relative">
-      <motion.div
-        initial={{ scaleX: 0 }}
-        animate={inView ? { scaleX: 1 } : {}}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute top-0 left-0 right-0 h-px origin-left"
-        style={{ background: "rgba(201,168,76,0.1)" }}
-      />
-
-      <div className="grid grid-cols-[80px_1fr] md:grid-cols-[200px_1fr_260px] gap-0 items-center py-12 md:py-14">
-        {/* Left: phase label */}
-        <div className="relative flex flex-col justify-center">
-          {/* Giant faded number */}
-          <span
-            className="absolute -left-2 top-1/2 -translate-y-1/2 select-none pointer-events-none leading-none"
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(70px, 12vw, 150px)",
-              color: "rgba(201,168,76,0.04)",
-              letterSpacing: "-0.04em",
-            }}
-          >
-            {step.num}
-          </span>
-
-          <motion.div
-            initial={{ opacity: 0, x: -16 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.55, delay: 0.1 + index * 0.06 }}
-            className="relative z-10 flex flex-col gap-1.5"
-          >
-            <span
-              style={{
-                fontFamily: '"SF Mono","Fira Code",monospace',
-                fontSize: 8,
-                letterSpacing: "0.18em",
-                color: "rgba(201,168,76,0.5)",
-                textTransform: "uppercase",
-              }}
-            >
-              {step.phase}
-            </span>
-            <span
-              style={{
-                fontFamily: '"SF Mono","Fira Code",monospace',
-                fontSize: 8,
-                letterSpacing: "0.15em",
-                color: "rgba(242,232,213,0.18)",
-                textTransform: "uppercase",
-                marginTop: 2,
-              }}
-            >
-              {step.duration}
-            </span>
-          </motion.div>
-        </div>
-
-        {/* Center: title + description */}
-        <div className="pl-4 md:pl-8 pr-4 md:pr-14">
-          <motion.h3
-            initial={{ opacity: 0, y: 20 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.15 + index * 0.06 }}
-            className="leading-[1.1] whitespace-pre-line mb-4"
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(22px, 3vw, 42px)",
-              color: "#F2E8D5",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {step.title}
-          </motion.h3>
-
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.5, delay: 0.22 + index * 0.06 }}
-            className="text-sm leading-relaxed max-w-lg"
-            style={{ color: "rgba(242,232,213,0.35)" }}
-          >
-            {step.description}
-          </motion.p>
-        </div>
-
-        {/* Right: detail tags */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.5, delay: 0.32 + index * 0.06 }}
-          className="hidden md:flex flex-wrap gap-2 content-start"
-        >
-          {step.detail.split(" · ").map((tag) => (
-            <span
-              key={tag}
-              className="text-[9px] font-semibold tracking-wide px-3 py-1"
-              style={{
-                fontFamily: '"SF Mono","Fira Code",monospace',
-                letterSpacing: "0.1em",
-                color: "rgba(201,168,76,0.35)",
-                border: "1px solid rgba(201,168,76,0.15)",
-                borderRadius: 2,
-                textTransform: "uppercase",
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-        </motion.div>
-      </div>
-
-      {isLast && (
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={inView ? { scaleX: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="absolute bottom-0 left-0 right-0 h-px origin-left"
-          style={{ background: "rgba(201,168,76,0.1)" }}
-        />
-      )}
-    </div>
-  );
-}
-
 export default function Process() {
-  const headerRef = useRef(null);
-  const inView = useInView(headerRef, { once: true, margin: "-80px" });
-
   return (
-    <section id="process" className="py-32 px-6 relative overflow-hidden" style={{ background: "#0E0B07" }}>
-      {/* Giant faded word */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
-        <span
+    <section
+      id="process"
+      style={{
+        background: "#0A0A0A",
+        borderBottom: "1px solid #2A2A2A",
+        padding: "80px 40px",
+      }}
+    >
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 56 }}>
+          <div
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              color: "#E8FF47",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+            How It Works
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(42px, 6vw, 72px)",
+              letterSpacing: "2px",
+              color: "#F5F5F2",
+              lineHeight: 0.95,
+            }}
+          >
+            FROM ZERO TO BOOKED<br />
+            <span style={{ color: "#E8FF47" }}>IN 30 DAYS.</span>
+          </h2>
+        </div>
+
+        {/* Steps */}
+        <div
           style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: "28vw",
-            color: "rgba(201,168,76,0.018)",
-            lineHeight: 1,
+            border: "1px solid #2A2A2A",
+            background: "#2A2A2A",
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
           }}
         >
-          HOW
-        </span>
-      </div>
-
-      <div className="max-w-6xl mx-auto relative">
-        <div ref={headerRef} className="mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col md:flex-row md:items-end justify-between gap-6"
-          >
-            <div>
-              <span
-                style={{
-                  fontFamily: '"SF Mono","Fira Code",monospace',
-                  fontSize: 10,
-                  letterSpacing: "0.2em",
-                  color: "rgba(201,168,76,0.65)",
-                  textTransform: "uppercase",
-                  display: "block",
-                  marginBottom: 20,
-                }}
-              >
-                [ EXHIBIT 05 // THE SURVIVAL PROTOCOL ]
-              </span>
-              <h2
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: "clamp(36px, 5.5vw, 80px)",
-                  color: "#F2E8D5",
-                  lineHeight: 1.15,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Diagnosis to booked jobs
-                <br />
-                <span className="gradient-text">in 30 days.</span>
-              </h2>
-            </div>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={inView ? { opacity: 1 } : {}}
-              transition={{ delay: 0.5, duration: 0.5 }}
-              className="hidden md:block max-w-xs leading-relaxed"
+          {steps.map((step, i) => (
+            <div
+              key={step.num}
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontStyle: "italic",
-                fontSize: 14,
-                color: "rgba(242,232,213,0.2)",
+                background: "#111111",
+                padding: "36px 36px",
+                display: "grid",
+                gridTemplateColumns: "80px 1fr",
+                gap: "0 32px",
+                alignItems: "start",
               }}
             >
-              No fluff. No retainers-for-nothing.
-              <br />A systematic path from zero to dominant.
-            </motion.p>
-          </motion.div>
-        </div>
+              {/* Step number */}
+              <div>
+                <div
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: 56,
+                    color: "#2A2A2A",
+                    lineHeight: 1,
+                    marginBottom: 4,
+                  }}
+                >
+                  {step.num}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 9,
+                    letterSpacing: "1.5px",
+                    color: "#444",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {step.timing}
+                </div>
+              </div>
 
-        <div>
-          {steps.map((step, i) => (
-            <StepRow key={step.num} step={step} index={i} isLast={i === steps.length - 1} />
+              {/* Content */}
+              <div>
+                <h3
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 600,
+                    color: "#F5F5F2",
+                    marginBottom: 12,
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {step.title}
+                </h3>
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: "#666",
+                    lineHeight: 1.7,
+                    marginBottom: 16,
+                    maxWidth: 640,
+                  }}
+                >
+                  {step.description}
+                </p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {step.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      style={{
+                        fontFamily: "'DM Mono', monospace",
+                        fontSize: 9,
+                        letterSpacing: "1.5px",
+                        textTransform: "uppercase",
+                        color: "#E8FF47",
+                        border: "1px solid rgba(232,255,71,0.2)",
+                        padding: "3px 8px",
+                        background: "rgba(232,255,71,0.05)",
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mt-14 flex items-center gap-6"
-        >
+        {/* CTA */}
+        <div style={{ marginTop: 40, display: "flex", alignItems: "center", gap: 20 }}>
           <a
             href="#contact"
-            className="inline-flex items-center gap-2.5 font-bold px-7 py-3.5 rounded-xl text-sm transition-all"
             style={{
-              background: "#8B5CF6",
-              color: "#fff",
-              letterSpacing: "0.04em",
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 12,
+              letterSpacing: "1.5px",
+              padding: "14px 28px",
+              background: "#E8FF47",
+              color: "#0A0A0A",
+              textDecoration: "none",
+              fontWeight: 500,
+              transition: "background 0.2s",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
             }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "#7C3AED";
-              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 30px rgba(139,92,246,0.35)";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "#8B5CF6";
-              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none";
+            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#f0ff6e")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8FF47")}
+          >
+            START WITH A FREE AUDIT →
+          </a>
+          <span
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              color: "#444",
             }}
           >
-            Begin your diagnosis
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M1 7h12M7 1l6 6-6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </a>
-          <span className="text-sm" style={{ color: "rgba(242,232,213,0.22)", fontStyle: "italic" }}>
-            Free. No commitment.
+            No commitment. No pitch.
           </span>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

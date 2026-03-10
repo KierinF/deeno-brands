@@ -1,30 +1,30 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Cursor from "./components/Cursor";
+import "@fontsource/bebas-neue";
+import "@fontsource/dm-mono/400.css";
+import "@fontsource/dm-mono/500.css";
+import "@fontsource-variable/dm-sans";
 
 export const metadata: Metadata = {
-  title: "Deeno Brands | Home Services Marketing Agency",
+  title: "Deeno | Commercial Pipeline for Trades",
   description:
-    "The #1 marketing agency for HVAC, plumbing, roofing & electrical companies. SEO, Google Ads, website design & social media that fills your schedule.",
+    "We book commercial meetings with facility managers, property owners, and GCs for HVAC and roofing contractors. Fully managed outbound. 1 client per market.",
   keywords:
-    "home services marketing, HVAC marketing, plumbing marketing, roofing SEO, local SEO, Google Ads home services",
+    "commercial HVAC leads, commercial roofing leads, B2B trades marketing, outbound SDR for contractors, facility manager leads, HVAC lead generation",
   openGraph: {
-    title: "Deeno Brands | Home Services Marketing Agency",
+    title: "Deeno | Commercial Pipeline for Trades",
     description:
-      "More booked jobs. Less wasted budget. We build unfair marketing advantages for home service businesses.",
+      "We fill your commercial pipeline. You show up and close. Outsourced B2B pipeline development for HVAC and roofing contractors.",
     type: "website",
   },
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        <Cursor />
+      <body style={{ fontFamily: "'DM Sans Variable', 'DM Sans', sans-serif" }}>
         {children}
       </body>
     </html>

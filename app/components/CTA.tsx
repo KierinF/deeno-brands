@@ -1,21 +1,15 @@
 "use client";
 
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useState } from "react";
-import { Phone, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 type FormState = "idle" | "submitting" | "success" | "error";
 
 export default function CTA() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
   const [formState, setFormState] = useState<FormState>("idle");
-  const [email, setEmail] = useState("");
-  const formRef = useRef<HTMLFormElement>(null);
+  const [submittedEmail, setSubmittedEmail] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("[contact] ▶ form submit triggered");
     setFormState("submitting");
     try {
       const fd = new FormData(e.currentTarget);
@@ -25,260 +19,357 @@ export default function CTA() {
         email: fd.get("email"),
         phone: fd.get("phone"),
         trade: fd.get("trade"),
-        budget: fd.get("budget"),
+        revenue: fd.get("revenue"),
+        challenge: fd.get("challenge"),
       };
-      console.log("[contact] sending to /api/contact — payload:", payload);
+      setSubmittedEmail(payload.email as string);
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
         cache: "reload",
       });
-      console.log("[contact] response — status:", res.status, res.statusText, "| final url:", res.url, "| ok:", res.ok);
-      if (!res.ok) {
-        console.error("[contact] ✗ failed — status:", res.status, "url after redirects:", res.url);
-        throw new Error("send failed");
-      }
+      if (!res.ok) throw new Error("send failed");
       setFormState("success");
-    } catch (err) {
-      console.error("[contact] ✗ fetch error:", err);
+    } catch {
       setFormState("error");
     }
   };
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    background: "#fff",
-    border: "1.5px solid rgba(28,25,23,0.15)",
-    borderRadius: 8,
-    padding: "11px 14px",
+    background: "#1C1C1C",
+    border: "1px solid #2A2A2A",
+    padding: "12px 14px",
     fontSize: 13,
-    color: "#1C1917",
-    fontFamily: "inherit",
+    color: "#F5F5F2",
+    fontFamily: "'DM Sans Variable', 'DM Sans', sans-serif",
     outline: "none",
     transition: "border-color 0.2s",
   };
 
-  return (
-    <section id="contact" ref={ref} style={{ background: "#1C1917", paddingTop: 80, paddingBottom: 80 }}>
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="grid lg:grid-cols-[1fr_420px] gap-16 items-start">
-          {/* Left */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6 }}
-          >
-            <p
-              style={{
-                fontFamily: '"Press Start 2P", monospace',
-                fontSize: 9,
-                letterSpacing: "0.08em",
-                color: "rgba(237,234,224,0.3)",
-                marginBottom: 24,
-              }}
-            >
-              GET STARTED
-            </p>
-            <h2
-              style={{
-                fontFamily: '"Press Start 2P", monospace',
-                fontSize: "clamp(18px, 3vw, 40px)",
-                color: "#EDEAE0",
-                lineHeight: 1.5,
-                letterSpacing: "0.04em",
-                marginBottom: 24,
-              }}
-            >
-              Ready to<br />evolve?
-            </h2>
-            <p style={{ fontSize: 15, color: "rgba(237,234,224,0.45)", lineHeight: 1.7, marginBottom: 32, maxWidth: 380 }}>
-              Free 30-min strategy call. We&apos;ll show you exactly what&apos;s broken and how to fix it.
-              No pitch, no pressure.
-            </p>
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "'DM Mono', monospace",
+    fontSize: 10,
+    letterSpacing: "1.5px",
+    textTransform: "uppercase" as const,
+    color: "#444",
+    display: "block",
+    marginBottom: 6,
+  };
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+  return (
+    <section
+      id="contact"
+      style={{ background: "#0A0A0A", borderBottom: "1px solid #2A2A2A", padding: "80px 40px" }}
+    >
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 56 }}>
+          <div
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              color: "#E8FF47",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+            Book a Pipeline Audit
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(42px, 6vw, 72px)",
+              letterSpacing: "2px",
+              color: "#F5F5F2",
+              lineHeight: 0.95,
+              marginBottom: 16,
+            }}
+          >
+            READY TO STOP LEAVING<br />
+            <span style={{ color: "#E8FF47" }}>COMMERCIAL REVENUE ON THE TABLE?</span>
+          </h2>
+          <p
+            style={{
+              fontSize: 15,
+              color: "#666",
+              lineHeight: 1.7,
+              maxWidth: 540,
+            }}
+          >
+            Book a free 30-minute Commercial Pipeline Audit. We&apos;ll map your exact target market,
+            identify your top commercial buyer segments, and show you what your outbound campaign
+            would look like. No commitment. No pitch.
+          </p>
+        </div>
+
+        {/* Two-column layout */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 1,
+            background: "#2A2A2A",
+            border: "1px solid #2A2A2A",
+          }}
+        >
+          {/* Left: what you get */}
+          <div style={{ background: "#111111", padding: "40px" }}>
+            <h3
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: 28,
+                letterSpacing: "2px",
+                color: "#F5F5F2",
+                marginBottom: 24,
+              }}
+            >
+              WHAT YOU GET ON THE CALL
+            </h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
-                "Free competitor analysis included",
-                "Zero commitment required",
-                "Results within 30 days or we adjust",
-                "1 client per trade per city",
-              ].map(p => (
-                <div key={p} style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <span style={{ color: "#8B5CF6", fontSize: 12, flexShrink: 0 }}>—</span>
-                  <span style={{ fontSize: 13, color: "rgba(237,234,224,0.45)" }}>{p}</span>
+                { title: "Your market mapped", body: "We identify your top 3 commercial buyer segments in your specific geography." },
+                { title: "Decision-makers named", body: "We show you exactly who holds the contracts you want and how to reach them." },
+                { title: "Campaign preview", body: "We outline what your first outbound campaign would look like — channels, copy, targets." },
+                { title: "Territory check", body: "We confirm whether your market is available. If it's taken, we put you on the waitlist." },
+              ].map((item, i) => (
+                <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                  <span style={{ color: "#E8FF47", fontSize: 14, flexShrink: 0, marginTop: 2 }}>→</span>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#F5F5F2", marginBottom: 4 }}>
+                      {item.title}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#666", lineHeight: 1.5 }}>
+                      {item.body}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <a href="tel:+16315214302" style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(237,234,224,0.35)", textDecoration: "none", fontSize: 13, transition: "color 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#EDEAE0")}
-                onMouseLeave={e => (e.currentTarget.style.color = "rgba(237,234,224,0.35)")}>
-                <Phone size={13} style={{ color: "#8B5CF6", flexShrink: 0 }} />
-                (631) 521-4302
-              </a>
-              <a href="mailto:kierin@deenobrands.agency" style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(237,234,224,0.35)", textDecoration: "none", fontSize: 13, transition: "color 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.color = "#EDEAE0")}
-                onMouseLeave={e => (e.currentTarget.style.color = "rgba(237,234,224,0.35)")}>
-                <Mail size={13} style={{ color: "#8B5CF6", flexShrink: 0 }} />
-                kierin@deenobrands.agency
-              </a>
+            <div style={{ marginTop: 40, paddingTop: 24, borderTop: "1px solid #2A2A2A" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <a
+                  href="tel:+16315214302"
+                  style={{ fontSize: 13, color: "#444", textDecoration: "none", transition: "color 0.2s", display: "flex", alignItems: "center", gap: 8 }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#444")}
+                >
+                  <span style={{ color: "#E8FF47", fontSize: 10 }}>→</span>
+                  (631) 521-4302
+                </a>
+                <a
+                  href="mailto:kierin@deenobrands.agency"
+                  style={{ fontSize: 13, color: "#444", textDecoration: "none", transition: "color 0.2s", display: "flex", alignItems: "center", gap: 8 }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#444")}
+                >
+                  <span style={{ color: "#E8FF47", fontSize: 10 }}>→</span>
+                  kierin@deenobrands.agency
+                </a>
+              </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Form */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={inView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            style={{
-              background: "#EDEAE0",
-              borderRadius: 12,
-              overflow: "hidden",
-              minHeight: 480,
-            }}
-          >
-            <AnimatePresence mode="wait">
-              {formState !== "success" ? (
-                <motion.div
-                  key="form"
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0, y: -16 }}
-                  transition={{ duration: 0.25 }}
-                  style={{ padding: 28 }}
+          {/* Right: form */}
+          <div style={{ background: "#161616", padding: "40px" }}>
+            {formState === "success" ? (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  gap: 20,
+                  height: "100%",
+                  justifyContent: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    background: "rgba(232,255,71,0.1)",
+                    border: "1px solid rgba(232,255,71,0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                  }}
                 >
-                  <h3
-                    style={{
-                      fontFamily: '"Press Start 2P", monospace',
-                      fontSize: 12,
-                      color: "#1C1917",
-                      marginBottom: 6,
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    Free Audit
-                  </h3>
-                  <p style={{ fontSize: 12, color: "#8B7F72", marginBottom: 20 }}>2 minutes. No spam, ever.</p>
-
-                  <form ref={formRef} onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      {[{ label: "First Name", name: "firstName", placeholder: "John" }, { label: "Last Name", name: "lastName", placeholder: "Smith" }].map(f => (
-                        <div key={f.name}>
-                          <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>{f.label}</label>
-                          <input type="text" name={f.name} required placeholder={f.placeholder} style={inputStyle}
-                            onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                            onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Business Email</label>
-                      <input type="email" name="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbusiness.com" style={inputStyle}
-                        onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Phone</label>
-                      <input type="tel" name="phone" required placeholder="(555) 000-0000" style={inputStyle}
-                        onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Your Trade</label>
-                      <select name="trade" style={{ ...inputStyle, appearance: "none" }}
-                        onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
-                      >
-                        <option value="">Select trade...</option>
-                        {["HVAC", "Plumbing", "Roofing", "Electrical", "Landscaping", "Pest Control", "Cleaning", "Other"].map(t => (
-                          <option key={t}>{t}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, color: "rgba(28,25,23,0.4)", display: "block", marginBottom: 5 }}>Monthly Budget</label>
-                      <select name="budget" style={{ ...inputStyle, appearance: "none" }}
-                        onFocus={e => (e.target.style.borderColor = "rgba(139,92,246,0.5)")}
-                        onBlur={e => (e.target.style.borderColor = "rgba(28,25,23,0.15)")}
-                      >
-                        <option value="">Select budget...</option>
-                        {["Under $1k", "$1k–$3k", "$3k–$7k", "$7k–$15k", "$15k+"].map(b => (
-                          <option key={b}>{b}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={formState === "submitting"}
-                      style={{
-                        width: "100%",
-                        padding: "14px",
-                        background: formState === "error" ? "#DC2626" : "#8B5CF6",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: 8,
-                        fontFamily: '"Press Start 2P", monospace',
-                        fontSize: 9,
-                        letterSpacing: "0.08em",
-                        cursor: formState === "submitting" ? "not-allowed" : "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                        transition: "background 0.15s",
-                      }}
-                      onMouseEnter={e => { if (formState === "idle") (e.currentTarget.style.background = "#7C3AED"); }}
-                      onMouseLeave={e => (e.currentTarget.style.background = formState === "error" ? "#DC2626" : "#8B5CF6")}
+                  ✓
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: 36,
+                    letterSpacing: "2px",
+                    color: "#F5F5F2",
+                  }}
+                >
+                  YOU&apos;RE IN.
+                </h3>
+                <p style={{ fontSize: 14, color: "#666", lineHeight: 1.6, maxWidth: 320 }}>
+                  We&apos;ll review your info and reach out within 24 hours
+                  {submittedEmail ? ` at ${submittedEmail}` : ""}. Kierin personally reviews every submission.
+                </p>
+                <div
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 11,
+                    color: "#E8FF47",
+                    letterSpacing: "1.5px",
+                  }}
+                >
+                  1 CLIENT PER MARKET — YOUR SPOT IS BEING HELD.
+                </div>
+              </div>
+            ) : (
+              <>
+                <h3
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: 28,
+                    letterSpacing: "2px",
+                    color: "#F5F5F2",
+                    marginBottom: 8,
+                  }}
+                >
+                  APPLY FOR YOUR AUDIT
+                </h3>
+                <p style={{ fontSize: 12, color: "#444", marginBottom: 28 }}>
+                  2 minutes. No spam. We check every submission personally.
+                </p>
+                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {[
+                      { label: "First Name", name: "firstName", placeholder: "John", type: "text" },
+                      { label: "Last Name", name: "lastName", placeholder: "Smith", type: "text" },
+                    ].map((f) => (
+                      <div key={f.name}>
+                        <label style={labelStyle}>{f.label}</label>
+                        <input
+                          type={f.type}
+                          name={f.name}
+                          required
+                          placeholder={f.placeholder}
+                          style={inputStyle}
+                          onFocus={(e) => (e.target.style.borderColor = "rgba(232,255,71,0.4)")}
+                          onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Business Email</label>
+                    <input
+                      type="email"
+                      name="email"
+                      required
+                      placeholder="you@yourbusiness.com"
+                      style={inputStyle}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,255,71,0.4)")}
+                      onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Phone</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      required
+                      placeholder="(555) 000-0000"
+                      style={inputStyle}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,255,71,0.4)")}
+                      onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
+                    />
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Your Trade</label>
+                    <select
+                      name="trade"
+                      required
+                      style={{ ...inputStyle, appearance: "none" as const }}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,255,71,0.4)")}
+                      onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
                     >
-                      {formState === "submitting" ? (
-                        <><Loader2 size={14} className="animate-spin" /> SENDING...</>
-                      ) : formState === "error" ? (
-                        <>FAILED — TRY AGAIN</>
-                      ) : (
-                        <>BOOK FREE AUDIT <ArrowRight size={13} /></>
-                      )}
-                    </button>
-                    <p style={{ textAlign: "center", fontSize: 10, color: "rgba(28,25,23,0.25)" }}>
-                      No credit card. No commitment.
-                    </p>
-                  </form>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  style={{ padding: 28, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 480 }}
-                >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
-                    style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(139,92,246,0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}
+                      <option value="">Select trade...</option>
+                      {["HVAC", "Roofing", "Plumbing", "Electrical", "Landscaping", "Other"].map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Annual Revenue</label>
+                    <select
+                      name="revenue"
+                      style={{ ...inputStyle, appearance: "none" as const }}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,255,71,0.4)")}
+                      onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
+                    >
+                      <option value="">Select range...</option>
+                      {["$500K–$1M", "$1M–$5M", "$5M–$15M", "$15M+"].map((b) => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>Top Challenge</label>
+                    <select
+                      name="challenge"
+                      style={{ ...inputStyle, appearance: "none" as const }}
+                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,255,71,0.4)")}
+                      onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
+                    >
+                      <option value="">Select challenge...</option>
+                      {[
+                        "No commercial leads",
+                        "Can't crack facility managers",
+                        "No outbound process",
+                        "Inconsistent pipeline",
+                        "Other",
+                      ].map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={formState === "submitting"}
+                    style={{
+                      width: "100%",
+                      padding: "16px",
+                      background: formState === "error" ? "#FF4A4A" : "#E8FF47",
+                      color: "#0A0A0A",
+                      border: "none",
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 12,
+                      letterSpacing: "1.5px",
+                      fontWeight: 500,
+                      cursor: formState === "submitting" ? "not-allowed" : "pointer",
+                      opacity: formState === "submitting" ? 0.7 : 1,
+                      transition: "background 0.15s, opacity 0.15s",
+                    }}
+                    onMouseEnter={(e) => { if (formState === "idle") (e.currentTarget.style.background = "#f0ff6e"); }}
+                    onMouseLeave={(e) => { if (formState === "idle") (e.currentTarget.style.background = "#E8FF47"); }}
                   >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <motion.path d="M4 12l6 6L20 6" stroke="#8B5CF6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                        initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.3 }} />
-                    </svg>
-                  </motion.div>
-                  <h3 style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 16, color: "#1C1917", marginBottom: 12 }}>
-                    You&apos;re in.
-                  </h3>
-                  <p style={{ fontSize: 13, color: "#8B7F72", lineHeight: 1.6, marginBottom: 24, maxWidth: 260 }}>
-                    We&apos;ll reach out within 24 hours{email ? ` at ${email}` : ""}. Kierin personally reviews every submission.
+                    {formState === "submitting"
+                      ? "SENDING..."
+                      : formState === "error"
+                      ? "FAILED — TRY AGAIN"
+                      : "BOOK MY FREE PIPELINE AUDIT →"}
+                  </button>
+                  <p style={{ textAlign: "center", fontSize: 11, color: "#333" }}>
+                    No credit card. No commitment. No spam.
                   </p>
-                  <a href="tel:+16315214302" style={{ fontSize: 13, color: "#1C1917", textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
-                    <Phone size={13} style={{ color: "#8B5CF6" }} /> (631) 521-4302
-                  </a>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+                </form>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </section>

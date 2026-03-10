@@ -1,21 +1,23 @@
-import Intro from "./components/Intro";
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
-import StatsSection from "./components/StatsSection";
-import Services from "./components/Services";
+import PainPoints from "./components/PainPoints";
+import IndustrySelector from "./components/IndustrySelector";
+import Process from "./components/Process";
+import ProofSection from "./components/ProofSection";
+import WhyDeeno from "./components/WhyDeeno";
 import CTA from "./components/CTA";
 import Footer from "./components/Footer";
 
 export default function Home() {
   return (
-    <main style={{ background: "#EDEAE0" }}>
-      <Intro />
+    <main style={{ background: "#0A0A0A" }}>
       <Nav />
-      <section id="hero">
-        <Hero />
-      </section>
-      <StatsSection />
-      <Services />
+      <Hero />
+      <PainPoints />
+      <IndustrySelector />
+      <Process />
+      <ProofSection />
+      <WhyDeeno />
       <CTA />
       <Footer />
     </main>

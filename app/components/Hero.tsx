@@ -14,14 +14,14 @@ export default function Hero() {
       id="hero"
       style={{
         minHeight: "100vh",
-        background: "#0A0A0A",
+        background: "#F7F4EE",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         padding: "120px 40px 80px",
         position: "relative",
         overflow: "hidden",
-        borderBottom: "1px solid #2A2A2A",
+        borderBottom: "1px solid #C8C1B3",
       }}
     >
       {/* Background watermark */}
@@ -33,7 +33,7 @@ export default function Hero() {
           right: "-20px",
           fontFamily: "'Bebas Neue', sans-serif",
           fontSize: "clamp(120px, 18vw, 260px)",
-          color: "rgba(232,255,71,0.025)",
+          color: "rgba(232,160,32,0.06)",
           letterSpacing: "10px",
           whiteSpace: "nowrap",
           pointerEvents: "none",
@@ -50,7 +50,7 @@ export default function Hero() {
           style={{
             fontFamily: "'DM Mono', monospace",
             fontSize: 11,
-            color: "#E8FF47",
+            color: "#E8A020",
             letterSpacing: "3px",
             textTransform: "uppercase",
             marginBottom: 28,
@@ -62,7 +62,7 @@ export default function Hero() {
             transition: "opacity 0.5s ease, transform 0.5s ease",
           }}
         >
-          <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+          <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
           B2B Pipeline Development for Trades Businesses
         </div>
 
@@ -73,7 +73,7 @@ export default function Hero() {
             fontSize: "clamp(56px, 8vw, 110px)",
             lineHeight: 0.95,
             letterSpacing: "2px",
-            color: "#F5F5F2",
+            color: "#1C2B2B",
             marginBottom: 32,
             opacity: mounted ? 1 : 0,
             transform: mounted ? "none" : "translateY(12px)",
@@ -81,7 +81,7 @@ export default function Hero() {
           }}
         >
           Your crews are ready.<br />
-          <span style={{ color: "#E8FF47" }}>Your commercial</span><br />
+          <span style={{ color: "#E8A020" }}>Your commercial</span><br />
           calendar isn&apos;t.
         </h1>
 
@@ -89,7 +89,7 @@ export default function Hero() {
         <p
           style={{
             maxWidth: 560,
-            color: "#999",
+            color: "#8C8070",
             fontSize: 17,
             lineHeight: 1.7,
             marginBottom: 48,
@@ -121,8 +121,8 @@ export default function Hero() {
               fontSize: 12,
               letterSpacing: "1.5px",
               padding: "16px 32px",
-              background: "#E8FF47",
-              color: "#0A0A0A",
+              background: "#E8A020",
+              color: "#F7F4EE",
               textDecoration: "none",
               fontWeight: 500,
               transition: "background 0.2s, transform 0.2s",
@@ -131,11 +131,11 @@ export default function Hero() {
               gap: 10,
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "#f0ff6e";
+              (e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30";
               (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "#E8FF47";
+              (e.currentTarget as HTMLAnchorElement).style.background = "#E8A020";
               (e.currentTarget as HTMLAnchorElement).style.transform = "none";
             }}
           >
@@ -149,18 +149,18 @@ export default function Hero() {
               letterSpacing: "1.5px",
               padding: "16px 28px",
               background: "transparent",
-              color: "#666",
+              color: "#8C8070",
               textDecoration: "none",
-              border: "1px solid #2A2A2A",
+              border: "1px solid #C8C1B3",
               transition: "color 0.2s, border-color 0.2s",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2";
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#333";
+              (e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#8C8070";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.color = "#666";
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#2A2A2A";
+              (e.currentTarget as HTMLAnchorElement).style.color = "#8C8070";
+              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C8C1B3";
             }}
           >
             SEE HOW IT WORKS →
@@ -179,7 +179,7 @@ export default function Hero() {
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 11,
-              color: "#444",
+              color: "#8C8070",
               letterSpacing: "0.5px",
             }}
           >

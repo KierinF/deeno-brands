@@ -4,33 +4,33 @@ import { useState } from "react";
 
 const verticals = [
   {
-    title: "COMMERCIAL\nHVAC",
-    sub: "Facility managers. Service contracts. Multi-site accounts.",
-    color: "#47A8FF",
+    title: "HVAC",
+    image: "/hvac.png",
     href: "#contact",
   },
   {
-    title: "COMMERCIAL\nELECTRICAL",
-    sub: "GCs. Developers. Facility directors.",
-    color: "#E8FF47",
+    title: "Electrical",
+    image: "/electrician.png",
     href: "#contact",
   },
   {
-    title: "COMMERCIAL\nPLUMBING",
-    sub: "Property managers. Commercial developers. Maintenance directors.",
-    color: "#FF8C47",
+    title: "Pest Control",
+    image: "/pest-removal.png",
     href: "#contact",
   },
   {
-    title: "COMMERCIAL\nLANDSCAPING",
-    sub: "Property managers. Corporate campuses. HOA management companies.",
-    color: "#47FFB2",
+    title: "Plumbing",
+    image: "/plumbing.png",
     href: "#contact",
   },
   {
-    title: "COMMERCIAL\nPEST CONTROL",
-    sub: "Property managers. Restaurant groups. Facility operators.",
-    color: "#FF47A8",
+    title: "Landscaping",
+    image: null, // uses jungle green background
+    href: "#contact",
+  },
+  {
+    title: "Roofing",
+    image: "/roofing.png",
     href: "#contact",
   },
 ];
@@ -42,96 +42,146 @@ export default function IndustrySelector() {
     <section
       id="industries"
       style={{
-        background: "#111111",
-        borderBottom: "1px solid #2A2A2A",
-        padding: "80px 40px",
+        height: "85vh",
+        minHeight: 560,
+        maxHeight: 880,
+        position: "relative",
+        overflow: "hidden",
+        background: "#1C2B2B",
       }}
     >
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ marginBottom: 48, textAlign: "center" }}>
-          <h2
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "clamp(36px, 5vw, 60px)",
-              letterSpacing: "2px",
-              color: "#F5F5F2",
-              lineHeight: 1,
-            }}
-          >
-            We work in five trades. Pick yours.
-          </h2>
-        </div>
-
-        {/* Vertical cards */}
-        <div
+      {/* Center overlay text */}
+      <div
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          textAlign: "center",
+          zIndex: 10,
+          pointerEvents: "none",
+          width: "100%",
+          padding: "0 20px",
+        }}
+      >
+        <h2
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 1,
-            background: "#2A2A2A",
-            border: "1px solid #2A2A2A",
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: "clamp(52px, 8vw, 110px)",
+            color: "#FFFFFF",
+            letterSpacing: "3px",
+            textShadow: "0 2px 24px rgba(0,0,0,0.7)",
+            lineHeight: 1,
+            marginBottom: 12,
           }}
         >
-          {verticals.map((v, i) => (
-            <a
-              key={i}
-              href={v.href}
+          YOUR TRADE.
+        </h2>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.80)",
+            fontSize: "clamp(14px, 1.8vw, 20px)",
+            fontFamily: "'DM Sans Variable', 'DM Sans', sans-serif",
+            textShadow: "0 2px 12px rgba(0,0,0,0.7)",
+            letterSpacing: "1px",
+          }}
+        >
+          Choose your industry.
+        </p>
+      </div>
+
+      {/* Cards row */}
+      <div
+        style={{
+          display: "flex",
+          height: "100%",
+          gap: 6,
+          padding: 6,
+        }}
+      >
+        {verticals.map((v, i) => (
+          <a
+            key={i}
+            href={v.href}
+            style={{
+              flex: hovered === i ? "2" : "1",
+              position: "relative",
+              overflow: "hidden",
+              borderRadius: 14,
+              textDecoration: "none",
+              transition: "flex 0.45s cubic-bezier(0.4,0,0.2,1)",
+              cursor: "pointer",
+              background: v.image ? "#1C2B2B" : "#2D5A3D",
+            }}
+            onMouseEnter={() => setHovered(i)}
+            onMouseLeave={() => setHovered(null)}
+          >
+            {/* Background image */}
+            {v.image && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: `url(${v.image})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center top",
+                  transform: hovered === i ? "scale(1.06)" : "scale(1)",
+                  transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1)",
+                }}
+              />
+            )}
+
+            {/* Dark gradient overlay */}
+            <div
               style={{
-                background: hovered === i ? "#1C1C1C" : "#161616",
-                padding: "36px 28px",
-                textDecoration: "none",
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-                borderBottom: `3px solid ${hovered === i ? v.color : "transparent"}`,
-                transition: "background 0.2s, border-color 0.2s",
-                cursor: "pointer",
+                position: "absolute",
+                inset: 0,
+                background:
+                  hovered === i
+                    ? "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.82) 100%)"
+                    : "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%)",
+                transition: "background 0.45s ease",
               }}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
+            />
+
+            {/* Industry name */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                padding: "20px 18px",
+              }}
             >
               <h3
                 style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: "clamp(28px, 3vw, 40px)",
-                  letterSpacing: "2px",
-                  color: hovered === i ? v.color : "#F5F5F2",
-                  lineHeight: 1,
-                  whiteSpace: "pre-line",
-                  transition: "color 0.2s",
+                  fontFamily: "'DM Sans Variable', 'DM Sans', sans-serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(15px, 1.8vw, 24px)",
+                  color: "#FFFFFF",
+                  lineHeight: 1.2,
+                  textShadow: "0 1px 8px rgba(0,0,0,0.6)",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
                 }}
               >
                 {v.title}
               </h3>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "#666",
-                  lineHeight: 1.6,
-                  flexGrow: 1,
-                }}
-              >
-                {v.sub}
-              </p>
+              {/* Amber underline on hover */}
               <div
                 style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 11,
-                  letterSpacing: "1.5px",
-                  color: v.color,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  opacity: hovered === i ? 1 : 0.4,
-                  transition: "opacity 0.2s",
+                  height: 2,
+                  background: "#E8A020",
+                  marginTop: 6,
+                  width: hovered === i ? "40px" : "0px",
+                  transition: "width 0.35s ease 0.1s",
                 }}
-              >
-                GET STARTED →
-              </div>
-            </a>
-          ))}
-        </div>
+              />
+            </div>
+          </a>
+        ))}
       </div>
     </section>
   );

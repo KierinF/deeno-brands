@@ -149,31 +149,21 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
           <div style={{ position: "relative" }}>
             <div
               style={{
-                aspectRatio: "4/3",
+                aspectRatio: "1/1",
                 overflow: "hidden",
                 borderRadius: 10,
-                border: "1px solid #C8C1B3",
+                background: "#1C2B2B",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
               <img
                 src={data.image}
                 alt={data.trade}
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+                style={{ width: "100%", height: "100%", objectFit: "contain" }}
               />
             </div>
-            {/* Amber corner accent */}
-            <div
-              style={{
-                position: "absolute",
-                bottom: -10,
-                right: -10,
-                width: 72,
-                height: 72,
-                border: "3px solid #E8A020",
-                borderRadius: 6,
-                zIndex: -1,
-              }}
-            />
           </div>
         </div>
       </section>
@@ -331,11 +321,100 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
         </div>
       </section>
 
+      {/* ── Outreach Channels ── */}
+      <section
+        style={{ background: "#1C2B2B", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "72px 40px" }}
+      >
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div style={{ marginBottom: 40 }}>
+            <div
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 11,
+                color: "rgba(232,160,32,0.6)",
+                letterSpacing: "3px",
+                textTransform: "uppercase",
+                marginBottom: 16,
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <span style={{ display: "block", width: 32, height: 1, background: "rgba(232,160,32,0.4)" }} />
+              How We Reach Them
+            </div>
+            <h2
+              style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "clamp(32px, 4.5vw, 56px)",
+                letterSpacing: "2px",
+                color: "#F7F4EE",
+                lineHeight: 0.95,
+              }}
+            >
+              Our Outreach Includes All Four Channels.
+            </h2>
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 1,
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            {[
+              {
+                icon: "☎",
+                channel: "Strategic Outbound Calling",
+                desc: "Direct phone outreach to decision-makers — facility managers, property managers, GC project leads. We call on your behalf, warm the conversation, and set the meeting.",
+              },
+              {
+                icon: "✉",
+                channel: "Personalized Email Campaigns",
+                desc: "Multi-step cold email sequences written specifically for your trade and your market. Every email is researched and personalized — not a template blasted to a list.",
+              },
+              {
+                icon: "in",
+                channel: "LinkedIn Connection & Messaging",
+                desc: "Connection requests, profile engagement, and direct message sequences targeting commercial decision-makers on LinkedIn where they're already paying attention.",
+              },
+              {
+                icon: "✦",
+                channel: "Targeted Direct Mail",
+                desc: "Physical mail to high-value targets who aren't responding to digital. Standing out in an inbox is hard. Standing out in a physical mailbox is easy.",
+              },
+            ].map((c, i) => (
+              <div key={i} style={{ background: "rgba(247,244,238,0.04)", padding: "32px 28px" }}>
+                <div
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 18,
+                    color: "#E8A020",
+                    marginBottom: 14,
+                    lineHeight: 1,
+                  }}
+                >
+                  {c.icon}
+                </div>
+                <div
+                  style={{ fontSize: 15, fontWeight: 600, color: "#F7F4EE", marginBottom: 10, lineHeight: 1.3 }}
+                >
+                  {c.channel}
+                </div>
+                <p style={{ fontSize: 13, color: "rgba(247,244,238,0.5)", lineHeight: 1.7 }}>{c.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── Optional Callout ── */}
       {data.callout && (
         <section
           style={{
-            background: "#1C2B2B",
+            background: "#EEE9DF",
             padding: "64px 40px",
             borderBottom: "1px solid rgba(255,255,255,0.07)",
           }}

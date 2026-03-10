@@ -3,19 +3,19 @@
 import { useState, useEffect, useRef } from "react";
 
 const industries = [
-  { label: "Commercial HVAC", href: "#industries" },
-  { label: "Commercial Electrical", href: "#industries" },
-  { label: "Commercial Plumbing", href: "#industries" },
-  { label: "Commercial Landscaping", href: "#industries" },
-  { label: "Commercial Pest Control", href: "#industries" },
-  { label: "Commercial Roofing", href: "#industries" },
+  { label: "Commercial HVAC", href: "/commercial-hvac" },
+  { label: "Commercial Electrical", href: "/commercial-electrical" },
+  { label: "Commercial Plumbing", href: "/commercial-plumbing" },
+  { label: "Commercial Landscaping", href: "/commercial-landscaping" },
+  { label: "Commercial Pest Control", href: "/commercial-pest-control" },
+  { label: "Commercial Roofing", href: "/#contact" },
 ];
 
 const links = [
-  { label: "How It Works", href: "#process" },
-  { label: "Industries", href: "#industries", dropdown: true },
-  { label: "Results", href: "#proof" },
-  { label: "About", href: "#about" },
+  { label: "How It Works", href: "/#process" },
+  { label: "Industries", href: "/#industries", dropdown: true },
+  { label: "Results", href: "/#proof" },
+  { label: "About", href: "/#about" },
 ];
 
 export default function Nav() {

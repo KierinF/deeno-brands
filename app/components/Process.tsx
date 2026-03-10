@@ -14,15 +14,15 @@ const steps = [
     timing: "Week 2",
     title: "Campaign Build",
     description:
-      "Cold email sequences written specifically for your trade and your buyers. LinkedIn outreach strategy. Phone scripts and call frameworks. Full sending infrastructure configured — domain health, warmup, deliverability. You review and approve everything before launch.",
-    tags: ["Email Sequences", "LinkedIn Outreach", "Infrastructure"],
+      "We build your full outreach stack — cold email sequences, LinkedIn messaging, phone scripts, and direct mail pieces — all written specifically for your trade and your buyers. Full infrastructure configured and tested before launch. You review and approve everything.",
+    tags: ["Email Campaigns", "Cold Calling", "LinkedIn", "Direct Mail"],
   },
   {
     num: "03",
     timing: "Weeks 3–4",
     title: "Launch and Optimize",
     description:
-      "Campaigns go live across email and LinkedIn. Every reply is handled by us — objections managed, questions answered, prospects pushed toward the meeting. Weekly report lands in your inbox: emails sent, open rate, reply rate, meetings booked.",
+      "All four channels go live simultaneously. Calls are made, emails are sent, LinkedIn messages land, direct mail hits desks. Every reply is handled by us — objections managed, questions answered, prospects pushed toward the meeting. Weekly report in your inbox.",
     tags: ["Campaign Live", "Reply Management", "Weekly Reports"],
   },
   {

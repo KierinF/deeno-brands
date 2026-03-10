@@ -3,36 +3,12 @@
 import { useState } from "react";
 
 const verticals = [
-  {
-    title: "HVAC",
-    image: "/hvac.png",
-    href: "#contact",
-  },
-  {
-    title: "Electrical",
-    image: "/electrician.png",
-    href: "#contact",
-  },
-  {
-    title: "Pest Control",
-    image: "/pest-removal.png",
-    href: "#contact",
-  },
-  {
-    title: "Plumbing",
-    image: "/plumbing.png",
-    href: "#contact",
-  },
-  {
-    title: "Landscaping",
-    image: null, // uses jungle green background
-    href: "#contact",
-  },
-  {
-    title: "Roofing",
-    image: "/roofing.png",
-    href: "#contact",
-  },
+  { title: "HVAC", image: "/hvac.png", href: "/commercial-hvac" },
+  { title: "Electrical", image: "/electrician.png", href: "/commercial-electrical" },
+  { title: "Pest Control", image: "/pest-removal.png", href: "/commercial-pest-control" },
+  { title: "Plumbing", image: "/plumbing.png", href: "/commercial-plumbing" },
+  { title: "Landscaping", image: null, href: "/commercial-landscaping" },
+  { title: "Roofing", image: "/roofing.png", href: "#contact" },
 ];
 
 export default function IndustrySelector() {
@@ -104,19 +80,18 @@ export default function IndustrySelector() {
             key={i}
             href={v.href}
             style={{
-              flex: hovered === i ? "2" : "1",
+              flex: 1,
               position: "relative",
               overflow: "hidden",
               borderRadius: 14,
               textDecoration: "none",
-              transition: "flex 0.45s cubic-bezier(0.4,0,0.2,1)",
               cursor: "pointer",
               background: v.image ? "#1C2B2B" : "#2D5A3D",
             }}
             onMouseEnter={() => setHovered(i)}
             onMouseLeave={() => setHovered(null)}
           >
-            {/* Background image */}
+            {/* Background image — fixed, no scale */}
             {v.image && (
               <div
                 style={{
@@ -125,8 +100,6 @@ export default function IndustrySelector() {
                   backgroundImage: `url(${v.image})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center top",
-                  transform: hovered === i ? "scale(1.06)" : "scale(1)",
-                  transition: "transform 0.45s cubic-bezier(0.4,0,0.2,1)",
                 }}
               />
             )}
@@ -138,9 +111,9 @@ export default function IndustrySelector() {
                 inset: 0,
                 background:
                   hovered === i
-                    ? "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.45) 55%, rgba(0,0,0,0.82) 100%)"
+                    ? "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.40) 55%, rgba(0,0,0,0.78) 100%)"
                     : "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%)",
-                transition: "background 0.45s ease",
+                transition: "background 0.35s ease",
               }}
             />
 
@@ -176,7 +149,7 @@ export default function IndustrySelector() {
                   background: "#E8A020",
                   marginTop: 6,
                   width: hovered === i ? "40px" : "0px",
-                  transition: "width 0.35s ease 0.1s",
+                  transition: "width 0.35s ease 0.05s",
                 }}
               />
             </div>

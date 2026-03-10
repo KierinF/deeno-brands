@@ -66,22 +66,6 @@ export default function CTA() {
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ marginBottom: 56 }}>
-          <div
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
-              color: "#E8FF47",
-              letterSpacing: "3px",
-              textTransform: "uppercase",
-              marginBottom: 16,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
-            Book a Pipeline Audit
-          </div>
           <h2
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
@@ -89,23 +73,21 @@ export default function CTA() {
               letterSpacing: "2px",
               color: "#F5F5F2",
               lineHeight: 0.95,
-              marginBottom: 16,
+              marginBottom: 20,
             }}
           >
-            READY TO STOP LEAVING<br />
-            <span style={{ color: "#E8FF47" }}>COMMERCIAL REVENUE ON THE TABLE?</span>
+            Your market might already be taken.<br />
+            <span style={{ color: "#E8FF47" }}>Check before someone else does.</span>
           </h2>
           <p
             style={{
               fontSize: 15,
               color: "#666",
               lineHeight: 1.7,
-              maxWidth: 540,
+              maxWidth: 580,
             }}
           >
-            Book a free 30-minute Commercial Pipeline Audit. We&apos;ll map your exact target market,
-            identify your top commercial buyer segments, and show you what your outbound campaign
-            would look like. No commitment. No pitch.
+            Book a free 30-minute Commercial Pipeline Audit. We&apos;ll map your target market, name the decision-makers holding the contracts you want, and show you exactly what your first outbound campaign would look like. Whether we work together or not, you&apos;ll leave with a clear picture of your commercial opportunity.
           </p>
         </div>
 
@@ -134,10 +116,10 @@ export default function CTA() {
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {[
-                { title: "Your market mapped", body: "We identify your top 3 commercial buyer segments in your specific geography." },
-                { title: "Decision-makers named", body: "We show you exactly who holds the contracts you want and how to reach them." },
-                { title: "Campaign preview", body: "We outline what your first outbound campaign would look like — channels, copy, targets." },
-                { title: "Territory check", body: "We confirm whether your market is available. If it's taken, we put you on the waitlist." },
+                { title: "Your market mapped.", body: "We identify your top commercial buyer segments in your specific geography." },
+                { title: "Decision-makers named.", body: "We show you exactly who holds the contracts you want and how to reach them." },
+                { title: "Campaign preview.", body: "We outline your first outbound campaign — channels, copy approach, target list size." },
+                { title: "Territory check.", body: "We confirm whether your market is available. If it's taken, we put you on the waitlist." },
               ].map((item, i) => (
                 <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
                   <span style={{ color: "#E8FF47", fontSize: 14, flexShrink: 0, marginTop: 2 }}>→</span>
@@ -230,20 +212,6 @@ export default function CTA() {
               </div>
             ) : (
               <>
-                <h3
-                  style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: 28,
-                    letterSpacing: "2px",
-                    color: "#F5F5F2",
-                    marginBottom: 8,
-                  }}
-                >
-                  APPLY FOR YOUR AUDIT
-                </h3>
-                <p style={{ fontSize: 12, color: "#444", marginBottom: 28 }}>
-                  2 minutes. No spam. We check every submission personally.
-                </p>
                 <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {[
@@ -298,7 +266,7 @@ export default function CTA() {
                       onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
                     >
                       <option value="">Select trade...</option>
-                      {["HVAC", "Roofing", "Plumbing", "Electrical", "Landscaping", "Other"].map((t) => (
+                      {["HVAC", "Electrical", "Plumbing", "Landscaping", "Pest Control"].map((t) => (
                         <option key={t} value={t}>{t}</option>
                       ))}
                     </select>
@@ -312,7 +280,7 @@ export default function CTA() {
                       onBlur={(e) => (e.target.style.borderColor = "#2A2A2A")}
                     >
                       <option value="">Select range...</option>
-                      {["$500K–$1M", "$1M–$5M", "$5M–$15M", "$15M+"].map((b) => (
+                      {["Under $500K", "$500K–$1M", "$1M–$5M", "$5M–$15M", "$15M+"].map((b) => (
                         <option key={b} value={b}>{b}</option>
                       ))}
                     </select>
@@ -328,9 +296,9 @@ export default function CTA() {
                       <option value="">Select challenge...</option>
                       {[
                         "No commercial leads",
-                        "Can't crack facility managers",
+                        "Can't reach facility managers",
                         "No outbound process",
-                        "Inconsistent pipeline",
+                        "Want to reduce referral dependency",
                         "Other",
                       ].map((c) => (
                         <option key={c} value={c}>{c}</option>
@@ -364,7 +332,7 @@ export default function CTA() {
                       : "BOOK MY FREE PIPELINE AUDIT →"}
                   </button>
                   <p style={{ textAlign: "center", fontSize: 11, color: "#333" }}>
-                    No credit card. No commitment. No spam.
+                    No credit card. No commitment. We review every submission personally.
                   </p>
                 </form>
               </>

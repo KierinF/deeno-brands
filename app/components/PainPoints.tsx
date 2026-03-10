@@ -3,19 +3,19 @@
 const pains = [
   {
     problem: "Your pipeline dies between referrals.",
-    solution: "We build you an outbound machine that runs 24/7.",
+    solution: "We build you an outbound machine that runs whether you're on a job or not.",
   },
   {
-    problem: "You want commercial accounts but can't crack facility managers.",
-    solution: "We get you in front of them — with context and timing.",
+    problem: "You want commercial accounts but you can't crack facility managers.",
+    solution: "We get you in front of them — with the right context and the right timing.",
   },
   {
-    problem: "You tried an SEO agency. They didn't get trades.",
-    solution: "We only do trades. HVAC and roofing. That's it.",
+    problem: "You tried a marketing agency. They didn't get trades.",
+    solution: "We only do trades. Five of them. Nothing else.",
   },
   {
-    problem: "You don't have time to do your own cold outreach.",
-    solution: "We do it for you. Fully managed. You just close the deals.",
+    problem: "You don't have time to run your own cold outreach.",
+    solution: "We run it for you. Fully managed. Your only job is to show up and close.",
   },
 ];
 
@@ -45,7 +45,7 @@ export default function PainPoints() {
             }}
           >
             <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
-            Sound Familiar?
+            Sound like you?
           </div>
           <h2
             style={{
@@ -56,8 +56,7 @@ export default function PainPoints() {
               lineHeight: 0.95,
             }}
           >
-            WE KNOW YOUR<br />
-            <span style={{ color: "#E8FF47" }}>EXACT SITUATION.</span>
+            We know this situation.
           </h2>
         </div>
 

@@ -1,16 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+const industries = [
+  { label: "Commercial HVAC", href: "#industries" },
+  { label: "Commercial Electrical", href: "#industries" },
+  { label: "Commercial Plumbing", href: "#industries" },
+  { label: "Commercial Landscaping", href: "#industries" },
+  { label: "Commercial Pest Control", href: "#industries" },
+];
 
 const links = [
-  { label: "HOW IT WORKS", href: "#process" },
-  { label: "SERVICES", href: "#services" },
-  { label: "RESULTS", href: "#proof" },
+  { label: "How It Works", href: "#process" },
+  { label: "Industries", href: "#industries", dropdown: true },
+  { label: "Results", href: "#proof" },
+  { label: "About", href: "#about" },
 ];
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
@@ -18,9 +29,17 @@ export default function Nav() {
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
-  const navBg = scrolled
-    ? "rgba(10,10,10,0.95)"
-    : "transparent";
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const navBg = scrolled ? "rgba(10,10,10,0.95)" : "transparent";
 
   return (
     <nav
@@ -58,18 +77,6 @@ export default function Nav() {
           >
             DEENO
           </span>
-          <span
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: 28,
-              letterSpacing: "3px",
-              color: "#F5F5F2",
-              opacity: 0.5,
-              marginLeft: 6,
-            }}
-          >
-            BRANDS
-          </span>
         </a>
 
         {/* Desktop links */}
@@ -77,25 +84,97 @@ export default function Nav() {
           className="hidden md:flex"
           style={{ alignItems: "center", gap: 8 }}
         >
-          {links.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 11,
-                letterSpacing: "1.5px",
-                color: "#666",
-                textDecoration: "none",
-                padding: "8px 16px",
-                transition: "color 0.2s",
-              }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#666")}
-            >
-              {l.label}
-            </a>
-          ))}
+          {links.map((l) =>
+            l.dropdown ? (
+              <div key={l.label} ref={dropdownRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 11,
+                    letterSpacing: "1.5px",
+                    color: dropdownOpen ? "#F5F5F2" : "#666",
+                    background: "none",
+                    border: "none",
+                    padding: "8px 16px",
+                    cursor: "pointer",
+                    transition: "color 0.2s",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#F5F5F2")}
+                  onMouseLeave={(e) => {
+                    if (!dropdownOpen) (e.currentTarget as HTMLButtonElement).style.color = "#666";
+                  }}
+                >
+                  {l.label}
+                  <span style={{ fontSize: 8, opacity: 0.6 }}>▾</span>
+                </button>
+                {dropdownOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      background: "#111111",
+                      border: "1px solid #2A2A2A",
+                      minWidth: 220,
+                      marginTop: 4,
+                      zIndex: 200,
+                    }}
+                  >
+                    {industries.map((ind) => (
+                      <a
+                        key={ind.label}
+                        href={ind.href}
+                        onClick={() => setDropdownOpen(false)}
+                        style={{
+                          display: "block",
+                          padding: "10px 16px",
+                          fontFamily: "'DM Mono', monospace",
+                          fontSize: 11,
+                          letterSpacing: "1px",
+                          color: "#666",
+                          textDecoration: "none",
+                          borderBottom: "1px solid #1C1C1C",
+                          transition: "color 0.15s, background 0.15s",
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2";
+                          (e.currentTarget as HTMLAnchorElement).style.background = "#1C1C1C";
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLAnchorElement).style.color = "#666";
+                          (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+                        }}
+                      >
+                        {ind.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <a
+                key={l.label}
+                href={l.href}
+                style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 11,
+                  letterSpacing: "1.5px",
+                  color: "#666",
+                  textDecoration: "none",
+                  padding: "8px 16px",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#666")}
+              >
+                {l.label}
+              </a>
+            )
+          )}
         </div>
 
         {/* CTA button */}
@@ -116,7 +195,7 @@ export default function Nav() {
           onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#f0ff6e")}
           onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8FF47")}
         >
-          BOOK AUDIT
+          CHECK MY MARKET →
         </a>
 
         {/* Mobile toggle */}
@@ -166,6 +245,23 @@ export default function Nav() {
               {l.label}
             </a>
           ))}
+          {industries.map((ind) => (
+            <a
+              key={ind.label}
+              href={ind.href}
+              onClick={() => setMobileOpen(false)}
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 11,
+                letterSpacing: "1px",
+                color: "#555",
+                textDecoration: "none",
+                paddingLeft: 16,
+              }}
+            >
+              → {ind.label}
+            </a>
+          ))}
           <a
             href="#contact"
             onClick={() => setMobileOpen(false)}
@@ -181,7 +277,7 @@ export default function Nav() {
               fontWeight: 500,
             }}
           >
-            BOOK PIPELINE AUDIT
+            CHECK MY MARKET →
           </a>
         </div>
       )}

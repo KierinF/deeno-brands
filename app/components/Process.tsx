@@ -6,7 +6,7 @@ const steps = [
     timing: "Week 1",
     title: "Build Your Commercial ICP",
     description:
-      "90-minute strategy call to map your best commercial clients, ideal contract types, and geographic market. We pull a verified list of target contacts from Apollo, Clay, and LinkedIn Sales Navigator. You approve it before we contact anyone.",
+      "A 90-minute strategy call maps your best commercial clients, ideal contract types, and target geography. We pull a verified contact list from Apollo, Clay, and LinkedIn Sales Navigator. You approve every name before we contact anyone.",
     tags: ["ICP Mapping", "Contact List", "Market Research"],
   },
   {
@@ -14,15 +14,15 @@ const steps = [
     timing: "Week 2",
     title: "Campaign Build",
     description:
-      "Cold email sequences written specifically for your trade and buyers. LinkedIn connection + message strategy. Phone script and call framework. Full sending infrastructure set up — domain health, warmup, deliverability. You review and approve everything.",
+      "Cold email sequences written specifically for your trade and your buyers. LinkedIn outreach strategy. Phone scripts and call frameworks. Full sending infrastructure configured — domain health, warmup, deliverability. You review and approve everything before launch.",
     tags: ["Email Sequences", "LinkedIn Outreach", "Infrastructure"],
   },
   {
     num: "03",
-    timing: "Week 3–4",
-    title: "Launch & Optimize",
+    timing: "Weeks 3–4",
+    title: "Launch and Optimize",
     description:
-      "Campaigns go live across email + LinkedIn. All replies handled by Deeno — we manage objections, answer questions, push toward the meeting. Weekly reporting on emails sent, open rate, reply rate, and meetings booked.",
+      "Campaigns go live across email and LinkedIn. Every reply is handled by us — objections managed, questions answered, prospects pushed toward the meeting. Weekly report lands in your inbox: emails sent, open rate, reply rate, meetings booked.",
     tags: ["Campaign Live", "Reply Management", "Weekly Reports"],
   },
   {
@@ -30,8 +30,8 @@ const steps = [
     timing: "Ongoing",
     title: "Qualified Meetings on Your Calendar",
     description:
-      "When a prospect is ready, we book directly onto your calendar. You receive a briefing note for every meeting: company, decision-maker, what they're looking for, context from the conversation. Monthly strategy call to refine and expand.",
-    tags: ["Calendar Booking", "Meeting Briefs", "Monthly Reviews"],
+      "When a prospect is ready we book directly onto your calendar. You receive a briefing note before every meeting — company name, decision-maker title, what they need, and context from the conversation. You show up. You close.",
+    tags: ["Calendar Booking", "Meeting Briefs", "Briefing Notes"],
   },
 ];
 

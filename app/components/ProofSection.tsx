@@ -76,8 +76,7 @@ export default function ProofSection() {
               marginBottom: 28,
             }}
           >
-            We work with 1 HVAC company and 1 roofing company per market. Once your territory is
-            claimed, it&apos;s closed. Check if yours is still available.
+            No extra charge. No excuses. We hit the number or we stay at the table until we do.
           </p>
           <a
             href="#contact"
@@ -184,7 +183,7 @@ export default function ProofSection() {
             }}
           >
             <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
-            Client Proof
+            Client Proof — Real campaigns. Real results.
           </div>
 
           <div
@@ -207,7 +206,7 @@ export default function ProofSection() {
                     marginBottom: 12,
                   }}
                 >
-                  Case Study · Long Island, NY
+                  Long Island, NY · Commercial HVAC
                 </div>
                 <h3
                   style={{
@@ -222,10 +221,7 @@ export default function ProofSection() {
                   MD HEATING & AIR
                 </h3>
                 <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, maxWidth: 440 }}>
-                  A residential HVAC contractor with zero commercial pipeline. Wanted to land facility
-                  management companies and property managers in Nassau &amp; Suffolk County.
-                  We built their commercial ICP, launched cold email to facility directors, and ran
-                  LinkedIn outreach to property management companies in the market.
+                  A residential HVAC contractor with zero commercial pipeline. Goal: land facility management companies and property managers in Nassau and Suffolk County. We built their commercial ICP, launched cold email sequences targeting facility directors, and ran LinkedIn outreach to property management companies across the market.
                 </p>
               </div>
               <div
@@ -269,7 +265,7 @@ export default function ProofSection() {
                     fontStyle: "italic",
                   }}
                 >
-                  &ldquo;First meetings booked within the first 30 days. Pipeline is building.&rdquo;
+                  &ldquo;First meetings booked within 30 days. The facility managers we&apos;re talking to are exactly who we wanted to reach.&rdquo;
                 </p>
                 <a
                   href="#contact"

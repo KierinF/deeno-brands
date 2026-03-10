@@ -3,7 +3,7 @@
 // Proof section — guarantee band + social proof
 const differentiators = [
   { stat: "1", label: "Client per market", sub: "Your territory. Exclusive." },
-  { stat: "10", label: "Meetings guaranteed", sub: "In first 90 days or we keep working." },
+  { stat: "✓", label: "Agreed meeting target", sub: "Miss it? We work for free until we hit it." },
   { stat: "30", label: "Days to first meeting", sub: "Most clients see results within month one." },
   { stat: "100%", label: "Commercial focus", sub: "Not homeowner leads. Never." },
 ];
@@ -52,7 +52,7 @@ export default function ProofSection() {
               marginBottom: 20,
             }}
           >
-            The Guarantee
+            The Deeno Guarantee
           </div>
           <h2
             style={{
@@ -62,21 +62,21 @@ export default function ProofSection() {
               color: "#F7F4EE",
               lineHeight: 0.95,
               marginBottom: 20,
-              maxWidth: 800,
+              maxWidth: 860,
             }}
           >
-            10 QUALIFIED COMMERCIAL MEETINGS IN 90 DAYS — OR WE KEEP WORKING.
+            We agree on a number before day one. Miss it? We work for free until we hit it.
           </h2>
           <p
             style={{
               fontSize: 15,
               color: "rgba(247,244,238,0.55)",
-              maxWidth: 560,
+              maxWidth: 580,
               lineHeight: 1.6,
               marginBottom: 28,
             }}
           >
-            No extra charge. No excuses. We hit the number or we stay at the table until we do.
+            Before we start, we agree on a specific meeting target together. If we fall short by the end of your contract, we don&apos;t send another invoice — we send more meetings. No renegotiations. No excuses. Just the number we agreed to, delivered.
           </p>
           <a
             href="#contact"

@@ -98,8 +98,9 @@ export default function IndustrySelector() {
                   position: "absolute",
                   inset: 0,
                   backgroundImage: `url(${v.image})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center top",
+                  backgroundSize: "contain",
+                  backgroundPosition: "center bottom",
+                  backgroundRepeat: "no-repeat",
                 }}
               />
             )}

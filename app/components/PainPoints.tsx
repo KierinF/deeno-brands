@@ -11,7 +11,7 @@ const pains = [
   },
   {
     problem: "You tried a marketing agency. They didn't get trades.",
-    solution: "We only do trades. Five of them. Nothing else.",
+    solution: "We only do trades. Six of them. Nothing else.",
   },
   {
     problem: "You don't have time to run your own cold outreach.",
@@ -23,8 +23,8 @@ export default function PainPoints() {
   return (
     <section
       style={{
-        background: "#111111",
-        borderBottom: "1px solid #2A2A2A",
+        background: "#EEE9DF",
+        borderBottom: "1px solid #C8C1B3",
         padding: "80px 40px",
       }}
     >
@@ -35,7 +35,7 @@ export default function PainPoints() {
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 11,
-              color: "#E8FF47",
+              color: "#E8A020",
               letterSpacing: "3px",
               textTransform: "uppercase",
               marginBottom: 16,
@@ -44,7 +44,7 @@ export default function PainPoints() {
               gap: 12,
             }}
           >
-            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
             Sound like you?
           </div>
           <h2
@@ -52,7 +52,7 @@ export default function PainPoints() {
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: "clamp(42px, 6vw, 72px)",
               letterSpacing: "2px",
-              color: "#F5F5F2",
+              color: "#1C2B2B",
               lineHeight: 0.95,
             }}
           >
@@ -66,27 +66,27 @@ export default function PainPoints() {
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
             gap: 1,
-            background: "#2A2A2A",
-            border: "1px solid #2A2A2A",
+            background: "#C8C1B3",
+            border: "1px solid #C8C1B3",
           }}
         >
           {pains.map((item, i) => (
             <div
               key={i}
               style={{
-                background: "#161616",
+                background: "#F7F4EE",
                 padding: "32px 28px",
-                borderLeft: "3px solid #E8FF47",
+                borderLeft: "3px solid #E8A020",
                 transition: "background 0.2s",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#1C1C1C")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#161616")}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#EEE9DF")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#F7F4EE")}
             >
               <p
                 style={{
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "#F5F5F2",
+                  color: "#1C2B2B",
                   lineHeight: 1.5,
                   marginBottom: 16,
                 }}
@@ -98,14 +98,14 @@ export default function PainPoints() {
                   style={{
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 14,
-                    color: "#E8FF47",
+                    color: "#E8A020",
                     flexShrink: 0,
                     lineHeight: 1.5,
                   }}
                 >
                   →
                 </span>
-                <p style={{ fontSize: 14, color: "#999", lineHeight: 1.6 }}>
+                <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.6 }}>
                   {item.solution}
                 </p>
               </div>

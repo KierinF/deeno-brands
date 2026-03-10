@@ -40,8 +40,8 @@ export default function Process() {
     <section
       id="process"
       style={{
-        background: "#0A0A0A",
-        borderBottom: "1px solid #2A2A2A",
+        background: "#F7F4EE",
+        borderBottom: "1px solid #C8C1B3",
         padding: "80px 40px",
       }}
     >
@@ -52,7 +52,7 @@ export default function Process() {
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 11,
-              color: "#E8FF47",
+              color: "#E8A020",
               letterSpacing: "3px",
               textTransform: "uppercase",
               marginBottom: 16,
@@ -61,7 +61,7 @@ export default function Process() {
               gap: 12,
             }}
           >
-            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
             How It Works
           </div>
           <h2
@@ -69,30 +69,30 @@ export default function Process() {
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: "clamp(42px, 6vw, 72px)",
               letterSpacing: "2px",
-              color: "#F5F5F2",
+              color: "#1C2B2B",
               lineHeight: 0.95,
             }}
           >
             FROM ZERO TO BOOKED<br />
-            <span style={{ color: "#E8FF47" }}>IN 30 DAYS.</span>
+            <span style={{ color: "#E8A020" }}>IN 30 DAYS.</span>
           </h2>
         </div>
 
         {/* Steps */}
         <div
           style={{
-            border: "1px solid #2A2A2A",
-            background: "#2A2A2A",
+            border: "1px solid #C8C1B3",
+            background: "#C8C1B3",
             display: "flex",
             flexDirection: "column",
             gap: 1,
           }}
         >
-          {steps.map((step, i) => (
+          {steps.map((step) => (
             <div
               key={step.num}
               style={{
-                background: "#111111",
+                background: "#EEE9DF",
                 padding: "36px 36px",
                 display: "grid",
                 gridTemplateColumns: "80px 1fr",
@@ -106,7 +106,7 @@ export default function Process() {
                   style={{
                     fontFamily: "'Bebas Neue', sans-serif",
                     fontSize: 56,
-                    color: "#2A2A2A",
+                    color: "#C8C1B3",
                     lineHeight: 1,
                     marginBottom: 4,
                   }}
@@ -118,7 +118,7 @@ export default function Process() {
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 9,
                     letterSpacing: "1.5px",
-                    color: "#444",
+                    color: "#8C8070",
                     textTransform: "uppercase",
                   }}
                 >
@@ -132,7 +132,7 @@ export default function Process() {
                   style={{
                     fontSize: 18,
                     fontWeight: 600,
-                    color: "#F5F5F2",
+                    color: "#1C2B2B",
                     marginBottom: 12,
                     lineHeight: 1.3,
                   }}
@@ -142,7 +142,7 @@ export default function Process() {
                 <p
                   style={{
                     fontSize: 14,
-                    color: "#666",
+                    color: "#8C8070",
                     lineHeight: 1.7,
                     marginBottom: 16,
                     maxWidth: 640,
@@ -159,10 +159,10 @@ export default function Process() {
                         fontSize: 9,
                         letterSpacing: "1.5px",
                         textTransform: "uppercase",
-                        color: "#E8FF47",
-                        border: "1px solid rgba(232,255,71,0.2)",
+                        color: "#E8A020",
+                        border: "1px solid rgba(232,160,32,0.25)",
                         padding: "3px 8px",
-                        background: "rgba(232,255,71,0.05)",
+                        background: "rgba(232,160,32,0.06)",
                       }}
                     >
                       {tag}
@@ -183,8 +183,8 @@ export default function Process() {
               fontSize: 12,
               letterSpacing: "1.5px",
               padding: "14px 28px",
-              background: "#E8FF47",
-              color: "#0A0A0A",
+              background: "#E8A020",
+              color: "#F7F4EE",
               textDecoration: "none",
               fontWeight: 500,
               transition: "background 0.2s",
@@ -192,8 +192,8 @@ export default function Process() {
               alignItems: "center",
               gap: 10,
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#f0ff6e")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8FF47")}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8A020")}
           >
             START WITH A FREE AUDIT →
           </a>
@@ -201,7 +201,7 @@ export default function Process() {
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 11,
-              color: "#444",
+              color: "#8C8070",
             }}
           >
             No commitment. No pitch.

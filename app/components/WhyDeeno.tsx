@@ -7,7 +7,7 @@ const differentiators = [
   },
   {
     title: "We only do trades.",
-    body: "Not 24 industries. Five trades and nothing else. That's not a limitation — that's how we know your buyers better than any generalist agency ever will.",
+    body: "Not 24 industries. Six trades and nothing else. That's not a limitation — that's how we know your buyers better than any generalist agency ever will.",
   },
   {
     title: "One client per market.",
@@ -27,8 +27,8 @@ export default function WhyDeeno() {
   return (
     <section
       style={{
-        background: "#0A0A0A",
-        borderBottom: "1px solid #2A2A2A",
+        background: "#F7F4EE",
+        borderBottom: "1px solid #C8C1B3",
         padding: "80px 40px",
       }}
     >
@@ -39,7 +39,7 @@ export default function WhyDeeno() {
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 11,
-              color: "#E8FF47",
+              color: "#E8A020",
               letterSpacing: "3px",
               textTransform: "uppercase",
               marginBottom: 16,
@@ -48,7 +48,7 @@ export default function WhyDeeno() {
               gap: 12,
             }}
           >
-            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
             Why contractors who&apos;ve been burned before still book the call.
           </div>
         </div>
@@ -59,15 +59,15 @@ export default function WhyDeeno() {
             display: "flex",
             flexDirection: "column",
             gap: 1,
-            background: "#2A2A2A",
-            border: "1px solid #2A2A2A",
+            background: "#C8C1B3",
+            border: "1px solid #C8C1B3",
           }}
         >
           {differentiators.map((d, i) => (
             <div
               key={i}
               style={{
-                background: "#111111",
+                background: "#EEE9DF",
                 padding: "28px 36px",
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
@@ -75,14 +75,14 @@ export default function WhyDeeno() {
                 alignItems: "center",
                 transition: "background 0.2s",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#161616")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#111111")}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#E4DDD1")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLDivElement).style.background = "#EEE9DF")}
             >
               <div
                 style={{
                   fontSize: 16,
                   fontWeight: 600,
-                  color: "#F5F5F2",
+                  color: "#1C2B2B",
                   display: "flex",
                   alignItems: "center",
                   gap: 16,
@@ -92,7 +92,7 @@ export default function WhyDeeno() {
                   style={{
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 11,
-                    color: "#E8FF47",
+                    color: "#E8A020",
                     flexShrink: 0,
                   }}
                 >
@@ -103,7 +103,7 @@ export default function WhyDeeno() {
               <p
                 style={{
                   fontSize: 14,
-                  color: "#666",
+                  color: "#8C8070",
                   lineHeight: 1.6,
                 }}
               >

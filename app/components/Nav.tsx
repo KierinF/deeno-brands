@@ -8,6 +8,7 @@ const industries = [
   { label: "Commercial Plumbing", href: "#industries" },
   { label: "Commercial Landscaping", href: "#industries" },
   { label: "Commercial Pest Control", href: "#industries" },
+  { label: "Commercial Roofing", href: "#industries" },
 ];
 
 const links = [
@@ -39,7 +40,7 @@ export default function Nav() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const navBg = scrolled ? "rgba(10,10,10,0.95)" : "transparent";
+  const navBg = scrolled ? "rgba(247,244,238,0.96)" : "transparent";
 
   return (
     <nav
@@ -51,7 +52,7 @@ export default function Nav() {
         zIndex: 100,
         background: navBg,
         backdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "1px solid #2A2A2A" : "none",
+        borderBottom: scrolled ? "1px solid #C8C1B3" : "none",
         transition: "background 0.3s ease, border-color 0.3s ease",
       }}
     >
@@ -72,7 +73,7 @@ export default function Nav() {
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 28,
               letterSpacing: "3px",
-              color: "#E8FF47",
+              color: "#E8A020",
             }}
           >
             DEENO
@@ -93,7 +94,7 @@ export default function Nav() {
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 11,
                     letterSpacing: "1.5px",
-                    color: dropdownOpen ? "#F5F5F2" : "#666",
+                    color: dropdownOpen ? "#1C2B2B" : "#8C8070",
                     background: "none",
                     border: "none",
                     padding: "8px 16px",
@@ -103,9 +104,9 @@ export default function Nav() {
                     alignItems: "center",
                     gap: 6,
                   }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#F5F5F2")}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#1C2B2B")}
                   onMouseLeave={(e) => {
-                    if (!dropdownOpen) (e.currentTarget as HTMLButtonElement).style.color = "#666";
+                    if (!dropdownOpen) (e.currentTarget as HTMLButtonElement).style.color = "#8C8070";
                   }}
                 >
                   {l.label}
@@ -117,11 +118,12 @@ export default function Nav() {
                       position: "absolute",
                       top: "100%",
                       left: 0,
-                      background: "#111111",
-                      border: "1px solid #2A2A2A",
+                      background: "#F7F4EE",
+                      border: "1px solid #C8C1B3",
                       minWidth: 220,
                       marginTop: 4,
                       zIndex: 200,
+                      boxShadow: "0 4px 16px rgba(28,43,43,0.08)",
                     }}
                   >
                     {industries.map((ind) => (
@@ -135,17 +137,17 @@ export default function Nav() {
                           fontFamily: "'DM Mono', monospace",
                           fontSize: 11,
                           letterSpacing: "1px",
-                          color: "#666",
+                          color: "#8C8070",
                           textDecoration: "none",
-                          borderBottom: "1px solid #1C1C1C",
+                          borderBottom: "1px solid #EEE9DF",
                           transition: "color 0.15s, background 0.15s",
                         }}
                         onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2";
-                          (e.currentTarget as HTMLAnchorElement).style.background = "#1C1C1C";
+                          (e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B";
+                          (e.currentTarget as HTMLAnchorElement).style.background = "#EEE9DF";
                         }}
                         onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = "#666";
+                          (e.currentTarget as HTMLAnchorElement).style.color = "#8C8070";
                           (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
                         }}
                       >
@@ -163,13 +165,13 @@ export default function Nav() {
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 11,
                   letterSpacing: "1.5px",
-                  color: "#666",
+                  color: "#8C8070",
                   textDecoration: "none",
                   padding: "8px 16px",
                   transition: "color 0.2s",
                 }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#666")}
+                onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B")}
+                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#8C8070")}
               >
                 {l.label}
               </a>
@@ -186,14 +188,14 @@ export default function Nav() {
             fontSize: 11,
             letterSpacing: "1.5px",
             padding: "10px 20px",
-            background: "#E8FF47",
-            color: "#0A0A0A",
+            background: "#E8A020",
+            color: "#F7F4EE",
             textDecoration: "none",
             fontWeight: 500,
             transition: "background 0.2s",
           }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#f0ff6e")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8FF47")}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30")}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8A020")}
         >
           CHECK MY MARKET →
         </a>
@@ -204,8 +206,8 @@ export default function Nav() {
           onClick={() => setMobileOpen(!mobileOpen)}
           style={{
             background: "none",
-            border: "1px solid #2A2A2A",
-            color: "#F5F5F2",
+            border: "1px solid #C8C1B3",
+            color: "#1C2B2B",
             padding: "6px 12px",
             fontFamily: "'DM Mono', monospace",
             fontSize: 11,
@@ -221,8 +223,8 @@ export default function Nav() {
       {mobileOpen && (
         <div
           style={{
-            background: "#111111",
-            borderTop: "1px solid #2A2A2A",
+            background: "#F7F4EE",
+            borderTop: "1px solid #C8C1B3",
             padding: "20px 24px",
             display: "flex",
             flexDirection: "column",
@@ -238,7 +240,7 @@ export default function Nav() {
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 12,
                 letterSpacing: "1.5px",
-                color: "#999",
+                color: "#8C8070",
                 textDecoration: "none",
               }}
             >
@@ -254,7 +256,7 @@ export default function Nav() {
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 11,
                 letterSpacing: "1px",
-                color: "#555",
+                color: "#6B6055",
                 textDecoration: "none",
                 paddingLeft: 16,
               }}
@@ -270,8 +272,8 @@ export default function Nav() {
               fontSize: 12,
               letterSpacing: "1.5px",
               padding: "12px 20px",
-              background: "#E8FF47",
-              color: "#0A0A0A",
+              background: "#E8A020",
+              color: "#F7F4EE",
               textDecoration: "none",
               textAlign: "center",
               fontWeight: 500,

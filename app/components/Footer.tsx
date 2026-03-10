@@ -6,14 +6,15 @@ const industries = [
   "Commercial Plumbing",
   "Commercial Landscaping",
   "Commercial Pest Control",
+  "Commercial Roofing",
 ];
 
 export default function Footer() {
   return (
     <footer
       style={{
-        background: "#0A0A0A",
-        borderTop: "1px solid #2A2A2A",
+        background: "#1C2B2B",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
         padding: "48px 40px",
       }}
     >
@@ -34,7 +35,7 @@ export default function Footer() {
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: 22,
               letterSpacing: "3px",
-              color: "#E8FF47",
+              color: "#E8A020",
             }}
           >
             DEENO
@@ -44,7 +45,7 @@ export default function Footer() {
               fontFamily: "'DM Mono', monospace",
               fontSize: 10,
               letterSpacing: "1.5px",
-              color: "#333",
+              color: "rgba(255,255,255,0.25)",
               textTransform: "uppercase",
             }}
           >
@@ -57,12 +58,12 @@ export default function Footer() {
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 12,
                 letterSpacing: "0.5px",
-                color: "#444",
+                color: "rgba(255,255,255,0.35)",
                 textDecoration: "none",
                 transition: "color 0.2s",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#444")}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F7F4EE")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.35)")}
             >
               kierin@deenobrands.agency
             </a>
@@ -72,12 +73,12 @@ export default function Footer() {
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 12,
                 letterSpacing: "0.5px",
-                color: "#444",
+                color: "rgba(255,255,255,0.35)",
                 textDecoration: "none",
                 transition: "color 0.2s",
               }}
-              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
-              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#444")}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F7F4EE")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.35)")}
             >
               (631) 521-4302
             </a>
@@ -92,7 +93,7 @@ export default function Footer() {
               fontSize: 9,
               letterSpacing: "2px",
               textTransform: "uppercase",
-              color: "#333",
+              color: "rgba(255,255,255,0.25)",
               marginBottom: 4,
             }}
           >
@@ -113,17 +114,17 @@ export default function Footer() {
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 11,
                     letterSpacing: "0.5px",
-                    color: "#444",
+                    color: "rgba(255,255,255,0.3)",
                     textDecoration: "none",
                     transition: "color 0.2s",
                   }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#444")}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F7F4EE")}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.3)")}
                 >
                   {ind}
                 </a>
                 {i < industries.length - 1 && (
-                  <span style={{ color: "#2A2A2A", margin: "0 8px" }}>·</span>
+                  <span style={{ color: "rgba(255,255,255,0.12)", margin: "0 8px" }}>·</span>
                 )}
               </span>
             ))}
@@ -133,7 +134,7 @@ export default function Footer() {
               fontFamily: "'DM Mono', monospace",
               fontSize: 10,
               letterSpacing: "0.5px",
-              color: "#2A2A2A",
+              color: "rgba(255,255,255,0.15)",
               marginTop: "auto",
               paddingTop: 24,
             }}

@@ -1,20 +1,39 @@
 @import "tailwindcss";
 
 :root {
-  --black: #0A0A0A;
-  --off-black: #111111;
-  --panel: #161616;
-  --border: #2A2A2A;
-  --border-light: #333;
-  --accent: #E8FF47;
-  --accent-dim: rgba(232, 255, 71, 0.10);
-  --accent-hover: #f0ff6e;
-  --red: #FF4A4A;
-  --muted: #666;
-  --mid: #999;
-  --light: #CCCCCC;
-  --white: #F5F5F2;
-  --tag-bg: #1E1E1E;
+  /* === NEW BRAND PALETTE === */
+  /* Primary — Bone White (page background) */
+  --black: #F7F4EE;
+  /* Secondary bg */
+  --off-black: #EEE9DF;
+  /* Card / panel bg */
+  --panel: #E4DDD1;
+  /* Darker panel / hover */
+  --panel-dark: #D8D1C5;
+  /* Borders */
+  --border: #C8C1B3;
+  --border-light: #BDB6A8;
+  /* Accent — Amber */
+  --accent: #E8A020;
+  --accent-dim: rgba(232, 160, 32, 0.10);
+  --accent-hover: #F0AA30;
+  /* Error */
+  --red: #CC3311;
+  /* Fossil Grey — secondary text */
+  --muted: #8C8070;
+  --mid: #6B6055;
+  --light: #4A3C30;
+  /* Slate Obsidian — headline / primary text */
+  --white: #1C2B2B;
+  /* Tag bg */
+  --tag-bg: #DDD7CB;
+
+  /* Semantic aliases */
+  --obsidian: #1C2B2B;
+  --bone: #F7F4EE;
+  --fossil: #8C8070;
+  --amber: #E8A020;
+  --jungle: #2D5A3D;
 }
 
 * {
@@ -38,7 +57,7 @@ body {
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--off-black); }
-::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 /* ── Utility ── */
 .font-bebas { font-family: 'Bebas Neue', sans-serif; }

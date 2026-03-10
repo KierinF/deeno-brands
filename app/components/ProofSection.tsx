@@ -10,11 +10,11 @@ const differentiators = [
 
 export default function ProofSection() {
   return (
-    <section id="proof" style={{ background: "#111111", borderBottom: "1px solid #2A2A2A" }}>
+    <section id="proof" style={{ background: "#EEE9DF", borderBottom: "1px solid #C8C1B3" }}>
       {/* Guarantee band */}
       <div
         style={{
-          background: "#E8FF47",
+          background: "#1C2B2B",
           padding: "60px 40px",
           position: "relative",
           overflow: "hidden",
@@ -30,7 +30,7 @@ export default function ProofSection() {
             transform: "translateY(-50%)",
             fontFamily: "'Bebas Neue', sans-serif",
             fontSize: "clamp(80px, 14vw, 200px)",
-            color: "rgba(0,0,0,0.04)",
+            color: "rgba(255,255,255,0.03)",
             letterSpacing: "8px",
             whiteSpace: "nowrap",
             pointerEvents: "none",
@@ -48,7 +48,7 @@ export default function ProofSection() {
               fontSize: 11,
               letterSpacing: "3px",
               textTransform: "uppercase",
-              color: "rgba(0,0,0,0.4)",
+              color: "rgba(232,160,32,0.6)",
               marginBottom: 20,
             }}
           >
@@ -59,7 +59,7 @@ export default function ProofSection() {
               fontFamily: "'Bebas Neue', sans-serif",
               fontSize: "clamp(42px, 6vw, 80px)",
               letterSpacing: "2px",
-              color: "#0A0A0A",
+              color: "#F7F4EE",
               lineHeight: 0.95,
               marginBottom: 20,
               maxWidth: 800,
@@ -70,7 +70,7 @@ export default function ProofSection() {
           <p
             style={{
               fontSize: 15,
-              color: "rgba(0,0,0,0.5)",
+              color: "rgba(247,244,238,0.55)",
               maxWidth: 560,
               lineHeight: 1.6,
               marginBottom: 28,
@@ -85,17 +85,17 @@ export default function ProofSection() {
               fontSize: 12,
               letterSpacing: "1.5px",
               padding: "14px 28px",
-              background: "#0A0A0A",
-              color: "#E8FF47",
+              background: "#E8A020",
+              color: "#F7F4EE",
               textDecoration: "none",
               fontWeight: 500,
               display: "inline-flex",
               alignItems: "center",
               gap: 10,
-              transition: "opacity 0.2s",
+              transition: "background 0.2s",
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = "0.85")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = "1")}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8A020")}
           >
             CHECK MY MARKET&apos;S AVAILABILITY →
           </a>
@@ -105,8 +105,8 @@ export default function ProofSection() {
       {/* Stats strip */}
       <div
         style={{
-          background: "#0A0A0A",
-          borderBottom: "1px solid #2A2A2A",
+          background: "#F7F4EE",
+          borderBottom: "1px solid #C8C1B3",
         }}
       >
         <div
@@ -116,8 +116,8 @@ export default function ProofSection() {
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
             gap: 1,
-            background: "#2A2A2A",
-            border: "1px solid #2A2A2A",
+            background: "#C8C1B3",
+            border: "1px solid #C8C1B3",
             borderTop: "none",
           }}
         >
@@ -125,7 +125,7 @@ export default function ProofSection() {
             <div
               key={i}
               style={{
-                background: "#0A0A0A",
+                background: "#F7F4EE",
                 padding: "36px 32px",
               }}
             >
@@ -133,7 +133,7 @@ export default function ProofSection() {
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
                   fontSize: "clamp(48px, 6vw, 72px)",
-                  color: "#E8FF47",
+                  color: "#E8A020",
                   letterSpacing: "2px",
                   lineHeight: 1,
                   marginBottom: 8,
@@ -145,7 +145,7 @@ export default function ProofSection() {
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
-                  color: "#F5F5F2",
+                  color: "#1C2B2B",
                   marginBottom: 4,
                 }}
               >
@@ -155,7 +155,7 @@ export default function ProofSection() {
                 style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 11,
-                  color: "#444",
+                  color: "#8C8070",
                   letterSpacing: "0.5px",
                 }}
               >
@@ -167,13 +167,13 @@ export default function ProofSection() {
       </div>
 
       {/* Case study preview */}
-      <div style={{ padding: "64px 40px", background: "#111111" }}>
+      <div style={{ padding: "64px 40px", background: "#EEE9DF" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
           <div
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 11,
-              color: "#E8FF47",
+              color: "#E8A020",
               letterSpacing: "3px",
               textTransform: "uppercase",
               marginBottom: 32,
@@ -182,15 +182,15 @@ export default function ProofSection() {
               gap: 12,
             }}
           >
-            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
             Client Proof — Real campaigns. Real results.
           </div>
 
           <div
             style={{
-              background: "#161616",
-              border: "1px solid #2A2A2A",
-              borderLeft: "3px solid #E8FF47",
+              background: "#F7F4EE",
+              border: "1px solid #C8C1B3",
+              borderLeft: "3px solid #E8A020",
               padding: "40px",
             }}
           >
@@ -202,7 +202,7 @@ export default function ProofSection() {
                     fontSize: 9,
                     letterSpacing: "2px",
                     textTransform: "uppercase",
-                    color: "#444",
+                    color: "#8C8070",
                     marginBottom: 12,
                   }}
                 >
@@ -213,21 +213,21 @@ export default function ProofSection() {
                     fontFamily: "'Bebas Neue', sans-serif",
                     fontSize: 36,
                     letterSpacing: "2px",
-                    color: "#F5F5F2",
+                    color: "#1C2B2B",
                     lineHeight: 1,
                     marginBottom: 16,
                   }}
                 >
                   MD HEATING & AIR
                 </h3>
-                <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, maxWidth: 440 }}>
+                <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.7, maxWidth: 440 }}>
                   A residential HVAC contractor with zero commercial pipeline. Goal: land facility management companies and property managers in Nassau and Suffolk County. We built their commercial ICP, launched cold email sequences targeting facility directors, and ran LinkedIn outreach to property management companies across the market.
                 </p>
               </div>
               <div
                 style={{
                   flex: "1 1 200px",
-                  background: "#1C1C1C",
+                  background: "#EEE9DF",
                   padding: "28px",
                   display: "flex",
                   flexDirection: "column",
@@ -239,7 +239,7 @@ export default function ProofSection() {
                     style={{
                       fontFamily: "'Bebas Neue', sans-serif",
                       fontSize: 48,
-                      color: "#E8FF47",
+                      color: "#2D5A3D",
                       lineHeight: 1,
                     }}
                   >
@@ -250,7 +250,7 @@ export default function ProofSection() {
                       fontFamily: "'DM Mono', monospace",
                       fontSize: 10,
                       letterSpacing: "1.5px",
-                      color: "#444",
+                      color: "#8C8070",
                       textTransform: "uppercase",
                     }}
                   >
@@ -260,7 +260,7 @@ export default function ProofSection() {
                 <p
                   style={{
                     fontSize: 13,
-                    color: "#666",
+                    color: "#8C8070",
                     lineHeight: 1.6,
                     fontStyle: "italic",
                   }}
@@ -273,7 +273,7 @@ export default function ProofSection() {
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 10,
                     letterSpacing: "1.5px",
-                    color: "#E8FF47",
+                    color: "#E8A020",
                     textDecoration: "none",
                     textTransform: "uppercase",
                   }}

@@ -1,151 +1,89 @@
-@import "@fontsource-variable/inter";
-@import "@fontsource/press-start-2p";
 @import "tailwindcss";
 
-@theme inline {
-  --color-background: var(--bg);
-  --color-foreground: var(--dark);
-  --font-sans: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-pixel: "Press Start 2P", monospace;
-  --font-mono: "SF Mono", "Fira Code", "Fira Mono", monospace;
-}
-
 :root {
-  --bg: #EDEAE0;
-  --dark: #1C1917;
-  --purple: #8B5CF6;
-  --purple-muted: rgba(139, 92, 246, 0.12);
-  --amber: #C9A84C;
-  --muted: #8B7F72;
-  --border: rgba(28, 25, 23, 0.1);
-  --surface: #E5E1D6;
+  --black: #0A0A0A;
+  --off-black: #111111;
+  --panel: #161616;
+  --border: #2A2A2A;
+  --border-light: #333;
+  --accent: #E8FF47;
+  --accent-dim: rgba(232, 255, 71, 0.10);
+  --accent-hover: #f0ff6e;
+  --red: #FF4A4A;
+  --muted: #666;
+  --mid: #999;
+  --light: #CCCCCC;
+  --white: #F5F5F2;
+  --tag-bg: #1E1E1E;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 
 body {
-  background: var(--bg);
-  color: var(--dark);
-  font-family: "Inter Variable", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--black);
+  color: var(--white);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Hide default cursor on desktop */
-@media (pointer: fine) {
-  * { cursor: none !important; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--off-black); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+/* ── Utility ── */
+.font-bebas { font-family: 'Bebas Neue', sans-serif; }
+.font-mono  { font-family: 'DM Mono', monospace; }
+.font-sans  { font-family: 'DM Sans Variable', 'DM Sans', sans-serif; }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Grain texture */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
 }
 
-/* Pixel font utility */
-.font-pixel {
-  font-family: "Press Start 2P", monospace;
-}
-
-/* Gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, #8B5CF6 0%, #A78BFA 55%, #C4B5FD 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* Pill component base */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  font-family: "Press Start 2P", monospace;
-  line-height: 1.2;
-}
-
-.pill-dark {
-  background: #1C1917;
-  color: #EDEAE0;
-}
-
-.pill-purple {
-  background: #8B5CF6;
-  color: #fff;
-}
-
-.pill-outline {
-  background: transparent;
-  border: 2px solid #1C1917;
-  color: #1C1917;
-}
-
-/* Clip reveal utility */
-.clip-wrap {
-  display: inline-block;
-  overflow: hidden;
-  vertical-align: bottom;
-}
-
-/* Infinite marquee */
 @keyframes marquee-left {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
 
-@keyframes marquee-right {
-  from { transform: translateX(-50%); }
-  to   { transform: translateX(0); }
+.animate-fadeUp {
+  animation: fadeUp 0.5s ease both;
 }
 
-.animate-marquee-left {
-  animation: marquee-left var(--marquee-duration, 30s) linear infinite;
+.animate-marquee {
+  animation: marquee-left 30s linear infinite;
   display: flex;
   width: max-content;
 }
 
-.animate-marquee-right {
-  animation: marquee-right var(--marquee-duration, 30s) linear infinite;
-  display: flex;
-  width: max-content;
-}
-
-.marquee-container:hover .animate-marquee-left,
-.marquee-container:hover .animate-marquee-right {
-  animation-play-state: paused;
-}
-
-/* Terminal cursor blink */
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
-}
-
-.terminal-cursor {
+.cursor-blink {
   display: inline-block;
-  width: 8px;
-  height: 14px;
-  background: #C9A84C;
+  width: 2px;
+  height: 1em;
+  background: var(--accent);
   animation: blink 1s step-end infinite;
   vertical-align: text-bottom;
-  margin-left: 2px;
+  margin-left: 3px;
 }
 
-/* Slowly rotating ring */
-@keyframes spin-slow {
-  to { transform: rotate(360deg); }
-}
+/* ── Accent highlight ── */
+.text-accent { color: var(--accent); }
+.bg-accent   { background: var(--accent); }
 
-.animate-spin-slow {
-  animation: spin-slow 25s linear infinite;
-}
+/* ── Border helpers ── */
+.border-brand { border-color: var(--border); }

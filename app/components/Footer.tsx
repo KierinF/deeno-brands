@@ -1,57 +1,78 @@
 "use client";
 
-import { useState } from "react";
-
 export default function Footer() {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <footer
       style={{
-        background: "#EDEAE0",
-        borderTop: "1px solid rgba(28,25,23,0.1)",
-        padding: "24px 0",
+        background: "#0A0A0A",
+        borderTop: "1px solid #2A2A2A",
+        padding: "40px",
       }}
     >
       <div
-        className="max-w-6xl mx-auto px-6"
         style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
           display: "flex",
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
           flexWrap: "wrap",
-          gap: "8px",
+          gap: 16,
         }}
       >
-        <p
-          style={{
-            fontFamily: '"SF Mono","Fira Code","Fira Mono",monospace',
-            fontSize: 9,
-            letterSpacing: "0.12em",
-            color: "rgba(28,25,23,0.25)",
-            textTransform: "uppercase",
-            margin: 0,
-          }}
-        >
-          © 2025 Deeno Brands LLC&nbsp;&nbsp;·&nbsp;&nbsp;Home Services Marketing
-        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <span
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: 22,
+              letterSpacing: "3px",
+              color: "#E8FF47",
+            }}
+          >
+            DEENO
+            <span style={{ color: "#F5F5F2", opacity: 0.4, marginLeft: 6 }}>BRANDS</span>
+          </span>
+          <span
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              letterSpacing: "1.5px",
+              color: "#333",
+              textTransform: "uppercase",
+            }}
+          >
+            Commercial Pipeline for Trades
+          </span>
+        </div>
 
-        <a
-          href="mailto:kierin@deenobrands.agency"
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          style={{
-            fontFamily: '"SF Mono","Fira Code","Fira Mono",monospace',
-            fontSize: 11,
-            letterSpacing: "0.05em",
-            color: hovered ? "#1C1917" : "rgba(28,25,23,0.35)",
-            textDecoration: "none",
-            transition: "color 0.2s ease",
-          }}
-        >
-          kierin@deenobrands.agency
-        </a>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end" }}>
+          <a
+            href="mailto:kierin@deenobrands.agency"
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 12,
+              letterSpacing: "0.5px",
+              color: "#444",
+              textDecoration: "none",
+              transition: "color 0.2s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F5F5F2")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#444")}
+          >
+            kierin@deenobrands.agency
+          </a>
+          <span
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              letterSpacing: "0.5px",
+              color: "#2A2A2A",
+            }}
+          >
+            © 2025 Deeno Brands LLC
+          </span>
+        </div>
       </div>
     </footer>
   );

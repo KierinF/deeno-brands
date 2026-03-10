@@ -1,229 +1,293 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
-import CountUp from "./CountUp";
-
-const stats = [
-  {
-    number: 70,
-    suffix: "%",
-    label: "of homeowners search online before calling a contractor",
-    context: "If you're not ranking, you don't exist.",
-    source: "Invoca, 2025",
-  },
-  {
-    number: 2.5,
-    suffix: "×",
-    decimals: 1,
-    label: "higher conversion rate for Google Local Services Ads vs. standard PPC",
-    context: "The channel most agencies ignore.",
-    source: "HomeServiceDirect",
-  },
-  {
-    number: 15,
-    suffix: "×",
-    label: "more revenue from phone call leads vs. web form submissions",
-    context: "Calls close. Forms don't.",
-    source: "CallRail",
-  },
-  {
-    number: 57,
-    suffix: "%",
-    label: "of consumers won't call a business with less than 4 stars",
-    context: "Reputation is revenue.",
-    source: "BrightLocal",
-  },
+// Proof section — guarantee band + social proof
+const differentiators = [
+  { stat: "1", label: "Client per market", sub: "Your territory. Exclusive." },
+  { stat: "10", label: "Meetings guaranteed", sub: "In first 90 days or we keep working." },
+  { stat: "30", label: "Days to first meeting", sub: "Most clients see results within month one." },
+  { stat: "100%", label: "Commercial focus", sub: "Not homeowner leads. Never." },
 ];
 
-function StatRow({ stat, index }: { stat: typeof stats[0]; index: number }) {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: "-60px" });
-
-  return (
-    <div ref={ref} className="relative">
-      <motion.div
-        initial={{ scaleX: 0 }}
-        animate={inView ? { scaleX: 1 } : {}}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute top-0 left-0 right-0 h-px origin-left"
-        style={{ background: "rgba(201,168,76,0.1)" }}
-      />
-
-      <div className="grid grid-cols-[1fr_2fr] md:grid-cols-[260px_1fr_200px] gap-0 items-center py-10 md:py-12">
-        {/* Number */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={inView ? { opacity: 1, x: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.1 + index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <span
-            className="leading-none"
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontSize: "clamp(52px, 8vw, 110px)",
-              color: "#F2E8D5",
-              letterSpacing: "-0.03em",
-            }}
-          >
-            {inView ? (
-              <CountUp to={stat.number} suffix={stat.suffix} decimals={stat.decimals} duration={2} />
-            ) : (
-              `0${stat.suffix}`
-            )}
-          </span>
-        </motion.div>
-
-        {/* Label + context */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.55, delay: 0.17 + index * 0.05 }}
-          className="pl-6 md:pl-10 pr-4"
-        >
-          <p className="text-sm md:text-base leading-relaxed mb-2 max-w-lg" style={{ color: "rgba(242,232,213,0.45)" }}>
-            {stat.label}
-          </p>
-          <p
-            className="text-sm font-semibold"
-            style={{
-              fontFamily: "'Playfair Display', Georgia, serif",
-              fontStyle: "italic",
-              color: "#8B5CF6",
-            }}
-          >
-            {stat.context}
-          </p>
-        </motion.div>
-
-        {/* Source */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.4, delay: 0.3 + index * 0.05 }}
-          className="hidden md:flex justify-end"
-        >
-          <span
-            className="text-right"
-            style={{
-              fontFamily: '"SF Mono","Fira Code",monospace',
-              fontSize: 9,
-              letterSpacing: "0.14em",
-              color: "rgba(201,168,76,0.25)",
-              textTransform: "uppercase",
-              lineHeight: 1.8,
-            }}
-          >
-            SOURCE:<br />{stat.source}
-          </span>
-        </motion.div>
-      </div>
-
-      {index === stats.length - 1 && (
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={inView ? { scaleX: 1 } : {}}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="absolute bottom-0 left-0 right-0 h-px origin-left"
-          style={{ background: "rgba(201,168,76,0.1)" }}
-        />
-      )}
-    </div>
-  );
-}
-
 export default function ProofSection() {
-  const headerRef = useRef(null);
-  const inView = useInView(headerRef, { once: true, margin: "-80px" });
-
   return (
-    <section id="proof" className="py-32 px-6 relative overflow-hidden" style={{ background: "#181410" }}>
+    <section id="proof" style={{ background: "#111111", borderBottom: "1px solid #2A2A2A" }}>
+      {/* Guarantee band */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 pointer-events-none"
         style={{
-          width: 800, height: 400,
-          borderRadius: "50%",
-          background: "rgba(139,92,246,0.03)",
-          filter: "blur(120px)",
+          background: "#E8FF47",
+          padding: "60px 40px",
+          position: "relative",
+          overflow: "hidden",
         }}
-      />
-
-      <div className="max-w-6xl mx-auto relative">
-        <div ref={headerRef} className="mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={inView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 0.6 }}
-          >
-            <span
-              style={{
-                fontFamily: '"SF Mono","Fira Code",monospace',
-                fontSize: 10,
-                letterSpacing: "0.2em",
-                color: "rgba(201,168,76,0.65)",
-                textTransform: "uppercase",
-                display: "block",
-                marginBottom: 20,
-              }}
-            >
-              [ EXHIBIT 04 // THE EVIDENCE ]
-            </span>
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-              <h2
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontSize: "clamp(36px, 5.5vw, 80px)",
-                  color: "#F2E8D5",
-                  lineHeight: 1.15,
-                  letterSpacing: "-0.02em",
-                }}
-              >
-                Why digital marketing<br />
-                <span style={{ color: "rgba(242,232,213,0.28)" }}>can&apos;t wait.</span>
-              </h2>
-              <p
-                className="text-sm hidden md:block max-w-xs leading-relaxed"
-                style={{
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                  fontStyle: "italic",
-                  color: "rgba(242,232,213,0.2)",
-                }}
-              >
-                Industry data, independently verified.<br />
-                This is the market you&apos;re competing in.
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={inView ? { scaleX: 1 } : {}}
-            transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            className="h-px origin-left mt-10"
-            style={{ background: "rgba(201,168,76,0.25)" }}
-          />
-        </div>
-
-        <div>
-          {stats.map((stat, i) => (
-            <StatRow key={stat.source + i} stat={stat} index={i} />
-          ))}
-        </div>
-
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.3 }}
-          className="mt-10 text-xs"
+      >
+        {/* Watermark */}
+        <div
+          aria-hidden
           style={{
-            fontFamily: '"SF Mono","Fira Code",monospace',
-            color: "rgba(242,232,213,0.12)",
-            letterSpacing: "0.06em",
+            position: "absolute",
+            right: -20,
+            top: "50%",
+            transform: "translateY(-50%)",
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: "clamp(80px, 14vw, 200px)",
+            color: "rgba(0,0,0,0.04)",
+            letterSpacing: "8px",
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            userSelect: "none",
+            lineHeight: 1,
           }}
         >
-          Data from publicly available industry research. We cite sources because we believe in honesty.
-        </motion.p>
+          GUARANTEED
+        </div>
+
+        <div style={{ maxWidth: "1200px", margin: "0 auto", position: "relative" }}>
+          <div
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              color: "rgba(0,0,0,0.4)",
+              marginBottom: 20,
+            }}
+          >
+            The Guarantee
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(42px, 6vw, 80px)",
+              letterSpacing: "2px",
+              color: "#0A0A0A",
+              lineHeight: 0.95,
+              marginBottom: 20,
+              maxWidth: 800,
+            }}
+          >
+            10 QUALIFIED COMMERCIAL MEETINGS IN 90 DAYS — OR WE KEEP WORKING.
+          </h2>
+          <p
+            style={{
+              fontSize: 15,
+              color: "rgba(0,0,0,0.5)",
+              maxWidth: 560,
+              lineHeight: 1.6,
+              marginBottom: 28,
+            }}
+          >
+            We work with 1 HVAC company and 1 roofing company per market. Once your territory is
+            claimed, it&apos;s closed. Check if yours is still available.
+          </p>
+          <a
+            href="#contact"
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 12,
+              letterSpacing: "1.5px",
+              padding: "14px 28px",
+              background: "#0A0A0A",
+              color: "#E8FF47",
+              textDecoration: "none",
+              fontWeight: 500,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              transition: "opacity 0.2s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = "0.85")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.opacity = "1")}
+          >
+            CHECK MY MARKET&apos;S AVAILABILITY →
+          </a>
+        </div>
+      </div>
+
+      {/* Stats strip */}
+      <div
+        style={{
+          background: "#0A0A0A",
+          borderBottom: "1px solid #2A2A2A",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 1,
+            background: "#2A2A2A",
+            border: "1px solid #2A2A2A",
+            borderTop: "none",
+          }}
+        >
+          {differentiators.map((d, i) => (
+            <div
+              key={i}
+              style={{
+                background: "#0A0A0A",
+                padding: "36px 32px",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: "clamp(48px, 6vw, 72px)",
+                  color: "#E8FF47",
+                  letterSpacing: "2px",
+                  lineHeight: 1,
+                  marginBottom: 8,
+                }}
+              >
+                {d.stat}
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#F5F5F2",
+                  marginBottom: 4,
+                }}
+              >
+                {d.label}
+              </div>
+              <div
+                style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 11,
+                  color: "#444",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {d.sub}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Case study preview */}
+      <div style={{ padding: "64px 40px", background: "#111111" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <div
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              color: "#E8FF47",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              marginBottom: 32,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
+            Client Proof
+          </div>
+
+          <div
+            style={{
+              background: "#161616",
+              border: "1px solid #2A2A2A",
+              borderLeft: "3px solid #E8FF47",
+              padding: "40px",
+            }}
+          >
+            <div style={{ display: "flex", gap: 40, flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div style={{ flex: "1 1 300px" }}>
+                <div
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 9,
+                    letterSpacing: "2px",
+                    textTransform: "uppercase",
+                    color: "#444",
+                    marginBottom: 12,
+                  }}
+                >
+                  Case Study · Long Island, NY
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "'Bebas Neue', sans-serif",
+                    fontSize: 36,
+                    letterSpacing: "2px",
+                    color: "#F5F5F2",
+                    lineHeight: 1,
+                    marginBottom: 16,
+                  }}
+                >
+                  MD HEATING & AIR
+                </h3>
+                <p style={{ fontSize: 14, color: "#666", lineHeight: 1.7, maxWidth: 440 }}>
+                  A residential HVAC contractor with zero commercial pipeline. Wanted to land facility
+                  management companies and property managers in Nassau &amp; Suffolk County.
+                  We built their commercial ICP, launched cold email to facility directors, and ran
+                  LinkedIn outreach to property management companies in the market.
+                </p>
+              </div>
+              <div
+                style={{
+                  flex: "1 1 200px",
+                  background: "#1C1C1C",
+                  padding: "28px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 20,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: 48,
+                      color: "#E8FF47",
+                      lineHeight: 1,
+                    }}
+                  >
+                    ACTIVE
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 10,
+                      letterSpacing: "1.5px",
+                      color: "#444",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Campaign Status
+                  </div>
+                </div>
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "#666",
+                    lineHeight: 1.6,
+                    fontStyle: "italic",
+                  }}
+                >
+                  &ldquo;First meetings booked within the first 30 days. Pipeline is building.&rdquo;
+                </p>
+                <a
+                  href="#contact"
+                  style={{
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 10,
+                    letterSpacing: "1.5px",
+                    color: "#E8FF47",
+                    textDecoration: "none",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  GET THE SAME FOR YOUR MARKET →
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -6,22 +6,31 @@ const verticals = [
   {
     title: "COMMERCIAL\nHVAC",
     sub: "Facility managers. Service contracts. Multi-site accounts.",
-    buyers: ["Facility Managers", "Property Mgmt Companies", "Commercial Real Estate", "Multi-Location Operators"],
     color: "#47A8FF",
     href: "#contact",
   },
   {
-    title: "COMMERCIAL\nROOFING",
-    sub: "Property owners. GCs. TPO/EPDM/flat roof work.",
-    buyers: ["Property Owners", "General Contractors", "Commercial Developers", "Property Mgmt Companies"],
+    title: "COMMERCIAL\nELECTRICAL",
+    sub: "GCs. Developers. Facility directors.",
     color: "#E8FF47",
     href: "#contact",
   },
   {
-    title: "OTHER\nTRADES",
-    sub: "Plumbing, electrical, landscaping, and more. Ask us.",
-    buyers: ["Facility Directors", "Commercial Operators", "Property Managers", "GC Networks"],
+    title: "COMMERCIAL\nPLUMBING",
+    sub: "Property managers. Commercial developers. Maintenance directors.",
     color: "#FF8C47",
+    href: "#contact",
+  },
+  {
+    title: "COMMERCIAL\nLANDSCAPING",
+    sub: "Property managers. Corporate campuses. HOA management companies.",
+    color: "#47FFB2",
+    href: "#contact",
+  },
+  {
+    title: "COMMERCIAL\nPEST CONTROL",
+    sub: "Property managers. Restaurant groups. Facility operators.",
+    color: "#FF47A8",
     href: "#contact",
   },
 ];
@@ -31,42 +40,26 @@ export default function IndustrySelector() {
 
   return (
     <section
+      id="industries"
       style={{
-        background: "#0A0A0A",
+        background: "#111111",
         borderBottom: "1px solid #2A2A2A",
         padding: "80px 40px",
       }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ marginBottom: 48 }}>
-          <div
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
-              color: "#E8FF47",
-              letterSpacing: "3px",
-              textTransform: "uppercase",
-              marginBottom: 16,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-            }}
-          >
-            <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
-            Who We Serve
-          </div>
+        <div style={{ marginBottom: 48, textAlign: "center" }}>
           <h2
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "clamp(42px, 6vw, 72px)",
+              fontSize: "clamp(36px, 5vw, 60px)",
               letterSpacing: "2px",
               color: "#F5F5F2",
-              lineHeight: 0.95,
+              lineHeight: 1,
             }}
           >
-            SELECT YOUR<br />
-            <span style={{ color: "#E8FF47" }}>TRADE.</span>
+            We work in five trades. Pick yours.
           </h2>
         </div>
 
@@ -74,7 +67,7 @@ export default function IndustrySelector() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
             gap: 1,
             background: "#2A2A2A",
             border: "1px solid #2A2A2A",
@@ -86,11 +79,11 @@ export default function IndustrySelector() {
               href={v.href}
               style={{
                 background: hovered === i ? "#1C1C1C" : "#161616",
-                padding: "40px 32px",
+                padding: "36px 28px",
                 textDecoration: "none",
                 display: "flex",
                 flexDirection: "column",
-                gap: 20,
+                gap: 16,
                 borderBottom: `3px solid ${hovered === i ? v.color : "transparent"}`,
                 transition: "background 0.2s, border-color 0.2s",
                 cursor: "pointer",
@@ -101,7 +94,7 @@ export default function IndustrySelector() {
               <h3
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: "clamp(36px, 4vw, 52px)",
+                  fontSize: "clamp(28px, 3vw, 40px)",
                   letterSpacing: "2px",
                   color: hovered === i ? v.color : "#F5F5F2",
                   lineHeight: 1,
@@ -116,38 +109,11 @@ export default function IndustrySelector() {
                   fontSize: 13,
                   color: "#666",
                   lineHeight: 1.6,
+                  flexGrow: 1,
                 }}
               >
                 {v.sub}
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: "auto" }}>
-                <span
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 9,
-                    letterSpacing: "2px",
-                    textTransform: "uppercase",
-                    color: "#444",
-                  }}
-                >
-                  We reach:
-                </span>
-                {v.buyers.map((b) => (
-                  <div
-                    key={b}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      fontSize: 13,
-                      color: "#999",
-                    }}
-                  >
-                    <span style={{ color: v.color, fontSize: 10 }}>→</span>
-                    {b}
-                  </div>
-                ))}
-              </div>
               <div
                 style={{
                   fontFamily: "'DM Mono', monospace",
@@ -157,8 +123,7 @@ export default function IndustrySelector() {
                   display: "flex",
                   alignItems: "center",
                   gap: 8,
-                  marginTop: 8,
-                  opacity: hovered === i ? 1 : 0,
+                  opacity: hovered === i ? 1 : 0.4,
                   transition: "opacity 0.2s",
                 }}
               >

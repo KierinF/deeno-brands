@@ -13,8 +13,8 @@ export default function Home() {
     <main style={{ background: "#0A0A0A" }}>
       <Nav />
       <Hero />
-      <PainPoints />
       <IndustrySelector />
+      <PainPoints />
       <Process />
       <ProofSection />
       <WhyDeeno />

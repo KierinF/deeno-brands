@@ -63,15 +63,15 @@ export default function Hero() {
           }}
         >
           <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
-          B2B Pipeline Development for Trades
+          B2B Pipeline Development for Trades Businesses
         </div>
 
         {/* Headline */}
         <h1
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "clamp(64px, 10vw, 130px)",
-            lineHeight: 0.92,
+            fontSize: "clamp(56px, 8vw, 110px)",
+            lineHeight: 0.95,
             letterSpacing: "2px",
             color: "#F5F5F2",
             marginBottom: 32,
@@ -80,9 +80,9 @@ export default function Hero() {
             transition: "opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s",
           }}
         >
-          WE FILL YOUR<br />
-          <span style={{ color: "#E8FF47" }}>COMMERCIAL</span><br />
-          PIPELINE.
+          Your crews are ready.<br />
+          <span style={{ color: "#E8FF47" }}>Your commercial</span><br />
+          calendar isn&apos;t.
         </h1>
 
         {/* Subheadline */}
@@ -98,9 +98,7 @@ export default function Hero() {
             transition: "opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s",
           }}
         >
-          Outsourced B2B pipeline development for HVAC and roofing contractors.
-          We find facility managers, property owners, and GCs in your market —
-          then book them on your calendar. Fully managed. You don&apos;t lift a finger.
+          We contact facility managers, property owners, and GCs in your market on your behalf — and book them on your calendar. Fully managed outreach across cold email, LinkedIn, and phone. You don&apos;t lift a finger.
         </p>
 
         {/* CTAs */}
@@ -110,7 +108,7 @@ export default function Hero() {
             gap: 16,
             flexWrap: "wrap",
             alignItems: "center",
-            marginBottom: 56,
+            marginBottom: 24,
             opacity: mounted ? 1 : 0,
             transform: mounted ? "none" : "translateY(12px)",
             transition: "opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s",
@@ -142,9 +140,6 @@ export default function Hero() {
             }}
           >
             BOOK MY FREE PIPELINE AUDIT
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M1 7h12M8 2l5 5-5 5" />
-            </svg>
           </a>
           <a
             href="#process"
@@ -172,47 +167,24 @@ export default function Hero() {
           </a>
         </div>
 
-        {/* Trust strip */}
+        {/* Trust line */}
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 32,
-            flexWrap: "wrap",
-            paddingTop: 32,
-            borderTop: "1px solid #2A2A2A",
             opacity: mounted ? 1 : 0,
-            transition: "opacity 0.5s ease 0.4s",
+            transition: "opacity 0.5s ease 0.35s",
+            marginBottom: 48,
           }}
         >
-          {[
-            { label: "Markets", value: "1 client per" },
-            { label: "Guarantee", value: "10 meetings / 90 days" },
-            { label: "Verticals", value: "HVAC & Roofing" },
-          ].map((item) => (
-            <div key={item.label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  letterSpacing: "2px",
-                  textTransform: "uppercase",
-                  color: "#444",
-                }}
-              >
-                {item.label}
-              </span>
-              <span
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 13,
-                  color: "#E8FF47",
-                }}
-              >
-                {item.value}
-              </span>
-            </div>
-          ))}
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              color: "#444",
+              letterSpacing: "0.5px",
+            }}
+          >
+            1 client per trade per market. Once your territory is claimed, it&apos;s closed.
+          </p>
         </div>
       </div>
     </section>

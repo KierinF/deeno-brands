@@ -2,24 +2,24 @@
 
 const differentiators = [
   {
+    title: "Founder-led, not a call center.",
+    body: "You work directly with someone who has closed SaaS deals, run outbound campaigns, and acquired a trades business. Not a rep reading a script. Someone who has sat where you're sitting.",
+  },
+  {
     title: "We only do trades.",
-    body: "Not 24 industries. Two: HVAC and roofing. That specialization is how we outperform agencies serving everyone.",
+    body: "Not 24 industries. Five trades and nothing else. That's not a limitation — that's how we know your buyers better than any generalist agency ever will.",
+  },
+  {
+    title: "One client per market.",
+    body: "When your territory is claimed it's closed. We will never work with your competitor in your geography. That's not a policy — it's the whole model.",
   },
   {
     title: "We run the campaigns.",
-    body: "Full SDR service — not strategy decks. We do the outreach, handle replies, and book the meetings.",
+    body: "Full SDR service. We write the emails, send them, handle every reply, and book the meetings. You don't get a strategy deck. You get a booked calendar.",
   },
   {
-    title: "1 client per market.",
-    body: "Your competitors won't find us working in your territory. When your market is claimed, it's closed.",
-  },
-  {
-    title: "Founder-led, not call center.",
-    body: "You work directly with someone who's closed SaaS deals, run outbound campaigns, and acquired a trades business.",
-  },
-  {
-    title: "AI-assisted outreach.",
-    body: "Personalized at scale. Not the same template blasted to 10,000 people — real research, real context, real replies.",
+    title: "AI-assisted and personally managed.",
+    body: "We use AI to personalize outreach at scale — real research, real context, real replies. Not the same template blasted to 10,000 people. Every sequence is built for your trade and your specific market.",
   },
 ];
 
@@ -49,20 +49,8 @@ export default function WhyDeeno() {
             }}
           >
             <span style={{ display: "block", width: 32, height: 1, background: "#E8FF47" }} />
-            Why Deeno
+            Why contractors who&apos;ve been burned before still book the call.
           </div>
-          <h2
-            style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "clamp(42px, 6vw, 72px)",
-              letterSpacing: "2px",
-              color: "#F5F5F2",
-              lineHeight: 0.95,
-            }}
-          >
-            ACTUALLY<br />
-            <span style={{ color: "#E8FF47" }}>DIFFERENT.</span>
-          </h2>
         </div>
 
         {/* Differentiator list */}

@@ -22,6 +22,7 @@ const pains = [
 export default function PainPoints() {
   return (
     <section
+      className="rsp-section-pad"
       style={{
         background: "#EEE9DF",
         borderBottom: "1px solid #C8C1B3",

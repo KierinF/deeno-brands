@@ -110,6 +110,7 @@ export default function ProofSection() {
         }}
       >
         <div
+          className="rsp-stats-grid"
           style={{
             maxWidth: "1200px",
             margin: "0 auto",
@@ -119,6 +120,7 @@ export default function ProofSection() {
             background: "#C8C1B3",
             border: "1px solid #C8C1B3",
             borderTop: "none",
+            // mobile override via .rsp-stats-grid class
           }}
         >
           {differentiators.map((d, i) => (

@@ -106,3 +106,69 @@ body {
 
 /* ── Border helpers ── */
 .border-brand { border-color: var(--border); }
+
+/* ── Mobile Responsive ── */
+@media (max-width: 768px) {
+  /* Section padding */
+  .rsp-section-pad  { padding: 60px 20px !important; }
+  .rsp-hero-pad     { padding: 100px 20px 60px !important; }
+
+  /* Single-column grid */
+  .rsp-col-1 {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+
+  /* Persona rows collapse to single col, hide desc on very small */
+  .rsp-persona-row {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    padding: 16px 20px !important;
+  }
+
+  /* Two-column sections (CTA, WhyDeeno) */
+  .rsp-two-col {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  /* Industry selector: horizontal scroll strip */
+  .rsp-industry-section {
+    height: 420px !important;
+    max-height: 420px !important;
+    min-height: 420px !important;
+  }
+  .rsp-industry-cards {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap !important;
+  }
+  .rsp-industry-cards::-webkit-scrollbar { display: none; }
+  .rsp-industry-card {
+    flex: 0 0 180px !important;
+    min-width: 180px !important;
+  }
+
+  /* Stats strip: 2 per row */
+  .rsp-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Homepage hero watermark — hide on mobile */
+  .rsp-hide-mobile { display: none !important; }
+
+  /* Nav padding */
+  .rsp-nav-inner { padding: 16px 20px !important; }
+
+  /* CTA and proof sections */
+  .rsp-cta-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+  .rsp-why-row {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}

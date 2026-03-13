@@ -47,6 +47,7 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
 
       {/* ── Hero ── */}
       <section
+        className="rsp-hero-pad"
         style={{
           minHeight: "75vh",
           background: "#F7F4EE",
@@ -57,6 +58,7 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
         }}
       >
         <div
+          className="rsp-col-1"
           style={{
             maxWidth: "1200px",
             margin: "0 auto",
@@ -170,6 +172,7 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
 
       {/* ── Pain Points ── */}
       <section
+        className="rsp-section-pad"
         style={{ background: "#EEE9DF", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -241,6 +244,7 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
 
       {/* ── Who You Reach ── */}
       <section
+        className="rsp-section-pad"
         style={{ background: "#F7F4EE", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -286,6 +290,7 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
             {data.personas.map((p, i) => (
               <div
                 key={i}
+                className="rsp-persona-row"
                 style={{
                   background: "#EEE9DF",
                   padding: "24px 32px",
@@ -315,95 +320,6 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
                   </span>
                 </div>
                 <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.6 }}>{p.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Outreach Channels ── */}
-      <section
-        style={{ background: "#1C2B2B", borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "72px 40px" }}
-      >
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ marginBottom: 40 }}>
-            <div
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 11,
-                color: "rgba(232,160,32,0.6)",
-                letterSpacing: "3px",
-                textTransform: "uppercase",
-                marginBottom: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              <span style={{ display: "block", width: 32, height: 1, background: "rgba(232,160,32,0.4)" }} />
-              How We Reach Them
-            </div>
-            <h2
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "clamp(32px, 4.5vw, 56px)",
-                letterSpacing: "2px",
-                color: "#F7F4EE",
-                lineHeight: 0.95,
-              }}
-            >
-              Our Outreach Includes All Four Channels.
-            </h2>
-          </div>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: 1,
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            {[
-              {
-                icon: "☎",
-                channel: "Strategic Outbound Calling",
-                desc: "Direct phone outreach to decision-makers — facility managers, property managers, GC project leads. We call on your behalf, warm the conversation, and set the meeting.",
-              },
-              {
-                icon: "✉",
-                channel: "Personalized Email Campaigns",
-                desc: "Multi-step cold email sequences written specifically for your trade and your market. Every email is researched and personalized — not a template blasted to a list.",
-              },
-              {
-                icon: "in",
-                channel: "LinkedIn Connection & Messaging",
-                desc: "Connection requests, profile engagement, and direct message sequences targeting commercial decision-makers on LinkedIn where they're already paying attention.",
-              },
-              {
-                icon: "✦",
-                channel: "Targeted Direct Mail",
-                desc: "Physical mail to high-value targets who aren't responding to digital. Standing out in an inbox is hard. Standing out in a physical mailbox is easy.",
-              },
-            ].map((c, i) => (
-              <div key={i} style={{ background: "rgba(247,244,238,0.04)", padding: "32px 28px" }}>
-                <div
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 18,
-                    color: "#E8A020",
-                    marginBottom: 14,
-                    lineHeight: 1,
-                  }}
-                >
-                  {c.icon}
-                </div>
-                <div
-                  style={{ fontSize: 15, fontWeight: 600, color: "#F7F4EE", marginBottom: 10, lineHeight: 1.3 }}
-                >
-                  {c.channel}
-                </div>
-                <p style={{ fontSize: 13, color: "rgba(247,244,238,0.5)", lineHeight: 1.7 }}>{c.desc}</p>
               </div>
             ))}
           </div>
@@ -449,6 +365,7 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
 
       {/* ── Process ── */}
       <section
+        className="rsp-section-pad"
         style={{ background: "#EEE9DF", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}
       >
         <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -532,6 +449,27 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
                   {step.label}
                 </div>
                 <p style={{ fontSize: 14, color: "#6B6055", lineHeight: 1.75 }}>{step.detail}</p>
+                {i === 1 && (
+                  <div style={{ marginTop: 14, display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {["☎ Cold Calling", "✉ Email", "LinkedIn", "✦ Direct Mail"].map((ch) => (
+                      <span
+                        key={ch}
+                        style={{
+                          fontFamily: "'DM Mono', monospace",
+                          fontSize: 9,
+                          letterSpacing: "1.5px",
+                          textTransform: "uppercase",
+                          color: "#E8A020",
+                          border: "1px solid rgba(232,160,32,0.25)",
+                          padding: "3px 8px",
+                          background: "rgba(232,160,32,0.06)",
+                        }}
+                      >
+                        {ch}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -540,6 +478,7 @@ export default function IndustryPage({ data }: { data: IndustryPageData }) {
 
       {/* ── FAQ ── */}
       <section
+        className="rsp-section-pad"
         style={{ background: "#F7F4EE", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}
       >
         <div style={{ maxWidth: "800px", margin: "0 auto" }}>

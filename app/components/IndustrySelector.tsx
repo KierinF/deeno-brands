@@ -17,6 +17,7 @@ export default function IndustrySelector() {
   return (
     <section
       id="industries"
+      className="rsp-industry-section"
       style={{
         height: "85vh",
         minHeight: 560,
@@ -68,6 +69,7 @@ export default function IndustrySelector() {
 
       {/* Cards row */}
       <div
+        className="rsp-industry-cards"
         style={{
           display: "flex",
           height: "100%",
@@ -79,6 +81,7 @@ export default function IndustrySelector() {
           <a
             key={i}
             href={v.href}
+            className="rsp-industry-card"
             style={{
               flex: 1,
               position: "relative",

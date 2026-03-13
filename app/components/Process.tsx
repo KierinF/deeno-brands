@@ -39,6 +39,7 @@ export default function Process() {
   return (
     <section
       id="process"
+      className="rsp-section-pad"
       style={{
         background: "#F7F4EE",
         borderBottom: "1px solid #C8C1B3",

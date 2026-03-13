@@ -61,6 +61,7 @@ export default function CTA() {
   return (
     <section
       id="contact"
+      className="rsp-section-pad"
       style={{ background: "#F7F4EE", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
@@ -93,6 +94,7 @@ export default function CTA() {
 
         {/* Two-column layout */}
         <div
+          className="rsp-cta-grid"
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",

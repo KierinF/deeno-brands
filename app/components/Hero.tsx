@@ -12,6 +12,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
+      className="rsp-hero-pad"
       style={{
         minHeight: "100vh",
         background: "#F7F4EE",
@@ -27,6 +28,7 @@ export default function Hero() {
       {/* Background watermark */}
       <div
         aria-hidden
+        className="rsp-hide-mobile"
         style={{
           position: "absolute",
           top: "-60px",

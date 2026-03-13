@@ -57,6 +57,7 @@ export default function Nav() {
       }}
     >
       <div
+        className="rsp-nav-inner"
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
@@ -67,7 +68,7 @@ export default function Nav() {
         }}
       >
         {/* Logo */}
-        <a href="#" style={{ textDecoration: "none" }}>
+        <a href="/" style={{ textDecoration: "none" }}>
           <span
             style={{
               fontFamily: "'Bebas Neue', sans-serif",

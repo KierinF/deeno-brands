@@ -66,6 +66,7 @@ export default function WhyDeeno() {
           {differentiators.map((d, i) => (
             <div
               key={i}
+              className="rsp-why-row"
               style={{
                 background: "#EEE9DF",
                 padding: "28px 36px",

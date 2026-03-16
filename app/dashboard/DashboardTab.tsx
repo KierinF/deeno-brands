@@ -152,6 +152,44 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
 
   const showComparison = hasDates && fromDate && toDate
 
+  // Aggregate currentRows by campaign for the table (respects date filter)
+  const tableRows = useMemo(() => {
+    const map = new Map<string, {
+      campaign_id: string
+      campaign_name: string
+      sent_count: number
+      reply_count: number
+      positive_reply_count: number
+      bounce_count: number
+      end_date: string | null
+    }>()
+    for (const r of currentRows) {
+      if (!selectedIds.has(r.campaign_id)) continue
+      const existing = map.get(r.campaign_id)
+      if (!existing) {
+        map.set(r.campaign_id, {
+          campaign_id: r.campaign_id,
+          campaign_name: r.campaign_name,
+          sent_count: r.sent_count,
+          reply_count: r.reply_count,
+          positive_reply_count: r.positive_reply_count,
+          bounce_count: r.bounce_count,
+          end_date: r.end_date,
+        })
+      } else {
+        map.set(r.campaign_id, {
+          ...existing,
+          sent_count: existing.sent_count + r.sent_count,
+          reply_count: existing.reply_count + r.reply_count,
+          positive_reply_count: Math.max(existing.positive_reply_count, r.positive_reply_count),
+          bounce_count: existing.bounce_count + r.bounce_count,
+          end_date: (r.end_date ?? '') > (existing.end_date ?? '') ? r.end_date : existing.end_date,
+        })
+      }
+    }
+    return Array.from(map.values())
+  }, [currentRows, selectedIds])
+
   return (
     <div>
       {/* Controls */}
@@ -506,55 +544,53 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
               </tr>
             </thead>
             <tbody>
-              {uniqueCampaigns
-                .filter((c) => selectedIds.has(c.campaign_id))
-                .map((c) => (
-                  <tr key={c.campaign_id} style={{ borderBottom: '1px solid #EEE9DF' }}>
-                    <td style={{ padding: '10px 12px', color: '#1C2B2B', maxWidth: 220 }}>
-                      {c.campaign_name}
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#8C8070' }}>
-                      {c.sent_count?.toLocaleString() ?? '—'}
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#8C8070' }}>
-                      {c.reply_count?.toLocaleString() ?? '—'}
-                    </td>
-                    <td style={{ padding: '10px 12px' }}>
-                      <span
-                        style={{
-                          color: '#27AE60',
-                          background: '#E8F8F0',
-                          padding: '2px 6px',
-                          fontSize: 10,
-                        }}
-                      >
-                        {c.positive_reply_count?.toLocaleString() ?? '0'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#C0392B' }}>
-                      {c.bounce_count?.toLocaleString() ?? '—'}
-                    </td>
-                    <td
+              {tableRows.map((c) => (
+                <tr key={c.campaign_id} style={{ borderBottom: '1px solid #EEE9DF' }}>
+                  <td style={{ padding: '10px 12px', color: '#1C2B2B', maxWidth: 220 }}>
+                    {c.campaign_name}
+                  </td>
+                  <td style={{ padding: '10px 12px', color: '#8C8070' }}>
+                    {c.sent_count?.toLocaleString() ?? '—'}
+                  </td>
+                  <td style={{ padding: '10px 12px', color: '#8C8070' }}>
+                    {c.reply_count?.toLocaleString() ?? '—'}
+                  </td>
+                  <td style={{ padding: '10px 12px' }}>
+                    <span
                       style={{
-                        padding: '10px 12px',
-                        color: '#8C8070',
+                        color: '#27AE60',
+                        background: '#E8F8F0',
+                        padding: '2px 6px',
                         fontSize: 10,
-                        whiteSpace: 'nowrap',
                       }}
                     >
-                      {c.end_date
-                        ? new Date(c.end_date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })
-                        : '—'}
-                    </td>
-                  </tr>
-                ))}
+                      {c.positive_reply_count?.toLocaleString() ?? '0'}
+                    </span>
+                  </td>
+                  <td style={{ padding: '10px 12px', color: '#C0392B' }}>
+                    {c.bounce_count?.toLocaleString() ?? '—'}
+                  </td>
+                  <td
+                    style={{
+                      padding: '10px 12px',
+                      color: '#8C8070',
+                      fontSize: 10,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {c.end_date
+                      ? new Date(c.end_date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })
+                      : '—'}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-          {uniqueCampaigns.filter((c) => selectedIds.has(c.campaign_id)).length === 0 && (
+          {tableRows.length === 0 && (
             <div
               style={{
                 padding: '40px',

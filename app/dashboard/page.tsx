@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import LogoutButton from './LogoutButton'
 import DashboardTab from './DashboardTab'
+import TasksTab from './TasksTab'
+import { getTasksForClient } from '@/lib/notion'
 
 export default async function DashboardPage({
   searchParams,
@@ -18,11 +20,15 @@ export default async function DashboardPage({
 
   const { data: client } = await supabase
     .from('clients')
-    .select('id, name')
+    .select('id, name, notion_page_id')
     .eq('user_id', user.id)
     .single()
 
   const { data: campaigns } = await supabase.rpc('get_my_campaigns')
+
+  const tasks = client?.notion_page_id
+    ? await getTasksForClient(client.notion_page_id)
+    : []
 
   const params = await searchParams
   const tab = params.tab ?? 'dashboard'
@@ -76,7 +82,7 @@ export default async function DashboardPage({
           gap: 0,
         }}
       >
-        {['dashboard', 'approvals'].map((t) => (
+        {['dashboard', 'tasks', 'approvals'].map((t) => (
           <a
             key={t}
             href={`/dashboard?tab=${t}`}
@@ -100,6 +106,8 @@ export default async function DashboardPage({
       <div style={{ padding: '32px' }}>
         {tab === 'dashboard' ? (
           <DashboardTab campaigns={campaigns ?? []} />
+        ) : tab === 'tasks' ? (
+          <TasksTab tasks={tasks} />
         ) : (
           <div
             style={{

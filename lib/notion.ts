@@ -8,6 +8,7 @@ export type NotionTask = {
   category: string | null
   due_date: string | null
   notes: string | null
+  assigned_to: string | null
 }
 
 export async function getTasksForClient(notionPageId: string): Promise<NotionTask[]> {
@@ -50,5 +51,6 @@ export async function getTasksForClient(notionPageId: string): Promise<NotionTas
     category: page.properties['Category']?.select?.name ?? null,
     due_date: page.properties['Due Date']?.date?.start ?? null,
     notes: page.properties['Notes']?.rich_text?.[0]?.plain_text ?? null,
+    assigned_to: page.properties['Assigned To']?.select?.name ?? null,
   }))
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function ClientLogin() {
   const [email, setEmail] = useState("");
@@ -12,11 +13,15 @@ export default function ClientLogin() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    // Auth logic will go here (Supabase)
-    setTimeout(() => {
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+    if (error) {
+      setError(error.message);
       setLoading(false);
-      setError("Dashboard coming soon. Contact your account manager to get access.");
-    }, 800);
+    } else {
+      window.location.href = "/dashboard";
+    }
   };
 
   return (
@@ -152,11 +157,11 @@ export default function ClientLogin() {
               style={{
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 11,
-                color: "#8C8070",
+                color: "#C0392B",
                 lineHeight: 1.6,
                 padding: "10px 14px",
-                background: "#EEE9DF",
-                border: "1px solid #C8C1B3",
+                background: "#FDF0EE",
+                border: "1px solid #E8C0B8",
               }}
             >
               {error}

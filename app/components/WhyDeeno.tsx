@@ -6,8 +6,8 @@ const differentiators = [
     body: "You work directly with someone who has closed SaaS deals, run outbound campaigns, and acquired a trades business. Not a rep reading a script. Someone who has sat where you're sitting.",
   },
   {
-    title: "We only do trades.",
-    body: "Not 24 industries. Six trades and nothing else. That's not a limitation — that's how we know your buyers better than any generalist agency ever will.",
+    title: "We only work with essential service businesses.",
+    body: "Not SaaS. Not e-commerce. The operators who show up with crews and get paid when the work is done. We know your buyers — facility managers, property managers, GCs — better than any generalist because we've never worked with anyone else.",
   },
   {
     title: "One client per market.",
@@ -19,7 +19,7 @@ const differentiators = [
   },
   {
     title: "AI-assisted and personally managed.",
-    body: "We use AI to personalize outreach at scale — real research, real context, real replies. Not the same template blasted to 10,000 people. Every sequence is built for your trade and your specific market.",
+    body: "We use AI to personalize outreach at scale — real research, real context, real replies. Not the same template blasted to 10,000 people. Every sequence is built for your industry and your specific market.",
   },
 ];
 
@@ -49,7 +49,7 @@ export default function WhyDeeno() {
             }}
           >
             <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
-            Why contractors who&apos;ve been burned before still book the call.
+            Why operators who&apos;ve been burned before still book the call.
           </div>
         </div>
 

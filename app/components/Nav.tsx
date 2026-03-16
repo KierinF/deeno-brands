@@ -180,26 +180,52 @@ export default function Nav() {
           )}
         </div>
 
-        {/* CTA button */}
-        <a
-          href="#contact"
-          className="hidden md:inline-flex"
-          style={{
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 11,
-            letterSpacing: "1.5px",
-            padding: "10px 20px",
-            background: "#E8A020",
-            color: "#F7F4EE",
-            textDecoration: "none",
-            fontWeight: 500,
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30")}
-          onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8A020")}
-        >
-          CHECK MY MARKET →
-        </a>
+        {/* Desktop CTAs */}
+        <div className="hidden md:flex" style={{ alignItems: "center", gap: 8 }}>
+          <a
+            href="/client-login"
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              letterSpacing: "1.5px",
+              padding: "10px 20px",
+              background: "transparent",
+              color: "#1C2B2B",
+              border: "1px solid #1C2B2B",
+              textDecoration: "none",
+              fontWeight: 500,
+              transition: "background 0.2s, color 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "#1C2B2B";
+              (e.currentTarget as HTMLAnchorElement).style.color = "#F7F4EE";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
+              (e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B";
+            }}
+          >
+            CLIENT LOGIN
+          </a>
+          <a
+            href="#contact"
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              letterSpacing: "1.5px",
+              padding: "10px 20px",
+              background: "#E8A020",
+              color: "#F7F4EE",
+              textDecoration: "none",
+              fontWeight: 500,
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8A020")}
+          >
+            CHECK MY MARKET →
+          </a>
+        </div>
 
         {/* Mobile toggle */}
         <button
@@ -265,6 +291,23 @@ export default function Nav() {
               → {ind.label}
             </a>
           ))}
+          <a
+            href="/client-login"
+            onClick={() => setMobileOpen(false)}
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 12,
+              letterSpacing: "1.5px",
+              padding: "12px 20px",
+              border: "1px solid #1C2B2B",
+              color: "#1C2B2B",
+              textDecoration: "none",
+              textAlign: "center",
+              fontWeight: 500,
+            }}
+          >
+            CLIENT LOGIN
+          </a>
           <a
             href="#contact"
             onClick={() => setMobileOpen(false)}

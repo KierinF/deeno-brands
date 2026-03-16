@@ -180,15 +180,15 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
     }
   }, [fromDate, toDate])
 
-  // Email: filter rows by overlap with selected period
+  // Email: include a weekly row if its start_date falls within the selected range
   const currentRows = useMemo(() => {
     if (!hasDates) return campaigns
-    return campaigns.filter(r => r.start_date && r.end_date && r.start_date <= toDate && r.end_date >= fromDate)
+    return campaigns.filter(r => r.start_date && r.start_date >= fromDate && r.start_date <= toDate)
   }, [campaigns, fromDate, toDate, hasDates])
 
   const prevRows = useMemo(() => {
     if (!prevFrom || !prevTo) return []
-    return campaigns.filter(r => r.start_date && r.end_date && r.start_date <= prevTo && r.end_date >= prevFrom)
+    return campaigns.filter(r => r.start_date && r.start_date >= prevFrom && r.start_date <= prevTo)
   }, [campaigns, prevFrom, prevTo])
 
   // All-time aggregation (sum all rows, positive_reply takes max per campaign to avoid double-count)

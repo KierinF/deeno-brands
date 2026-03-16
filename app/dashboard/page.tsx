@@ -20,7 +20,7 @@ export default async function DashboardPage({
 
   const { data: client } = await supabase
     .from('clients')
-    .select('id, name, notion_page_id')
+    .select('id, name, notion_page_id, notion_assignee')
     .eq('user_id', user.id)
     .single()
 
@@ -107,7 +107,7 @@ export default async function DashboardPage({
         {tab === 'dashboard' ? (
           <DashboardTab campaigns={campaigns ?? []} />
         ) : tab === 'tasks' ? (
-          <TasksTab tasks={tasks} />
+          <TasksTab tasks={tasks} clientAssignee={client?.notion_assignee ?? null} />
         ) : (
           <div
             style={{

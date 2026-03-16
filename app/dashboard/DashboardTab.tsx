@@ -30,10 +30,11 @@ const ALL_TIME_METRICS = [
   { key: 'bounce_count' as const, label: 'BOUNCES' },
 ]
 
-// Used in period comparison — excludes positive replies (not a weekly metric)
+// Used in period comparison
 const PERIOD_METRICS = [
   { key: 'sent_count' as const, label: 'EMAILS SENT' },
   { key: 'reply_count' as const, label: 'REPLIES' },
+  { key: 'positive_reply_count' as const, label: 'POSITIVE REPLIES' },
   { key: 'bounce_count' as const, label: 'BOUNCES' },
 ]
 

@@ -16,14 +16,14 @@ type Campaign = {
   unsubscribed_count: number
   meeting_count: number
   status: string
-  week_of: string | null
+  end_date: string | null
 }
 
 function dedupe(rows: Campaign[]): Campaign[] {
   const map = new Map<string, Campaign>()
   for (const row of rows) {
     const existing = map.get(row.campaign_id)
-    if (!existing || (row.week_of ?? '') > (existing.week_of ?? '')) {
+    if (!existing || (row.end_date ?? '') > (existing.end_date ?? '')) {
       map.set(row.campaign_id, row)
     }
   }
@@ -123,13 +123,13 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
     [campaigns, selectedIds]
   )
 
-  // Current window: rows whose week_of falls within the selected range
+  // Current window: rows whose end_date falls within the selected range
   const currentRows = useMemo(() => {
     if (!hasDates) return filteredRows
     return filteredRows.filter((r) => {
-      if (!r.week_of) return false
-      if (fromDate && r.week_of < fromDate) return false
-      if (toDate && r.week_of > toDate) return false
+      if (!r.end_date) return false
+      if (fromDate && r.end_date < fromDate) return false
+      if (toDate && r.end_date > toDate) return false
       return true
     })
   }, [filteredRows, fromDate, toDate, hasDates])
@@ -145,8 +145,8 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
     const pf = prevFrom.toISOString().slice(0, 10)
     const pt = prevTo.toISOString().slice(0, 10)
     return filteredRows.filter((r) => {
-      if (!r.week_of) return false
-      return r.week_of >= pf && r.week_of <= pt
+      if (!r.end_date) return false
+      return r.end_date >= pf && r.end_date <= pt
     })
   }, [filteredRows, fromDate, toDate, hasDates])
 
@@ -542,8 +542,8 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {c.week_of
-                        ? new Date(c.week_of).toLocaleDateString('en-US', {
+                      {c.end_date
+                        ? new Date(c.end_date).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',

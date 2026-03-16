@@ -20,7 +20,7 @@ export default async function DashboardPage({
 
   const { data: client } = await supabase
     .from('clients')
-    .select('id, name, notion_page_id')
+    .select('id, name, notion_page_id, notion_assignee')
     .eq('user_id', user.id)
     .single()
 
@@ -31,7 +31,7 @@ export default async function DashboardPage({
     : []
 
   const params = await searchParams
-  const tab = params.tab ?? 'dashboard'
+  const tab = params.tab ?? 'tasks'
 
   return (
     <div style={{ minHeight: '100vh', background: '#F7F4EE' }}>
@@ -82,7 +82,7 @@ export default async function DashboardPage({
           gap: 0,
         }}
       >
-        {['dashboard', 'tasks', 'approvals'].map((t) => (
+        {['tasks', 'dashboard', 'approvals'].map((t) => (
           <a
             key={t}
             href={`/dashboard?tab=${t}`}
@@ -104,10 +104,10 @@ export default async function DashboardPage({
 
       {/* Content */}
       <div style={{ padding: '32px' }}>
-        {tab === 'dashboard' ? (
+        {tab === 'tasks' ? (
+          <TasksTab tasks={tasks} clientAssignee={client?.notion_assignee ?? null} />
+        ) : tab === 'dashboard' ? (
           <DashboardTab campaigns={campaigns ?? []} />
-        ) : tab === 'tasks' ? (
-          <TasksTab tasks={tasks} />
         ) : (
           <div
             style={{

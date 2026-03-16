@@ -22,10 +22,18 @@ function delta(curr: number, prev: number): number | null {
   return ((curr - prev) / prev) * 100
 }
 
-const METRICS = [
+// Used in all-time view (no date filter) — includes positive replies (all-time value)
+const ALL_TIME_METRICS = [
   { key: 'sent_count' as const, label: 'EMAILS SENT' },
   { key: 'reply_count' as const, label: 'REPLIES' },
   { key: 'positive_reply_count' as const, label: 'POSITIVE REPLIES' },
+  { key: 'bounce_count' as const, label: 'BOUNCES' },
+]
+
+// Used in period comparison — excludes positive replies (not a weekly metric)
+const PERIOD_METRICS = [
+  { key: 'sent_count' as const, label: 'EMAILS SENT' },
+  { key: 'reply_count' as const, label: 'REPLIES' },
   { key: 'bounce_count' as const, label: 'BOUNCES' },
 ]
 
@@ -304,7 +312,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                 gap: 12,
               }}
             >
-              {METRICS.map((m) => (
+              {PERIOD_METRICS.map((m) => (
                 <div
                   key={m.key}
                   style={{
@@ -359,7 +367,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                 gap: 12,
               }}
             >
-              {METRICS.map((m) => {
+              {PERIOD_METRICS.map((m) => {
                 const curr = sumKey(currentRows, m.key)
                 const prev = sumKey(prevRows, m.key)
                 const d = delta(curr, prev)
@@ -427,7 +435,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
             marginBottom: 40,
           }}
         >
-          {METRICS.map((m) => (
+          {ALL_TIME_METRICS.map((m) => (
             <div
               key={m.key}
               style={{

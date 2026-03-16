@@ -3,12 +3,14 @@
 import { useState } from "react";
 
 const verticals = [
-  { title: "HVAC", image: "/hvac.png", href: "/commercial-hvac" },
-  { title: "Electrical", image: "/electrician.png", href: "/commercial-electrical" },
-  { title: "Pest Control", image: "/pest-removal.png", href: "/commercial-pest-control" },
-  { title: "Plumbing", image: "/plumbing.png", href: "/commercial-plumbing" },
-  { title: "Landscaping", image: null, href: "/commercial-landscaping" },
-  { title: "Roofing", image: "/roofing.png", href: "#contact" },
+  { title: "HVAC", image: "/hvac.png", href: "/commercial-hvac", bg: "#1C2B2B" },
+  { title: "Commercial Cleaning", image: null, href: "#contact", bg: "#1A2535" },
+  { title: "Tree Care", image: null, href: "#contact", bg: "#1A3020" },
+  { title: "Waste Management", image: null, href: "#contact", bg: "#252520" },
+  { title: "Landscaping", image: null, href: "/commercial-landscaping", bg: "#2D5A3D" },
+  { title: "Pest Control", image: "/pest-removal.png", href: "/commercial-pest-control", bg: "#1C2B2B" },
+  { title: "Plumbing", image: "/plumbing.png", href: "/commercial-plumbing", bg: "#1C2B2B" },
+  { title: "Roofing", image: "/roofing.png", href: "#contact", bg: "#1C2B2B" },
 ];
 
 export default function IndustrySelector() {
@@ -19,62 +21,50 @@ export default function IndustrySelector() {
       id="industries"
       className="rsp-industry-section"
       style={{
-        height: "85vh",
-        minHeight: 560,
-        maxHeight: 880,
-        position: "relative",
-        overflow: "hidden",
+        minHeight: "90vh",
+        display: "flex",
+        flexDirection: "column",
         background: "#1C2B2B",
+        overflow: "hidden",
       }}
     >
-      {/* Center overlay text */}
-      <div
-        style={{
-          position: "absolute",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          textAlign: "center",
-          zIndex: 10,
-          pointerEvents: "none",
-          width: "100%",
-          padding: "0 20px",
-        }}
-      >
+      {/* Section header */}
+      <div style={{ padding: "40px 40px 20px" }}>
         <h2
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
             fontSize: "clamp(52px, 8vw, 110px)",
             color: "#FFFFFF",
             letterSpacing: "3px",
-            textShadow: "0 2px 24px rgba(0,0,0,0.7)",
             lineHeight: 1,
-            marginBottom: 12,
+            marginBottom: 8,
           }}
         >
-          YOUR TRADE.
+          YOUR INDUSTRY.
         </h2>
         <p
           style={{
-            color: "rgba(255,255,255,0.80)",
-            fontSize: "clamp(14px, 1.8vw, 20px)",
-            fontFamily: "'DM Sans Variable', 'DM Sans', sans-serif",
-            textShadow: "0 2px 12px rgba(0,0,0,0.7)",
-            letterSpacing: "1px",
+            color: "rgba(255,255,255,0.50)",
+            fontSize: 12,
+            fontFamily: "'DM Mono', monospace",
+            letterSpacing: "2.5px",
+            textTransform: "uppercase",
           }}
         >
-          Choose your industry.
+          One client. One market. First to claim it closes the territory.
         </p>
       </div>
 
-      {/* Cards row */}
+      {/* 2×4 grid */}
       <div
         className="rsp-industry-cards"
         style={{
-          display: "flex",
-          height: "100%",
+          flex: 1,
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gridTemplateRows: "repeat(2, 1fr)",
           gap: 6,
-          padding: 6,
+          padding: "0 6px 6px",
         }}
       >
         {verticals.map((v, i) => (
@@ -83,18 +73,18 @@ export default function IndustrySelector() {
             href={v.href}
             className="rsp-industry-card"
             style={{
-              flex: 1,
               position: "relative",
               overflow: "hidden",
-              borderRadius: 14,
+              borderRadius: 10,
               textDecoration: "none",
               cursor: "pointer",
-              background: v.image ? "#1C2B2B" : "#2D5A3D",
+              background: v.bg,
+              minHeight: 160,
             }}
             onMouseEnter={() => setHovered(i)}
             onMouseLeave={() => setHovered(null)}
           >
-            {/* Background image — fixed, no scale */}
+            {/* Background image */}
             {v.image && (
               <div
                 style={{
@@ -104,6 +94,8 @@ export default function IndustrySelector() {
                   backgroundSize: "contain",
                   backgroundPosition: "center bottom",
                   backgroundRepeat: "no-repeat",
+                  opacity: hovered === i ? 1 : 0.85,
+                  transition: "opacity 0.35s ease",
                 }}
               />
             )}
@@ -128,14 +120,14 @@ export default function IndustrySelector() {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                padding: "20px 18px",
+                padding: "16px 18px",
               }}
             >
               <h3
                 style={{
                   fontFamily: "'DM Sans Variable', 'DM Sans', sans-serif",
                   fontWeight: 700,
-                  fontSize: "clamp(15px, 1.8vw, 24px)",
+                  fontSize: "clamp(14px, 1.4vw, 20px)",
                   color: "#FFFFFF",
                   lineHeight: 1.2,
                   textShadow: "0 1px 8px rgba(0,0,0,0.6)",

@@ -123,29 +123,28 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
     [campaigns, selectedIds]
   )
 
-  // Current period rows: start_date >= fromDate AND end_date <= toDate
+  // Current period rows: any week that overlaps with [fromDate, toDate]
   const currentRows = useMemo(() => {
     if (!hasDates) return selectedRows
     return selectedRows.filter((r) => {
       if (!r.start_date || !r.end_date) return false
-      return r.start_date >= fromDate && r.end_date <= toDate
+      return r.start_date <= toDate && r.end_date >= fromDate
     })
   }, [selectedRows, fromDate, toDate, hasDates])
 
-  // Previous period: equal-length window immediately before fromDate
+  // Previous period: equal-length window immediately before fromDate, same overlap logic
   const prevRows = useMemo(() => {
     if (!hasDates) return []
     const from = new Date(fromDate)
     const to = new Date(toDate)
     const duration = to.getTime() - from.getTime()
-    // Previous window ends the day before fromDate
     const prevTo = new Date(from.getTime() - 86400000)
     const prevFrom = new Date(prevTo.getTime() - duration)
     const pf = prevFrom.toISOString().slice(0, 10)
     const pt = prevTo.toISOString().slice(0, 10)
     return selectedRows.filter((r) => {
       if (!r.start_date || !r.end_date) return false
-      return r.start_date >= pf && r.end_date <= pt
+      return r.start_date <= pt && r.end_date >= pf
     })
   }, [selectedRows, fromDate, toDate, hasDates])
 

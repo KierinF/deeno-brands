@@ -30,12 +30,12 @@ const ALL_TIME_METRICS = [
   { key: 'bounce_count' as const, label: 'BOUNCES' },
 ]
 
-// Used in period comparison
+// Used in period comparison. lowerIsBetter inverts the delta color (red=up, green=down)
 const PERIOD_METRICS = [
-  { key: 'sent_count' as const, label: 'EMAILS SENT' },
-  { key: 'reply_count' as const, label: 'REPLIES' },
-  { key: 'positive_reply_count' as const, label: 'POSITIVE REPLIES' },
-  { key: 'bounce_count' as const, label: 'BOUNCES' },
+  { key: 'sent_count' as const, label: 'EMAILS SENT', lowerIsBetter: false },
+  { key: 'reply_count' as const, label: 'REPLIES', lowerIsBetter: false },
+  { key: 'positive_reply_count' as const, label: 'POSITIVE REPLIES', lowerIsBetter: false },
+  { key: 'bounce_count' as const, label: 'BOUNCES', lowerIsBetter: true },
 ]
 
 function DateInput({
@@ -372,6 +372,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                 const curr = sumKey(currentRows, m.key)
                 const prev = sumKey(prevRows, m.key)
                 const d = delta(curr, prev)
+                const good = d === null ? null : m.lowerIsBetter ? d < 0 : d >= 0
                 return (
                   <div
                     key={m.key}
@@ -400,8 +401,8 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                           style={{
                             fontSize: 9,
                             fontFamily: "'DM Mono', monospace",
-                            color: d >= 0 ? '#27AE60' : '#C0392B',
-                            background: d >= 0 ? '#E8F8F0' : '#FDECEA',
+                            color: good ? '#27AE60' : '#C0392B',
+                            background: good ? '#E8F8F0' : '#FDECEA',
                             padding: '1px 5px',
                             whiteSpace: 'nowrap',
                           }}

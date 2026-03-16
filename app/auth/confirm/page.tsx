@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function AuthConfirmPage() {
+function ConfirmInner() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -32,17 +32,7 @@ export default function AuthConfirmPage() {
 
   if (error) {
     return (
-      <main
-        style={{
-          minHeight: '100vh',
-          background: '#F7F4EE',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 16,
-        }}
-      >
+      <>
         <span
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
@@ -75,22 +65,12 @@ export default function AuthConfirmPage() {
         >
           Back to login
         </a>
-      </main>
+      </>
     )
   }
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
-        background: '#F7F4EE',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 16,
-      }}
-    >
+    <>
       <span
         style={{
           fontFamily: "'Bebas Neue', sans-serif",
@@ -111,6 +91,39 @@ export default function AuthConfirmPage() {
       >
         VERIFYING...
       </p>
+    </>
+  )
+}
+
+export default function AuthConfirmPage() {
+  return (
+    <main
+      style={{
+        minHeight: '100vh',
+        background: '#F7F4EE',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+      }}
+    >
+      <Suspense
+        fallback={
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              letterSpacing: '2px',
+              color: '#8C8070',
+            }}
+          >
+            LOADING...
+          </p>
+        }
+      >
+        <ConfirmInner />
+      </Suspense>
     </main>
   )
 }

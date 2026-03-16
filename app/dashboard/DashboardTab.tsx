@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 type Campaign = {
   campaign_id: string
@@ -125,6 +125,37 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
   }
 
   const hasDates = fromDate && toDate
+
+  // CloudTalk call stats
+  type CallStats = {
+    total_calls: number
+    answered: number
+    missed: number
+    outgoing: number
+    incoming: number
+    avg_duration_secs: number
+    total_talk_secs: number
+  }
+  const [callStats, setCallStats] = useState<CallStats | null>(null)
+  const [callStatsLoading, setCallStatsLoading] = useState(false)
+
+  useEffect(() => {
+    if (!fromDate || !toDate) {
+      setCallStats(null)
+      return
+    }
+    setCallStatsLoading(true)
+    fetch(`/api/cloudtalk?date_from=${fromDate}&date_to=${toDate}`)
+      .then(r => r.json())
+      .then(d => { setCallStats(d); setCallStatsLoading(false) })
+      .catch(() => setCallStatsLoading(false))
+  }, [fromDate, toDate])
+
+  function fmtDuration(secs: number) {
+    const m = Math.floor(secs / 60)
+    const s = secs % 60
+    return m > 0 ? `${m}m ${s}s` : `${s}s`
+  }
 
   // Rows for selected campaigns
   const selectedRows = useMemo(
@@ -560,6 +591,74 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
           )}
         </div>
       </div>
+
+      {/* Call Stats */}
+      {hasDates && (
+        <div style={{ marginTop: 48 }}>
+          <div
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              letterSpacing: '2px',
+              color: '#8C8070',
+              marginBottom: 12,
+            }}
+          >
+            CALLS
+          </div>
+          {callStatsLoading ? (
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: '#8C8070' }}>
+              LOADING...
+            </div>
+          ) : callStats ? (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                gap: 16,
+              }}
+            >
+              {[
+                { label: 'TOTAL CALLS', value: callStats.total_calls.toLocaleString() },
+                { label: 'ANSWERED', value: callStats.answered.toLocaleString() },
+                { label: 'MISSED', value: callStats.missed.toLocaleString() },
+                { label: 'AVG DURATION', value: fmtDuration(callStats.avg_duration_secs) },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #C8C1B3',
+                    padding: '20px 18px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 9,
+                      letterSpacing: '1.5px',
+                      color: '#8C8070',
+                      marginBottom: 8,
+                    }}
+                  >
+                    {stat.label}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: 32,
+                      color: '#1C2B2B',
+                      letterSpacing: '1px',
+                    }}
+                  >
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   )
 }

@@ -1,7 +1,8 @@
 import Nav from "./components/Nav";
 import Hero from "./components/Hero";
-import PainPoints from "./components/PainPoints";
+import EssentialSection from "./components/EssentialSection";
 import IndustrySelector from "./components/IndustrySelector";
+import PainPoints from "./components/PainPoints";
 import Process from "./components/Process";
 import ProofSection from "./components/ProofSection";
 import WhyDeeno from "./components/WhyDeeno";
@@ -13,6 +14,7 @@ export default function Home() {
     <main style={{ background: "#F7F4EE" }}>
       <Nav />
       <Hero />
+      <EssentialSection />
       <IndustrySelector />
       <PainPoints />
       <Process />

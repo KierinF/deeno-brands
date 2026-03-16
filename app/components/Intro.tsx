@@ -59,9 +59,6 @@ export default function Intro() {
                 <div style={{ fontFamily: '"Press Start 2P", monospace', fontSize: 14, color: "#1C1917", letterSpacing: "0.04em" }}>
                   Deeno.
                 </div>
-                <div style={{ fontFamily: '"SF Mono","Fira Code",monospace', fontSize: 9, letterSpacing: "0.18em", color: "#8B7F72", textTransform: "uppercase" }}>
-                  Home Services Marketing
-                </div>
               </motion.div>
             )}
           </AnimatePresence>

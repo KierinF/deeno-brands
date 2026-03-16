@@ -16,27 +16,10 @@ type Campaign = {
   unsubscribed_count: number
   meeting_count: number
   status: string
-  end_date: string | null
-}
-
-function dedupe(rows: Campaign[]): Campaign[] {
-  const map = new Map<string, Campaign>()
-  for (const row of rows) {
-    const existing = map.get(row.campaign_id)
-    if (!existing || (row.end_date ?? '') > (existing.end_date ?? '')) {
-      map.set(row.campaign_id, row)
-    }
-  }
-  return Array.from(map.values())
 }
 
 function sum(rows: Campaign[], key: keyof Campaign): number {
   return rows.reduce((acc, r) => acc + ((r[key] as number) ?? 0), 0)
-}
-
-function delta(curr: number, prev: number): number | null {
-  if (prev === 0) return null
-  return ((curr - prev) / prev) * 100
 }
 
 const METRICS = [
@@ -46,52 +29,30 @@ const METRICS = [
   { key: 'bounce_count' as const, label: 'BOUNCES' },
 ]
 
-function DateInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-}) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <label
-        style={{
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 9,
-          letterSpacing: '1.5px',
-          color: '#8C8070',
-        }}
-      >
-        {label}
-      </label>
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        style={{
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 11,
-          color: '#1C2B2B',
-          background: '#FFFFFF',
-          border: '1px solid #C8C1B3',
-          padding: '6px 10px',
-          outline: 'none',
-          cursor: 'pointer',
-        }}
-      />
-    </div>
-  )
-}
-
 export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
-  const [fromDate, setFromDate] = useState('')
-  const [toDate, setToDate] = useState('')
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
-  const uniqueCampaigns = useMemo(() => dedupe(campaigns), [campaigns])
+  // Aggregate: sum weekly rows per campaign_id for all-time totals
+  const uniqueCampaigns = useMemo(() => {
+    const map = new Map<string, Campaign>()
+    for (const row of campaigns) {
+      const existing = map.get(row.campaign_id)
+      if (!existing) {
+        map.set(row.campaign_id, { ...row })
+      } else {
+        map.set(row.campaign_id, {
+          ...existing,
+          sent_count: existing.sent_count + row.sent_count,
+          reply_count: existing.reply_count + row.reply_count,
+          bounce_count: existing.bounce_count + row.bounce_count,
+          // positive_reply_count is all-time from /analytics — take max to avoid double-counting
+          positive_reply_count: Math.max(existing.positive_reply_count, row.positive_reply_count),
+        })
+      }
+    }
+    return Array.from(map.values())
+  }, [campaigns])
+
   const campaignIds = useMemo(() => uniqueCampaigns.map((c) => c.campaign_id), [uniqueCampaigns])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(campaignIds))
 
@@ -110,122 +71,16 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
     })
   }
 
-  function clearDates() {
-    setFromDate('')
-    setToDate('')
-  }
-
-  const hasDates = fromDate || toDate
-
-  // All rows for selected campaigns
-  const filteredRows = useMemo(
-    () => campaigns.filter((r) => selectedIds.has(r.campaign_id)),
-    [campaigns, selectedIds]
+  const selectedCampaigns = useMemo(
+    () => uniqueCampaigns.filter((c) => selectedIds.has(c.campaign_id)),
+    [uniqueCampaigns, selectedIds]
   )
-
-  // Current window: rows whose end_date falls within the selected range
-  const currentRows = useMemo(() => {
-    if (!hasDates) return filteredRows
-    return filteredRows.filter((r) => {
-      if (!r.end_date) return false
-      if (fromDate && r.end_date < fromDate) return false
-      if (toDate && r.end_date > toDate) return false
-      return true
-    })
-  }, [filteredRows, fromDate, toDate, hasDates])
-
-  // Previous window: same duration, shifted back
-  const prevRows = useMemo(() => {
-    if (!hasDates || !fromDate || !toDate) return []
-    const from = new Date(fromDate)
-    const to = new Date(toDate)
-    const duration = to.getTime() - from.getTime()
-    const prevFrom = new Date(from.getTime() - duration - 86400000)
-    const prevTo = new Date(from.getTime() - 86400000)
-    const pf = prevFrom.toISOString().slice(0, 10)
-    const pt = prevTo.toISOString().slice(0, 10)
-    return filteredRows.filter((r) => {
-      if (!r.end_date) return false
-      return r.end_date >= pf && r.end_date <= pt
-    })
-  }, [filteredRows, fromDate, toDate, hasDates])
-
-  const showComparison = hasDates && fromDate && toDate
-
-  // Aggregate currentRows by campaign for the table (respects date filter)
-  const tableRows = useMemo(() => {
-    const map = new Map<string, {
-      campaign_id: string
-      campaign_name: string
-      sent_count: number
-      reply_count: number
-      positive_reply_count: number
-      bounce_count: number
-      end_date: string | null
-    }>()
-    for (const r of currentRows) {
-      if (!selectedIds.has(r.campaign_id)) continue
-      const existing = map.get(r.campaign_id)
-      if (!existing) {
-        map.set(r.campaign_id, {
-          campaign_id: r.campaign_id,
-          campaign_name: r.campaign_name,
-          sent_count: r.sent_count,
-          reply_count: r.reply_count,
-          positive_reply_count: r.positive_reply_count,
-          bounce_count: r.bounce_count,
-          end_date: r.end_date,
-        })
-      } else {
-        map.set(r.campaign_id, {
-          ...existing,
-          sent_count: existing.sent_count + r.sent_count,
-          reply_count: existing.reply_count + r.reply_count,
-          positive_reply_count: Math.max(existing.positive_reply_count, r.positive_reply_count),
-          bounce_count: existing.bounce_count + r.bounce_count,
-          end_date: (r.end_date ?? '') > (existing.end_date ?? '') ? r.end_date : existing.end_date,
-        })
-      }
-    }
-    return Array.from(map.values())
-  }, [currentRows, selectedIds])
 
   return (
     <div>
-      {/* Controls */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-end',
-          gap: 16,
-          marginBottom: 32,
-          flexWrap: 'wrap',
-        }}
-      >
-        {/* Date range */}
-        <DateInput label="FROM" value={fromDate} onChange={setFromDate} />
-        <DateInput label="TO" value={toDate} onChange={setToDate} />
-        {hasDates && (
-          <button
-            onClick={clearDates}
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 10,
-              letterSpacing: '1px',
-              color: '#8C8070',
-              background: 'none',
-              border: '1px solid #C8C1B3',
-              padding: '6px 12px',
-              cursor: 'pointer',
-              alignSelf: 'flex-end',
-            }}
-          >
-            CLEAR
-          </button>
-        )}
-
-        {/* Campaign filter dropdown */}
-        <div style={{ position: 'relative', alignSelf: 'flex-end' }}>
+      {/* Campaign filter dropdown */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ position: 'relative', display: 'inline-block' }}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             style={{
@@ -313,193 +168,47 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
       </div>
 
       {/* Stats */}
-      {showComparison ? (
-        // Date range selected — show comparison
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 24,
-            marginBottom: 40,
-          }}
-        >
-          {/* Previous period */}
-          <div>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+          gap: 16,
+          marginBottom: 40,
+        }}
+      >
+        {METRICS.map((m) => (
+          <div
+            key={m.key}
+            style={{
+              background: '#FFFFFF',
+              border: '1px solid #C8C1B3',
+              padding: '20px 18px',
+            }}
+          >
             <div
               style={{
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 9,
-                letterSpacing: '2px',
+                letterSpacing: '1.5px',
                 color: '#8C8070',
-                marginBottom: 12,
+                marginBottom: 8,
               }}
             >
-              PREVIOUS PERIOD
+              {m.label}
             </div>
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                gap: 12,
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: 36,
+                color: '#1C2B2B',
+                letterSpacing: '1px',
               }}
             >
-              {METRICS.map((m) => (
-                <div
-                  key={m.key}
-                  style={{
-                    background: '#FFFFFF',
-                    border: '1px solid #C8C1B3',
-                    padding: '16px 14px',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: 9,
-                      letterSpacing: '1.5px',
-                      color: '#8C8070',
-                      marginBottom: 6,
-                    }}
-                  >
-                    {m.label}
-                  </div>
-                  <div
-                    style={{
-                      fontFamily: "'Bebas Neue', sans-serif",
-                      fontSize: 30,
-                      color: '#8C8070',
-                      letterSpacing: '1px',
-                    }}
-                  >
-                    {sum(prevRows, m.key).toLocaleString()}
-                  </div>
-                </div>
-              ))}
+              {sum(selectedCampaigns, m.key).toLocaleString()}
             </div>
           </div>
-
-          {/* Current period */}
-          <div>
-            <div
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 9,
-                letterSpacing: '2px',
-                color: '#E8A020',
-                marginBottom: 12,
-              }}
-            >
-              SELECTED PERIOD
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                gap: 12,
-              }}
-            >
-              {METRICS.map((m) => {
-                const curr = sum(currentRows, m.key)
-                const prev = sum(prevRows, m.key)
-                const d = delta(curr, prev)
-                return (
-                  <div
-                    key={m.key}
-                    style={{
-                      background: '#FFFFFF',
-                      border: '2px solid #E8A020',
-                      padding: '16px 14px',
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: "'DM Mono', monospace",
-                        fontSize: 9,
-                        letterSpacing: '1.5px',
-                        color: '#8C8070',
-                        marginBottom: 6,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 4,
-                      }}
-                    >
-                      <span>{m.label}</span>
-                      {d !== null && (
-                        <span
-                          style={{
-                            fontSize: 9,
-                            fontFamily: "'DM Mono', monospace",
-                            color: d >= 0 ? '#27AE60' : '#C0392B',
-                            background: d >= 0 ? '#E8F8F0' : '#FDECEA',
-                            padding: '1px 5px',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {d >= 0 ? '+' : ''}{d.toFixed(0)}%
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "'Bebas Neue', sans-serif",
-                        fontSize: 30,
-                        color: '#1C2B2B',
-                        letterSpacing: '1px',
-                      }}
-                    >
-                      {curr.toLocaleString()}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      ) : (
-        // No date range — show all-time flat cards
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-            gap: 16,
-            marginBottom: 40,
-          }}
-        >
-          {METRICS.map((m) => (
-            <div
-              key={m.key}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #C8C1B3',
-                padding: '20px 18px',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  letterSpacing: '1.5px',
-                  color: '#8C8070',
-                  marginBottom: 8,
-                }}
-              >
-                {m.label}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: 36,
-                  color: '#1C2B2B',
-                  letterSpacing: '1px',
-                }}
-              >
-                {sum(currentRows, m.key).toLocaleString()}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Campaign table */}
       <div>
@@ -525,7 +234,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
           >
             <thead>
               <tr style={{ borderBottom: '2px solid #C8C1B3' }}>
-                {['CAMPAIGN', 'SENT', 'REPLIES', '+REPLIES', 'BOUNCES', 'WEEK OF'].map((h) => (
+                {['CAMPAIGN', 'SENT', 'REPLIES', '+REPLIES', 'BOUNCES'].map((h) => (
                   <th
                     key={h}
                     style={{
@@ -544,7 +253,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
               </tr>
             </thead>
             <tbody>
-              {tableRows.map((c) => (
+              {selectedCampaigns.map((c) => (
                 <tr key={c.campaign_id} style={{ borderBottom: '1px solid #EEE9DF' }}>
                   <td style={{ padding: '10px 12px', color: '#1C2B2B', maxWidth: 220 }}>
                     {c.campaign_name}
@@ -570,27 +279,11 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                   <td style={{ padding: '10px 12px', color: '#C0392B' }}>
                     {c.bounce_count?.toLocaleString() ?? '—'}
                   </td>
-                  <td
-                    style={{
-                      padding: '10px 12px',
-                      color: '#8C8070',
-                      fontSize: 10,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {c.end_date
-                      ? new Date(c.end_date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })
-                      : '—'}
-                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {tableRows.length === 0 && (
+          {selectedCampaigns.length === 0 && (
             <div
               style={{
                 padding: '40px',

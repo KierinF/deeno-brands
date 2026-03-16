@@ -20,8 +20,6 @@ type Campaign = {
   end_date: string | null
 }
 
-type Period = '7D' | '30D' | '90D' | 'ALL'
-
 function dedupe(rows: Campaign[]): Campaign[] {
   const map = new Map<string, Campaign>()
   for (const row of rows) {
@@ -42,38 +40,56 @@ function delta(curr: number, prev: number): number | null {
   return ((curr - prev) / prev) * 100
 }
 
-function filterByPeriod(rows: Campaign[], period: Period, which: 'current' | 'prev'): Campaign[] {
-  if (period === 'ALL') return rows
-
-  const days = period === '7D' ? 7 : period === '30D' ? 30 : 90
-  const now = new Date()
-  const currentStart = new Date(now)
-  currentStart.setDate(currentStart.getDate() - days)
-
-  const prevEnd = new Date(currentStart)
-  const prevStart = new Date(currentStart)
-  prevStart.setDate(prevStart.getDate() - days)
-
-  const start = which === 'current' ? currentStart : prevStart
-  const end = which === 'current' ? now : prevEnd
-
-  return rows.filter((r) => {
-    if (!r.end_date) return false
-    const d = new Date(r.end_date)
-    return d >= start && d <= end
-  })
-}
-
 const METRICS = [
   { key: 'sent_count' as const, label: 'EMAILS SENT' },
-  { key: 'open_count' as const, label: 'OPENS' },
   { key: 'reply_count' as const, label: 'REPLIES' },
   { key: 'positive_reply_count' as const, label: 'POSITIVE REPLIES' },
   { key: 'bounce_count' as const, label: 'BOUNCES' },
 ]
 
+function DateInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <label
+        style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 9,
+          letterSpacing: '1.5px',
+          color: '#8C8070',
+        }}
+      >
+        {label}
+      </label>
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 11,
+          color: '#1C2B2B',
+          background: '#FFFFFF',
+          border: '1px solid #C8C1B3',
+          padding: '6px 10px',
+          outline: 'none',
+          cursor: 'pointer',
+        }}
+      />
+    </div>
+  )
+}
+
 export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
-  const [period, setPeriod] = useState<Period>('30D')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const uniqueCampaigns = useMemo(() => dedupe(campaigns), [campaigns])
@@ -95,21 +111,47 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
     })
   }
 
+  function clearDates() {
+    setFromDate('')
+    setToDate('')
+  }
+
+  const hasDates = fromDate || toDate
+
+  // All rows for selected campaigns
   const filteredRows = useMemo(
     () => campaigns.filter((r) => selectedIds.has(r.campaign_id)),
     [campaigns, selectedIds]
   )
 
-  const currentRows = useMemo(
-    () => filterByPeriod(filteredRows, period, 'current'),
-    [filteredRows, period]
-  )
-  const prevRows = useMemo(
-    () => filterByPeriod(filteredRows, period, 'prev'),
-    [filteredRows, period]
-  )
+  // Current window: rows whose end_date falls within the selected range
+  const currentRows = useMemo(() => {
+    if (!hasDates) return filteredRows
+    return filteredRows.filter((r) => {
+      if (!r.end_date) return false
+      if (fromDate && r.end_date < fromDate) return false
+      if (toDate && r.end_date > toDate) return false
+      return true
+    })
+  }, [filteredRows, fromDate, toDate, hasDates])
 
-  const isAll = period === 'ALL'
+  // Previous window: same duration, shifted back
+  const prevRows = useMemo(() => {
+    if (!hasDates || !fromDate || !toDate) return []
+    const from = new Date(fromDate)
+    const to = new Date(toDate)
+    const duration = to.getTime() - from.getTime()
+    const prevFrom = new Date(from.getTime() - duration - 86400000)
+    const prevTo = new Date(from.getTime() - 86400000)
+    const pf = prevFrom.toISOString().slice(0, 10)
+    const pt = prevTo.toISOString().slice(0, 10)
+    return filteredRows.filter((r) => {
+      if (!r.end_date) return false
+      return r.end_date >= pf && r.end_date <= pt
+    })
+  }, [filteredRows, fromDate, toDate, hasDates])
+
+  const showComparison = hasDates && fromDate && toDate
 
   return (
     <div>
@@ -117,38 +159,36 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
       <div
         style={{
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'flex-end',
           gap: 16,
           marginBottom: 32,
           flexWrap: 'wrap',
         }}
       >
-        {/* Period filter */}
-        <div style={{ display: 'flex', gap: 4 }}>
-          {(['7D', '30D', '90D', 'ALL'] as Period[]).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 10,
-                letterSpacing: '1.5px',
-                padding: '6px 12px',
-                background: period === p ? '#1C2B2B' : 'transparent',
-                color: period === p ? '#F7F4EE' : '#8C8070',
-                border: '1px solid',
-                borderColor: period === p ? '#1C2B2B' : '#C8C1B3',
-                cursor: 'pointer',
-                transition: 'all 0.15s',
-              }}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
+        {/* Date range */}
+        <DateInput label="FROM" value={fromDate} onChange={setFromDate} />
+        <DateInput label="TO" value={toDate} onChange={setToDate} />
+        {hasDates && (
+          <button
+            onClick={clearDates}
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              letterSpacing: '1px',
+              color: '#8C8070',
+              background: 'none',
+              border: '1px solid #C8C1B3',
+              padding: '6px 12px',
+              cursor: 'pointer',
+              alignSelf: 'flex-end',
+            }}
+          >
+            CLEAR
+          </button>
+        )}
 
         {/* Campaign filter dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div style={{ position: 'relative', alignSelf: 'flex-end' }}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             style={{
@@ -236,49 +276,8 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
       </div>
 
       {/* Stats */}
-      {isAll ? (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-            gap: 16,
-            marginBottom: 40,
-          }}
-        >
-          {METRICS.map((m) => (
-            <div
-              key={m.key}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #C8C1B3',
-                padding: '20px 18px',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  letterSpacing: '1.5px',
-                  color: '#8C8070',
-                  marginBottom: 8,
-                }}
-              >
-                {m.label}
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: 36,
-                  color: '#1C2B2B',
-                  letterSpacing: '1px',
-                }}
-              >
-                {sum(filteredRows, m.key).toLocaleString()}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
+      {showComparison ? (
+        // Date range selected — show comparison
         <div
           style={{
             display: 'grid',
@@ -298,7 +297,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                 marginBottom: 12,
               }}
             >
-              PREVIOUS {period}
+              PREVIOUS PERIOD
             </div>
             <div
               style={{
@@ -353,7 +352,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                 marginBottom: 12,
               }}
             >
-              CURRENT {period}
+              SELECTED PERIOD
             </div>
             <div
               style={{
@@ -385,6 +384,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
+                        gap: 4,
                       }}
                     >
                       <span>{m.label}</span>
@@ -396,6 +396,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                             color: d >= 0 ? '#27AE60' : '#C0392B',
                             background: d >= 0 ? '#E8F8F0' : '#FDECEA',
                             padding: '1px 5px',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {d >= 0 ? '+' : ''}{d.toFixed(0)}%
@@ -417,6 +418,49 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
               })}
             </div>
           </div>
+        </div>
+      ) : (
+        // No date range — show all-time flat cards
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            gap: 16,
+            marginBottom: 40,
+          }}
+        >
+          {METRICS.map((m) => (
+            <div
+              key={m.key}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #C8C1B3',
+                padding: '20px 18px',
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 9,
+                  letterSpacing: '1.5px',
+                  color: '#8C8070',
+                  marginBottom: 8,
+                }}
+              >
+                {m.label}
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: 36,
+                  color: '#1C2B2B',
+                  letterSpacing: '1px',
+                }}
+              >
+                {sum(currentRows, m.key).toLocaleString()}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -444,24 +488,22 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
           >
             <thead>
               <tr style={{ borderBottom: '2px solid #C8C1B3' }}>
-                {['CAMPAIGN', 'SENT', 'OPENS', 'REPLIES', '+REPLIES', 'BOUNCES', 'WEEK OF'].map(
-                  (h) => (
-                    <th
-                      key={h}
-                      style={{
-                        textAlign: 'left',
-                        padding: '8px 12px',
-                        color: '#8C8070',
-                        fontWeight: 'normal',
-                        letterSpacing: '1.5px',
-                        fontSize: 9,
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {h}
-                    </th>
-                  )
-                )}
+                {['CAMPAIGN', 'SENT', 'REPLIES', '+REPLIES', 'BOUNCES', 'WEEK OF'].map((h) => (
+                  <th
+                    key={h}
+                    style={{
+                      textAlign: 'left',
+                      padding: '8px 12px',
+                      color: '#8C8070',
+                      fontWeight: 'normal',
+                      letterSpacing: '1.5px',
+                      fontSize: 9,
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
@@ -474,9 +516,6 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                     </td>
                     <td style={{ padding: '10px 12px', color: '#8C8070' }}>
                       {c.sent_count?.toLocaleString() ?? '—'}
-                    </td>
-                    <td style={{ padding: '10px 12px', color: '#8C8070' }}>
-                      {c.open_count?.toLocaleString() ?? '—'}
                     </td>
                     <td style={{ padding: '10px 12px', color: '#8C8070' }}>
                       {c.reply_count?.toLocaleString() ?? '—'}

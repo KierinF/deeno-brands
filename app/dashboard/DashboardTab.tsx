@@ -3,16 +3,19 @@
 import { useState, useMemo } from 'react'
 
 type Campaign = {
-  campaign_id: number
+  campaign_id: string
   campaign_name: string
-  lead_contacted: number
-  emails_sent: number
-  emails_opened: number
-  emails_clicked: number
+  sent_count: number
+  unique_sent_count: number
+  open_count: number
+  unique_open_count: number
+  click_count: number
   reply_count: number
   positive_reply_count: number
   bounce_count: number
-  unsubscribe_count: number
+  unsubscribed_count: number
+  meeting_count: number
+  status: string
   start_date: string | null
   end_date: string | null
 }
@@ -20,15 +23,11 @@ type Campaign = {
 type Period = '7D' | '30D' | '90D' | 'ALL'
 
 function dedupe(rows: Campaign[]): Campaign[] {
-  const map = new Map<number, Campaign>()
+  const map = new Map<string, Campaign>()
   for (const row of rows) {
     const existing = map.get(row.campaign_id)
-    if (!existing) {
+    if (!existing || (row.end_date ?? '') > (existing.end_date ?? '')) {
       map.set(row.campaign_id, row)
-    } else {
-      if ((row.end_date ?? '') > (existing.end_date ?? '')) {
-        map.set(row.campaign_id, row)
-      }
     }
   }
   return Array.from(map.values())
@@ -66,8 +65,8 @@ function filterByPeriod(rows: Campaign[], period: Period, which: 'current' | 'pr
 }
 
 const METRICS = [
-  { key: 'emails_sent' as const, label: 'EMAILS SENT' },
-  { key: 'emails_opened' as const, label: 'OPENS' },
+  { key: 'sent_count' as const, label: 'EMAILS SENT' },
+  { key: 'open_count' as const, label: 'OPENS' },
   { key: 'reply_count' as const, label: 'REPLIES' },
   { key: 'positive_reply_count' as const, label: 'POSITIVE REPLIES' },
   { key: 'bounce_count' as const, label: 'BOUNCES' },
@@ -79,19 +78,15 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
 
   const uniqueCampaigns = useMemo(() => dedupe(campaigns), [campaigns])
   const campaignIds = useMemo(() => uniqueCampaigns.map((c) => c.campaign_id), [uniqueCampaigns])
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set(campaignIds))
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(campaignIds))
 
   const allSelected = selectedIds.size === campaignIds.length && campaignIds.length > 0
 
   function toggleAll() {
-    if (allSelected) {
-      setSelectedIds(new Set())
-    } else {
-      setSelectedIds(new Set(campaignIds))
-    }
+    setSelectedIds(allSelected ? new Set() : new Set(campaignIds))
   }
 
-  function toggleOne(id: number) {
+  function toggleOne(id: string) {
     setSelectedIds((prev) => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -478,10 +473,10 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                       {c.campaign_name}
                     </td>
                     <td style={{ padding: '10px 12px', color: '#8C8070' }}>
-                      {c.emails_sent?.toLocaleString() ?? '—'}
+                      {c.sent_count?.toLocaleString() ?? '—'}
                     </td>
                     <td style={{ padding: '10px 12px', color: '#8C8070' }}>
-                      {c.emails_opened?.toLocaleString() ?? '—'}
+                      {c.open_count?.toLocaleString() ?? '—'}
                     </td>
                     <td style={{ padding: '10px 12px', color: '#8C8070' }}>
                       {c.reply_count?.toLocaleString() ?? '—'}

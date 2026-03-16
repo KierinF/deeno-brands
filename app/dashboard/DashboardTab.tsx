@@ -6,20 +6,20 @@ type Campaign = {
   campaign_id: string
   campaign_name: string
   sent_count: number
-  unique_sent_count: number
-  open_count: number
-  unique_open_count: number
-  click_count: number
   reply_count: number
   positive_reply_count: number
   bounce_count: number
-  unsubscribed_count: number
-  meeting_count: number
-  status: string
+  start_date: string | null
+  end_date: string | null
 }
 
-function sum(rows: Campaign[], key: keyof Campaign): number {
+function sumKey(rows: Campaign[], key: keyof Campaign): number {
   return rows.reduce((acc, r) => acc + ((r[key] as number) ?? 0), 0)
+}
+
+function delta(curr: number, prev: number): number | null {
+  if (prev === 0) return null
+  return ((curr - prev) / prev) * 100
 }
 
 const METRICS = [
@@ -29,31 +29,75 @@ const METRICS = [
   { key: 'bounce_count' as const, label: 'BOUNCES' },
 ]
 
+function DateInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <label
+        style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 9,
+          letterSpacing: '1.5px',
+          color: '#8C8070',
+        }}
+      >
+        {label}
+      </label>
+      <input
+        type="date"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 11,
+          color: '#1C2B2B',
+          background: '#FFFFFF',
+          border: '1px solid #C8C1B3',
+          padding: '6px 10px',
+          outline: 'none',
+          cursor: 'pointer',
+        }}
+      />
+    </div>
+  )
+}
+
+// Aggregate rows by campaign_id, summing weekly metrics
+// positive_reply_count is all-time so take max to avoid double-counting
+function aggregateByCampaign(rows: Campaign[]): Campaign[] {
+  const map = new Map<string, Campaign>()
+  for (const r of rows) {
+    const existing = map.get(r.campaign_id)
+    if (!existing) {
+      map.set(r.campaign_id, { ...r })
+    } else {
+      map.set(r.campaign_id, {
+        ...existing,
+        sent_count: existing.sent_count + r.sent_count,
+        reply_count: existing.reply_count + r.reply_count,
+        bounce_count: existing.bounce_count + r.bounce_count,
+        positive_reply_count: Math.max(existing.positive_reply_count, r.positive_reply_count),
+      })
+    }
+  }
+  return Array.from(map.values())
+}
+
 export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
-  // Aggregate: sum weekly rows per campaign_id for all-time totals
-  const uniqueCampaigns = useMemo(() => {
-    const map = new Map<string, Campaign>()
-    for (const row of campaigns) {
-      const existing = map.get(row.campaign_id)
-      if (!existing) {
-        map.set(row.campaign_id, { ...row })
-      } else {
-        map.set(row.campaign_id, {
-          ...existing,
-          sent_count: existing.sent_count + row.sent_count,
-          reply_count: existing.reply_count + row.reply_count,
-          bounce_count: existing.bounce_count + row.bounce_count,
-          // positive_reply_count is all-time from /analytics — take max to avoid double-counting
-          positive_reply_count: Math.max(existing.positive_reply_count, row.positive_reply_count),
-        })
-      }
-    }
-    return Array.from(map.values())
-  }, [campaigns])
-
-  const campaignIds = useMemo(() => uniqueCampaigns.map((c) => c.campaign_id), [uniqueCampaigns])
+  // All unique campaigns (for the dropdown list)
+  const allCampaigns = useMemo(() => aggregateByCampaign(campaigns), [campaigns])
+  const campaignIds = useMemo(() => allCampaigns.map((c) => c.campaign_id), [allCampaigns])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(campaignIds))
 
   const allSelected = selectedIds.size === campaignIds.length && campaignIds.length > 0
@@ -71,16 +115,80 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
     })
   }
 
-  const selectedCampaigns = useMemo(
-    () => uniqueCampaigns.filter((c) => selectedIds.has(c.campaign_id)),
-    [uniqueCampaigns, selectedIds]
+  const hasDates = fromDate && toDate
+
+  // Rows for selected campaigns
+  const selectedRows = useMemo(
+    () => campaigns.filter((r) => selectedIds.has(r.campaign_id)),
+    [campaigns, selectedIds]
   )
+
+  // Current period rows: start_date >= fromDate AND end_date <= toDate
+  const currentRows = useMemo(() => {
+    if (!hasDates) return selectedRows
+    return selectedRows.filter((r) => {
+      if (!r.start_date || !r.end_date) return false
+      return r.start_date >= fromDate && r.end_date <= toDate
+    })
+  }, [selectedRows, fromDate, toDate, hasDates])
+
+  // Previous period: equal-length window immediately before fromDate
+  const prevRows = useMemo(() => {
+    if (!hasDates) return []
+    const from = new Date(fromDate)
+    const to = new Date(toDate)
+    const duration = to.getTime() - from.getTime()
+    // Previous window ends the day before fromDate
+    const prevTo = new Date(from.getTime() - 86400000)
+    const prevFrom = new Date(prevTo.getTime() - duration)
+    const pf = prevFrom.toISOString().slice(0, 10)
+    const pt = prevTo.toISOString().slice(0, 10)
+    return selectedRows.filter((r) => {
+      if (!r.start_date || !r.end_date) return false
+      return r.start_date >= pf && r.end_date <= pt
+    })
+  }, [selectedRows, fromDate, toDate, hasDates])
+
+  // Aggregate by campaign for the table
+  const tableRows = useMemo(() => aggregateByCampaign(currentRows), [currentRows])
+
+  const showComparison = !!hasDates
 
   return (
     <div>
-      {/* Campaign filter dropdown */}
-      <div style={{ marginBottom: 32 }}>
-        <div style={{ position: 'relative', display: 'inline-block' }}>
+      {/* Controls */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-end',
+          gap: 16,
+          marginBottom: 32,
+          flexWrap: 'wrap',
+        }}
+      >
+        <DateInput label="FROM" value={fromDate} onChange={setFromDate} />
+        <DateInput label="TO" value={toDate} onChange={setToDate} />
+        {hasDates && (
+          <button
+            onClick={() => { setFromDate(''); setToDate('') }}
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              letterSpacing: '1px',
+              color: '#8C8070',
+              background: 'none',
+              border: '1px solid #C8C1B3',
+              padding: '6px 12px',
+              cursor: 'pointer',
+              alignSelf: 'flex-end',
+            }}
+          >
+            CLEAR
+          </button>
+        )}
+
+        {/* Campaign dropdown */}
+        <div style={{ position: 'relative', alignSelf: 'flex-end' }}>
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
             style={{
@@ -137,7 +245,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                 />
                 SELECT ALL
               </label>
-              {uniqueCampaigns.map((c) => (
+              {allCampaigns.map((c) => (
                 <label
                   key={c.campaign_id}
                   style={{
@@ -168,47 +276,192 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
       </div>
 
       {/* Stats */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-          gap: 16,
-          marginBottom: 40,
-        }}
-      >
-        {METRICS.map((m) => (
-          <div
-            key={m.key}
-            style={{
-              background: '#FFFFFF',
-              border: '1px solid #C8C1B3',
-              padding: '20px 18px',
-            }}
-          >
+      {showComparison ? (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: 24,
+            marginBottom: 40,
+          }}
+        >
+          {/* Previous period */}
+          <div>
             <div
               style={{
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 9,
-                letterSpacing: '1.5px',
+                letterSpacing: '2px',
                 color: '#8C8070',
-                marginBottom: 8,
+                marginBottom: 12,
               }}
             >
-              {m.label}
+              PREVIOUS PERIOD
             </div>
             <div
               style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: 36,
-                color: '#1C2B2B',
-                letterSpacing: '1px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                gap: 12,
               }}
             >
-              {sum(selectedCampaigns, m.key).toLocaleString()}
+              {METRICS.map((m) => (
+                <div
+                  key={m.key}
+                  style={{
+                    background: '#FFFFFF',
+                    border: '1px solid #C8C1B3',
+                    padding: '16px 14px',
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'DM Mono', monospace",
+                      fontSize: 9,
+                      letterSpacing: '1.5px',
+                      color: '#8C8070',
+                      marginBottom: 6,
+                    }}
+                  >
+                    {m.label}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Bebas Neue', sans-serif",
+                      fontSize: 30,
+                      color: '#8C8070',
+                      letterSpacing: '1px',
+                    }}
+                  >
+                    {sumKey(prevRows, m.key).toLocaleString()}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
+
+          {/* Current period */}
+          <div>
+            <div
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 9,
+                letterSpacing: '2px',
+                color: '#E8A020',
+                marginBottom: 12,
+              }}
+            >
+              SELECTED PERIOD
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
+                gap: 12,
+              }}
+            >
+              {METRICS.map((m) => {
+                const curr = sumKey(currentRows, m.key)
+                const prev = sumKey(prevRows, m.key)
+                const d = delta(curr, prev)
+                return (
+                  <div
+                    key={m.key}
+                    style={{
+                      background: '#FFFFFF',
+                      border: '2px solid #E8A020',
+                      padding: '16px 14px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: "'DM Mono', monospace",
+                        fontSize: 9,
+                        letterSpacing: '1.5px',
+                        color: '#8C8070',
+                        marginBottom: 6,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 4,
+                      }}
+                    >
+                      <span>{m.label}</span>
+                      {d !== null && (
+                        <span
+                          style={{
+                            fontSize: 9,
+                            fontFamily: "'DM Mono', monospace",
+                            color: d >= 0 ? '#27AE60' : '#C0392B',
+                            background: d >= 0 ? '#E8F8F0' : '#FDECEA',
+                            padding: '1px 5px',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {d >= 0 ? '+' : ''}{d.toFixed(0)}%
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Bebas Neue', sans-serif",
+                        fontSize: 30,
+                        color: '#1C2B2B',
+                        letterSpacing: '1px',
+                      }}
+                    >
+                      {curr.toLocaleString()}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+      ) : (
+        // No date range — all-time totals
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+            gap: 16,
+            marginBottom: 40,
+          }}
+        >
+          {METRICS.map((m) => (
+            <div
+              key={m.key}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #C8C1B3',
+                padding: '20px 18px',
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 9,
+                  letterSpacing: '1.5px',
+                  color: '#8C8070',
+                  marginBottom: 8,
+                }}
+              >
+                {m.label}
+              </div>
+              <div
+                style={{
+                  fontFamily: "'Bebas Neue', sans-serif",
+                  fontSize: 36,
+                  color: '#1C2B2B',
+                  letterSpacing: '1px',
+                }}
+              >
+                {sumKey(aggregateByCampaign(selectedRows), m.key).toLocaleString()}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Campaign table */}
       <div>
@@ -253,7 +506,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
               </tr>
             </thead>
             <tbody>
-              {selectedCampaigns.map((c) => (
+              {tableRows.map((c) => (
                 <tr key={c.campaign_id} style={{ borderBottom: '1px solid #EEE9DF' }}>
                   <td style={{ padding: '10px 12px', color: '#1C2B2B', maxWidth: 220 }}>
                     {c.campaign_name}
@@ -283,7 +536,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
               ))}
             </tbody>
           </table>
-          {selectedCampaigns.length === 0 && (
+          {tableRows.length === 0 && (
             <div
               style={{
                 padding: '40px',
@@ -293,7 +546,7 @@ export default function DashboardTab({ campaigns }: { campaigns: Campaign[] }) {
                 color: '#8C8070',
               }}
             >
-              No campaigns selected.
+              {hasDates ? 'No data for selected period.' : 'No campaigns selected.'}
             </div>
           )}
         </div>

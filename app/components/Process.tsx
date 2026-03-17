@@ -1,37 +1,63 @@
 "use client";
 
-const steps = [
+interface Step {
+  num: string;
+  timing: string;
+  title: string;
+  paragraphs: string[];
+  standout?: string;
+  standouts?: string[];
+  tags: string[];
+}
+
+const steps: Step[] = [
   {
     num: "01",
     timing: "Week 1",
-    title: "Build Your Commercial ICP",
-    description:
-      "A 90-minute strategy call maps your best commercial clients, ideal contract types, and target geography. We pull a verified contact list from Apollo, Clay, and LinkedIn Sales Navigator. You approve every name before we contact anyone.",
-    tags: ["ICP Mapping", "Contact List", "Market Research"],
+    title: "Getting clear on the accounts you want",
+    paragraphs: [
+      "Before we write a word of copy or pull a single contact, we spend 90 minutes getting clear on the exact accounts you want — buyer type, geography, contract size.",
+      "Then we build a verified contact list from Apollo, Clay, and LinkedIn Sales Navigator.",
+    ],
+    standout: "You approve every name before we contact anyone.",
+    tags: ["ICP mapping", "Contact list", "Market research"],
   },
   {
     num: "02",
     timing: "Week 2",
-    title: "Campaign Build",
-    description:
-      "We build your full outreach stack — cold email sequences, LinkedIn messaging, phone scripts, and direct mail pieces — all written specifically for your trade and your buyers. Full infrastructure configured and tested before launch. You review and approve everything.",
-    tags: ["Email Campaigns", "Cold Calling", "LinkedIn", "Direct Mail"],
+    title: "Campaign build",
+    paragraphs: [
+      "We build your full outreach stack from scratch — cold email sequences, LinkedIn messaging, phone scripts, and direct mail pieces — all written for your trade and your buyers.",
+      "You review and approve everything before it goes live.",
+    ],
+    standouts: ["Nothing generic.", "Nothing templated from another industry."],
+    tags: ["Email campaigns", "Cold calling", "LinkedIn", "Direct mail"],
   },
   {
     num: "03",
-    timing: "Weeks 3–4",
-    title: "Launch and Optimize",
-    description:
-      "All four channels go live simultaneously. Calls are made, emails are sent, LinkedIn messages land, direct mail hits desks. Every reply is handled by us — objections managed, questions answered, prospects pushed toward the meeting. Weekly report in your inbox.",
-    tags: ["Campaign Live", "Reply Management", "Weekly Reports"],
+    timing: "Weeks 3\u20134",
+    title: "Launch",
+    paragraphs: [
+      "All four channels go live simultaneously.",
+      "Calls are made. Emails land. LinkedIn messages hit. Direct mail hits desks.",
+      "Every reply is handled by us — objections managed, questions answered, prospects moved toward a meeting.",
+    ],
+    standout: "You get a weekly report in plain English: what went out, what came back, what's in motion.",
+    tags: ["Campaign live", "Reply management", "Weekly reports"],
   },
   {
     num: "04",
     timing: "Ongoing",
-    title: "Qualified Meetings on Your Calendar",
-    description:
-      "When a prospect is ready we book directly onto your calendar. You receive a briefing note before every meeting — company name, decision-maker title, what they need, and context from the conversation. You show up. You close.",
-    tags: ["Calendar Booking", "Meeting Briefs", "Briefing Notes"],
+    title: "Qualified meetings on your calendar",
+    paragraphs: [
+      "Before every meeting, we send you a briefing note.",
+      "Company name, decision-maker title, what they need, and full context from the conversation.",
+    ],
+    standouts: [
+      "You walk in knowing exactly who you're talking to and why they said yes.",
+      "Your only job is to show up and close.",
+    ],
+    tags: ["Calendar booking", "Meeting briefs", "Briefing notes"],
   },
 ];
 
@@ -40,14 +66,9 @@ export default function Process() {
     <section
       id="process"
       className="rsp-section-pad"
-      style={{
-        background: "#F7F4EE",
-        borderBottom: "1px solid #C8C1B3",
-        padding: "80px 40px",
-      }}
+      style={{ background: "#F7F4EE", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Header */}
         <div style={{ marginBottom: 56 }}>
           <div
             style={{
@@ -63,7 +84,7 @@ export default function Process() {
             }}
           >
             <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
-            How It Works
+            The process
           </div>
           <h2
             style={{
@@ -79,7 +100,6 @@ export default function Process() {
           </h2>
         </div>
 
-        {/* Steps */}
         <div
           style={{
             border: "1px solid #C8C1B3",
@@ -94,14 +114,13 @@ export default function Process() {
               key={step.num}
               style={{
                 background: "#EEE9DF",
-                padding: "36px 36px",
+                padding: "40px 36px",
                 display: "grid",
                 gridTemplateColumns: "80px 1fr",
                 gap: "0 32px",
                 alignItems: "start",
               }}
             >
-              {/* Step number */}
               <div>
                 <div
                   style={{
@@ -126,31 +145,51 @@ export default function Process() {
                   {step.timing}
                 </div>
               </div>
-
-              {/* Content */}
               <div>
-                <h3
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 600,
-                    color: "#1C2B2B",
-                    marginBottom: 12,
-                    lineHeight: 1.3,
-                  }}
-                >
+                <h3 style={{ fontSize: 18, fontWeight: 600, color: "#1C2B2B", marginBottom: 16, lineHeight: 1.3 }}>
                   {step.title}
                 </h3>
-                <p
-                  style={{
-                    fontSize: 14,
-                    color: "#8C8070",
-                    lineHeight: 1.7,
-                    marginBottom: 16,
-                    maxWidth: 640,
-                  }}
-                >
-                  {step.description}
-                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+                  {step.paragraphs.map((p, i) => (
+                    <p key={i} style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.7, maxWidth: 640 }}>{p}</p>
+                  ))}
+                </div>
+                {step.standout && (
+                  <p
+                    style={{
+                      fontSize: 14,
+                      color: "#1C2B2B",
+                      fontWeight: 500,
+                      lineHeight: 1.6,
+                      marginBottom: 16,
+                      maxWidth: 640,
+                      paddingLeft: 12,
+                      borderLeft: "2px solid #E8A020",
+                    }}
+                  >
+                    {step.standout}
+                  </p>
+                )}
+                {step.standouts && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                    {step.standouts.map((s, i) => (
+                      <p
+                        key={i}
+                        style={{
+                          fontSize: 14,
+                          color: "#1C2B2B",
+                          fontWeight: 500,
+                          lineHeight: 1.6,
+                          paddingLeft: 12,
+                          borderLeft: "2px solid #E8A020",
+                          maxWidth: 640,
+                        }}
+                      >
+                        {s}
+                      </p>
+                    ))}
+                  </div>
+                )}
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   {step.tags.map((tag) => (
                     <span
@@ -175,7 +214,6 @@ export default function Process() {
           ))}
         </div>
 
-        {/* CTA */}
         <div style={{ marginTop: 40, display: "flex", alignItems: "center", gap: 20 }}>
           <a
             href="#contact"
@@ -187,24 +225,14 @@ export default function Process() {
               background: "#E8A020",
               color: "#F7F4EE",
               textDecoration: "none",
-              fontWeight: 500,
               transition: "background 0.2s",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
             }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30")}
             onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.background = "#E8A020")}
           >
             START WITH A FREE AUDIT →
           </a>
-          <span
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
-              color: "#8C8070",
-            }}
-          >
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#8C8070" }}>
             No commitment. No pitch.
           </span>
         </div>

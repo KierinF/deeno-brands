@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 
+const trades = [
+  "HVAC", "Commercial Cleaning", "Tree Care", "Waste Management",
+  "Landscaping", "Pest Control", "Plumbing", "Roofing",
+];
+
 export default function Hero() {
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   return (
     <section
@@ -68,11 +70,11 @@ export default function Hero() {
           B2B Pipeline Development — Essential Service Businesses
         </div>
 
-        {/* Headline */}
+        {/* H1 */}
         <h1
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "clamp(56px, 8vw, 110px)",
+            fontSize: "clamp(52px, 8vw, 110px)",
             lineHeight: 0.95,
             letterSpacing: "2px",
             color: "#1C2B2B",
@@ -82,38 +84,33 @@ export default function Hero() {
             transition: "opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s",
           }}
         >
-          Your crews are ready.<br />
-          <span style={{ color: "#E8A020" }}>Your commercial</span><br />
-          calendar isn&apos;t.
+          Your calendar has gaps<br />
+          <span style={{ color: "#E8A020" }}>you don&apos;t talk about.</span>
         </h1>
 
-        {/* Subheadline */}
+        {/* Body-lead */}
         <p
           style={{
-            maxWidth: 560,
+            maxWidth: 520,
             color: "#8C8070",
-            fontSize: 17,
+            fontSize: 18,
             lineHeight: 1.7,
-            marginBottom: 48,
+            marginBottom: 40,
             opacity: mounted ? 1 : 0,
             transform: mounted ? "none" : "translateY(12px)",
             transition: "opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s",
           }}
         >
-          We contact facility managers, property owners, and GCs in your market on your behalf — and book them on your calendar. Fully managed outreach across cold email, LinkedIn, and phone. You don&apos;t lift a finger.
+          We contact facility managers, property owners, and GCs in your market — and book them onto your calendar. You show up. You close.
         </p>
 
-        {/* CTAs */}
+        {/* CTA button */}
         <div
           style={{
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            alignItems: "center",
-            marginBottom: 24,
             opacity: mounted ? 1 : 0,
             transform: mounted ? "none" : "translateY(12px)",
             transition: "opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s",
+            marginBottom: 10,
           }}
         >
           <a
@@ -126,11 +123,10 @@ export default function Hero() {
               background: "#E8A020",
               color: "#F7F4EE",
               textDecoration: "none",
-              fontWeight: 500,
-              transition: "background 0.2s, transform 0.2s",
               display: "inline-flex",
               alignItems: "center",
               gap: 10,
+              transition: "background 0.2s, transform 0.2s",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLAnchorElement).style.background = "#F0AA30";
@@ -141,52 +137,83 @@ export default function Hero() {
               (e.currentTarget as HTMLAnchorElement).style.transform = "none";
             }}
           >
-            BOOK MY FREE PIPELINE AUDIT
-          </a>
-          <a
-            href="#process"
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 12,
-              letterSpacing: "1.5px",
-              padding: "16px 28px",
-              background: "transparent",
-              color: "#8C8070",
-              textDecoration: "none",
-              border: "1px solid #C8C1B3",
-              transition: "color 0.2s, border-color 0.2s",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B";
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#8C8070";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.color = "#8C8070";
-              (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C8C1B3";
-            }}
-          >
-            SEE HOW IT WORKS →
+            BOOK MY FREE PIPELINE AUDIT →
           </a>
         </div>
 
-        {/* Trust line */}
-        <div
+        {/* CTA-SUB */}
+        <p
           style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 11,
+            color: "#8C8070",
+            marginBottom: 36,
             opacity: mounted ? 1 : 0,
-            transition: "opacity 0.5s ease 0.35s",
-            marginBottom: 48,
+            transition: "opacity 0.5s ease 0.32s",
           }}
         >
-          <p
+          We review every submission personally.
+        </p>
+
+        {/* Trust signal */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 52,
+            opacity: mounted ? 1 : 0,
+            transition: "opacity 0.5s ease 0.35s",
+          }}
+        >
+          <span style={{ display: "block", width: 24, height: 1, background: "#C8C1B3" }} />
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#8C8070" }}>
+            One client per trade per market. Once your territory is claimed, it&apos;s closed.
+          </p>
+        </div>
+
+        {/* Trade list */}
+        <div style={{ opacity: mounted ? 1 : 0, transition: "opacity 0.5s ease 0.4s" }}>
+          <div
             style={{
               fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
+              fontSize: 10,
               color: "#8C8070",
-              letterSpacing: "0.5px",
+              letterSpacing: "2px",
+              textTransform: "uppercase",
+              marginBottom: 12,
             }}
           >
-            1 client per trade per market. Once your territory is claimed, it&apos;s closed.
-          </p>
+            Are you in one of these?
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {trades.map((trade) => (
+              <a
+                key={trade}
+                href="#industries"
+                style={{
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 11,
+                  color: "#8C8070",
+                  border: "1px solid #C8C1B3",
+                  padding: "5px 12px",
+                  textDecoration: "none",
+                  letterSpacing: "0.5px",
+                  transition: "color 0.2s, border-color 0.2s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B";
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "#8C8070";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.color = "#8C8070";
+                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "#C8C1B3";
+                }}
+              >
+                {trade}
+              </a>
+            ))}
+          </div>
         </div>
       </div>
     </section>

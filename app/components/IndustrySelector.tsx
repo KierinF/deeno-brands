@@ -4,13 +4,13 @@ import { useState } from "react";
 
 const verticals = [
   { title: "HVAC", image: "/hvac.png", href: "/commercial-hvac", bg: "#1C2B2B" },
-  { title: "Commercial Cleaning", image: "/commercial-cleaning.png", href: "#contact", bg: "#1A2535" },
-  { title: "Tree Care", image: null, href: "#contact", bg: "#1A3020" },
-  { title: "Waste Management", image: "/waste-management.png", href: "#contact", bg: "#252520" },
+  { title: "Commercial Cleaning", image: "/commercial-cleaning.png", href: "/commercial-cleaning", bg: "#1A2535" },
+  { title: "Tree Care", image: null, href: "/commercial-tree-care", bg: "#1A3020" },
+  { title: "Waste Management", image: "/waste-management.png", href: "/commercial-waste-management", bg: "#252520" },
   { title: "Landscaping", image: "/landscaping.png", href: "/commercial-landscaping", bg: "#2D5A3D" },
   { title: "Pest Control", image: "/pest-removal.png", href: "/commercial-pest-control", bg: "#1C2B2B" },
   { title: "Plumbing", image: "/plumbing.png", href: "/commercial-plumbing", bg: "#1C2B2B" },
-  { title: "Roofing", image: "/roofing.png", href: "#contact", bg: "#1C2B2B" },
+  { title: "Roofing", image: "/roofing.png", href: "/commercial-roofing", bg: "#1C2B2B" },
 ];
 
 export default function IndustrySelector() {

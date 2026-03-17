@@ -52,11 +52,18 @@ export default function CTA() {
     fontFamily: "'DM Mono', monospace",
     fontSize: 10,
     letterSpacing: "1.5px",
-    textTransform: "uppercase" as const,
+    textTransform: "uppercase",
     color: "#8C8070",
     display: "block",
     marginBottom: 6,
   };
+
+  const whatYouGet = [
+    "A live territory check — available or waitlisted, confirmed on the call",
+    "The names and titles of the decision-makers holding the contracts you want",
+    "Your commercial buyer segments mapped by geography",
+    "A preview of your first outbound campaign — channels, copy approach, list size",
+  ];
 
   return (
     <section
@@ -65,8 +72,23 @@ export default function CTA() {
       style={{ background: "#F7F4EE", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Header */}
         <div style={{ marginBottom: 56 }}>
+          <div
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              color: "#E8A020",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
+            Book your audit
+          </div>
           <h2
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
@@ -77,22 +99,22 @@ export default function CTA() {
               marginBottom: 20,
             }}
           >
-            Your market might already be taken.<br />
-            <span style={{ color: "#E8A020" }}>Check before someone else does.</span>
+            Your market may still be open.
           </h2>
-          <p
-            style={{
-              fontSize: 15,
-              color: "#8C8070",
-              lineHeight: 1.7,
-              maxWidth: 580,
-            }}
-          >
-            Book a free 30-minute Commercial Pipeline Audit. We&apos;ll map your target market, name the decision-makers holding the contracts you want, and show you exactly what your first outbound campaign would look like. Whether we work together or not, you&apos;ll leave with a clear picture of your commercial opportunity.
-          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 580 }}>
+            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.7 }}>One client per trade, per geography.</p>
+            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.7 }}>
+              When a territory closes, the next operator in that trade goes on a waitlist.
+            </p>
+            <p style={{ fontSize: 16, color: "#1C2B2B", fontWeight: 500, lineHeight: 1.7 }}>
+              Book a free 30-minute Commercial Pipeline Audit.
+            </p>
+            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.7 }}>
+              Whether we work together or not, you&apos;ll leave with a clear picture of your commercial opportunity and whether your market is still available.
+            </p>
+          </div>
         </div>
 
-        {/* Two-column layout */}
         <div
           className="rsp-cta-grid"
           style={{
@@ -117,22 +139,10 @@ export default function CTA() {
               WHAT YOU GET ON THE CALL
             </h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {[
-                { title: "Your market mapped.", body: "We identify your top commercial buyer segments in your specific geography." },
-                { title: "Decision-makers named.", body: "We show you exactly who holds the contracts you want and how to reach them." },
-                { title: "Campaign preview.", body: "We outline your first outbound campaign — channels, copy approach, target list size." },
-                { title: "Territory check.", body: "We confirm whether your market is available. If it's taken, we put you on the waitlist." },
-              ].map((item, i) => (
+              {whatYouGet.map((item, i) => (
                 <div key={i} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
                   <span style={{ color: "#E8A020", fontSize: 14, flexShrink: 0, marginTop: 2 }}>→</span>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "#1C2B2B", marginBottom: 4 }}>
-                      {item.title}
-                    </div>
-                    <div style={{ fontSize: 13, color: "#8C8070", lineHeight: 1.5 }}>
-                      {item.body}
-                    </div>
-                  </div>
+                  <div style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.55 }}>{item}</div>
                 </div>
               ))}
             </div>
@@ -188,157 +198,124 @@ export default function CTA() {
                 >
                   ✓
                 </div>
-                <h3
-                  style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: 36,
-                    letterSpacing: "2px",
-                    color: "#1C2B2B",
-                  }}
-                >
+                <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, letterSpacing: "2px", color: "#1C2B2B" }}>
                   YOU&apos;RE IN.
                 </h3>
                 <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.6, maxWidth: 320 }}>
                   We&apos;ll review your info and reach out within 24 hours
                   {submittedEmail ? ` at ${submittedEmail}` : ""}. Kierin personally reviews every submission.
                 </p>
-                <div
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 11,
-                    color: "#E8A020",
-                    letterSpacing: "1.5px",
-                  }}
-                >
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#E8A020", letterSpacing: "1.5px" }}>
                   1 CLIENT PER MARKET — YOUR SPOT IS BEING HELD.
                 </div>
               </div>
             ) : (
-              <>
-                <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    {[
-                      { label: "First Name", name: "firstName", placeholder: "John", type: "text" },
-                      { label: "Last Name", name: "lastName", placeholder: "Smith", type: "text" },
-                    ].map((f) => (
-                      <div key={f.name}>
-                        <label style={labelStyle}>{f.label}</label>
-                        <input
-                          type={f.type}
-                          name={f.name}
-                          required
-                          placeholder={f.placeholder}
-                          style={inputStyle}
-                          onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
-                          onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Business Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      required
-                      placeholder="you@yourbusiness.com"
-                      style={inputStyle}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
-                      onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Phone</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      required
-                      placeholder="(555) 000-0000"
-                      style={inputStyle}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
-                      onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
-                    />
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Your Trade</label>
-                    <select
-                      name="trade"
-                      required
-                      style={{ ...inputStyle, appearance: "none" as const }}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
-                      onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
-                    >
-                      <option value="">Select trade...</option>
-                      {["HVAC", "Electrical", "Plumbing", "Landscaping", "Pest Control", "Roofing"].map((t) => (
-                        <option key={t} value={t}>{t}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Annual Revenue</label>
-                    <select
-                      name="revenue"
-                      style={{ ...inputStyle, appearance: "none" as const }}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
-                      onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
-                    >
-                      <option value="">Select range...</option>
-                      {["Under $500K", "$500K–$1M", "$1M–$5M", "$5M–$15M", "$15M+"].map((b) => (
-                        <option key={b} value={b}>{b}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={labelStyle}>Top Challenge</label>
-                    <select
-                      name="challenge"
-                      style={{ ...inputStyle, appearance: "none" as const }}
-                      onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
-                      onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
-                    >
-                      <option value="">Select challenge...</option>
-                      {[
-                        "No commercial leads",
-                        "Can't reach facility managers",
-                        "No outbound process",
-                        "Want to reduce referral dependency",
-                        "Other",
-                      ].map((c) => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={formState === "submitting"}
-                    style={{
-                      width: "100%",
-                      padding: "16px",
-                      background: formState === "error" ? "#CC3311" : "#E8A020",
-                      color: "#F7F4EE",
-                      border: "none",
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: 12,
-                      letterSpacing: "1.5px",
-                      fontWeight: 500,
-                      cursor: formState === "submitting" ? "not-allowed" : "pointer",
-                      opacity: formState === "submitting" ? 0.7 : 1,
-                      transition: "background 0.15s, opacity 0.15s",
-                    }}
-                    onMouseEnter={(e) => { if (formState === "idle") (e.currentTarget.style.background = "#F0AA30"); }}
-                    onMouseLeave={(e) => { if (formState === "idle") (e.currentTarget.style.background = "#E8A020"); }}
+              <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {[
+                    { label: "First Name", name: "firstName", placeholder: "John", type: "text" },
+                    { label: "Last Name", name: "lastName", placeholder: "Smith", type: "text" },
+                  ].map((f) => (
+                    <div key={f.name}>
+                      <label style={labelStyle}>{f.label}</label>
+                      <input
+                        type={f.type}
+                        name={f.name}
+                        required
+                        placeholder={f.placeholder}
+                        style={inputStyle}
+                        onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
+                        onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <label style={labelStyle}>Business Email</label>
+                  <input
+                    type="email" name="email" required placeholder="you@yourbusiness.com"
+                    style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
+                    onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Phone</label>
+                  <input
+                    type="tel" name="phone" required placeholder="(555) 000-0000"
+                    style={inputStyle}
+                    onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
+                    onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>Your Trade</label>
+                  <select
+                    name="trade" required
+                    style={{ ...inputStyle, appearance: "none" }}
+                    onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
+                    onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
                   >
-                    {formState === "submitting"
-                      ? "SENDING..."
-                      : formState === "error"
-                      ? "FAILED — TRY AGAIN"
-                      : "BOOK MY FREE PIPELINE AUDIT →"}
-                  </button>
-                  <p style={{ textAlign: "center", fontSize: 11, color: "#8C8070" }}>
-                    No credit card. No commitment. We review every submission personally.
-                  </p>
-                </form>
-              </>
+                    <option value="">Select trade...</option>
+                    {["HVAC", "Commercial Cleaning", "Tree Care", "Waste Management", "Landscaping", "Pest Control", "Plumbing", "Roofing"].map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Annual Revenue</label>
+                  <select
+                    name="revenue"
+                    style={{ ...inputStyle, appearance: "none" }}
+                    onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
+                    onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
+                  >
+                    <option value="">Select range...</option>
+                    {["Under $500K", "$500K\u2013$1M", "$1M\u2013$5M", "$5M\u2013$15M", "$15M+"].map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={labelStyle}>Top Challenge</label>
+                  <select
+                    name="challenge"
+                    style={{ ...inputStyle, appearance: "none" }}
+                    onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
+                    onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
+                  >
+                    <option value="">Select challenge...</option>
+                    {["No commercial leads", "Can't reach facility managers", "No outbound process", "Want to reduce referral dependency", "Other"].map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="submit"
+                  disabled={formState === "submitting"}
+                  style={{
+                    width: "100%",
+                    padding: "16px",
+                    background: formState === "error" ? "#CC3311" : "#E8A020",
+                    color: "#F7F4EE",
+                    border: "none",
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 12,
+                    letterSpacing: "1.5px",
+                    fontWeight: 500,
+                    cursor: formState === "submitting" ? "not-allowed" : "pointer",
+                    opacity: formState === "submitting" ? 0.7 : 1,
+                    transition: "background 0.15s, opacity 0.15s",
+                  }}
+                  onMouseEnter={(e) => { if (formState === "idle") (e.currentTarget.style.background = "#F0AA30"); }}
+                  onMouseLeave={(e) => { if (formState === "idle") (e.currentTarget.style.background = "#E8A020"); }}
+                >
+                  {formState === "submitting" ? "SENDING..." : formState === "error" ? "FAILED — TRY AGAIN" : "CLAIM YOUR TERRITORY →"}
+                </button>
+                <p style={{ textAlign: "center", fontSize: 11, color: "#8C8070" }}>
+                  No credit card. No commitment. We review every submission personally.
+                </p>
+              </form>
             )}
           </div>
         </div>

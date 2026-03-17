@@ -2,49 +2,45 @@ export default function EssentialSection() {
   return (
     <section
       style={{
-        background: "#F7F4EE",
-        padding: "88px 40px",
-        borderBottom: "1px solid #C8C1B3",
+        background: "#1C2B2B",
+        padding: "100px 40px",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
     >
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "760px", margin: "0 auto" }}>
         <h2
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "clamp(44px, 6vw, 88px)",
-            color: "#1C1C1E",
-            lineHeight: 1,
-            letterSpacing: "2px",
-            marginBottom: 4,
+            fontSize: "clamp(40px, 6vw, 80px)",
+            color: "#F7F4EE",
+            lineHeight: 1.05,
+            letterSpacing: "1.5px",
+            marginBottom: 56,
           }}
         >
-          You keep the world running.
+          On a slow Tuesday, when your guys are texting you asking what&apos;s next—
         </h2>
-        <h2
-          style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "clamp(44px, 6vw, 88px)",
-            color: "#D4820A",
-            lineHeight: 1,
-            letterSpacing: "2px",
-            marginBottom: 40,
-          }}
-        >
-          Nobody&apos;s filling your commercial calendar.
-        </h2>
-        <p
-          style={{
-            maxWidth: 600,
-            color: "#8C8070",
-            fontSize: 17,
-            lineHeight: 1.75,
-          }}
-        >
-          The cleaning crews. The waste haulers. The HVAC techs. The arborists.
-          Nobody notices when you&apos;re doing your job. Everybody notices when
-          you stop. You run excellent operations with capacity to grow. What you
-          don&apos;t have is a commercial pipeline. That&apos;s what we do.
-        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 28, fontSize: 18, lineHeight: 1.8 }}>
+          <p style={{ color: "rgba(247,244,238,0.75)" }}>You already know what that means.</p>
+          <p style={{ color: "rgba(247,244,238,0.75)" }}>
+            You built something real. You run it well. The work is good.
+          </p>
+          <p style={{ color: "rgba(247,244,238,0.75)" }}>
+            What nobody told you is how to get in front of the buyers who could actually change your scale.
+          </p>
+          <p style={{ color: "#F7F4EE", fontWeight: 600 }}>That&apos;s not your job.</p>
+          <p
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 15,
+              color: "#E8A020",
+              letterSpacing: "1px",
+            }}
+          >
+            It&apos;s ours.
+          </p>
+        </div>
       </div>
     </section>
   );

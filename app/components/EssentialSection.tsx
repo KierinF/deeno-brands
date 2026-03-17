@@ -15,23 +15,27 @@ export default function EssentialSection() {
             color: "#F7F4EE",
             lineHeight: 1.05,
             letterSpacing: "1.5px",
-            marginBottom: 56,
+            marginBottom: 40,
           }}
         >
-          On a slow Tuesday, when your guys are texting you asking what&apos;s next—
+          On a slow Tuesday, when your guys are texting you for work—
         </h2>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 28, fontSize: 18, lineHeight: 1.8 }}>
-          <p style={{ color: "rgba(247,244,238,0.75)" }}>You already know what that means.</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24, fontSize: 18, lineHeight: 1.8 }}>
           <p style={{ color: "rgba(247,244,238,0.75)" }}>
-            You built something real. You run it well. The work is good.
+            the last thing you want is an empty calendar.
           </p>
           <p style={{ color: "rgba(247,244,238,0.75)" }}>
-            What nobody told you is how to get in front of the buyers who could actually change your scale.
+            The guys getting the commercial contracts aren&apos;t better operators than you. They just got in front of the right people first.
           </p>
-          <p style={{ color: "#F7F4EE", fontWeight: 600 }}>That&apos;s not your job.</p>
-          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, color: "#E8A020", letterSpacing: "1px" }}>
-            It&apos;s ours.
+          <p style={{
+            color: "#E8A020",
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 15,
+            letterSpacing: "0.5px",
+            paddingTop: 8,
+          }}>
+            Getting you in front of those people — that&apos;s what we do.
           </p>
         </div>
       </div>

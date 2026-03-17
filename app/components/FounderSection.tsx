@@ -94,7 +94,7 @@ export default function FounderSection() {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  objectPosition: "left top",
+                  objectPosition: "20% top",
                   display: "block",
                 }}
               />

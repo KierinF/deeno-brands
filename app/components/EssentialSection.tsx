@@ -2,7 +2,7 @@ export default function EssentialSection() {
   return (
     <section
       style={{
-        background: "#1C2B2B",
+        background: "#1C1C1E",
         padding: "100px 40px",
         borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
@@ -30,14 +30,7 @@ export default function EssentialSection() {
             What nobody told you is how to get in front of the buyers who could actually change your scale.
           </p>
           <p style={{ color: "#F7F4EE", fontWeight: 600 }}>That&apos;s not your job.</p>
-          <p
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 15,
-              color: "#E8A020",
-              letterSpacing: "1px",
-            }}
-          >
+          <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 15, color: "#E8A020", letterSpacing: "1px" }}>
             It&apos;s ours.
           </p>
         </div>

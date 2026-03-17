@@ -19,55 +19,47 @@ export default function FounderSection() {
         >
           {/* Left: eyebrow + headline + photo */}
           <div>
-            <div
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 11,
-                color: "#E8A020",
-                letterSpacing: "3px",
-                textTransform: "uppercase",
-                marginBottom: 16,
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
+            <div style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 11,
+              color: "#E8A020",
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              marginBottom: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}>
               <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
               From the founder
             </div>
-            <h2
-              style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "clamp(36px, 5vw, 64px)",
-                letterSpacing: "2px",
-                color: "#1C2B2B",
-                lineHeight: 0.95,
-                marginBottom: 40,
-              }}
-            >
-              I built this because I kept<br />
-              <span style={{ color: "#E8A020" }}>seeing the same problem.</span>
+            <h2 style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(32px, 4.5vw, 58px)",
+              letterSpacing: "1.5px",
+              color: "#1C2B2B",
+              lineHeight: 0.95,
+              marginBottom: 40,
+            }}>
+              I built this because I watched my dad fight for the same accounts
+              <span style={{ color: "#E8A020" }}> you&apos;re fighting for.</span>
             </h2>
-            <div
-              style={{
-                width: "100%",
-                aspectRatio: "4 / 3",
-                background: "#EEE9DF",
-                border: "1px solid #C8C1B3",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 10,
-                  color: "#C8C1B3",
-                  letterSpacing: "2px",
-                  textTransform: "uppercase",
-                }}
-              >
+            <div style={{
+              width: "100%",
+              aspectRatio: "4 / 3",
+              background: "#EEE9DF",
+              border: "1px solid #C8C1B3",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}>
+              <span style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 10,
+                color: "#C8C1B3",
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+              }}>
                 Photo — Kierin
               </span>
             </div>
@@ -75,22 +67,33 @@ export default function FounderSection() {
 
           {/* Right: copy */}
           <div style={{ display: "flex", flexDirection: "column", gap: 20, color: "#8C8070", fontSize: 16, lineHeight: 1.85 }}>
-            <p>I kept watching good operators get taken by bad agencies.</p>
+            <p>I grew up on job sites. My dad owned a construction company.</p>
             <p>
-              Operators who ran excellent businesses — handing money to agencies that couldn&apos;t tell a facility manager from a property manager.
+              I watched him run an excellent operation and fight for every commercial account. He was better than the guys getting the contracts. He just couldn&apos;t get in the room.
             </p>
             <p>
-              I&apos;ve sat across the table from facility managers. I&apos;ve run the campaigns. I&apos;ve acquired a trades business and tried to fill its commercial calendar myself — which is exactly how I learned what doesn&apos;t work.
-            </p>
-            <p>
-              I built Deeno for the operator I kept meeting — the one who runs a tight ship and just needs someone to fill the other side of the calendar.
+              I got into tech and spent years learning how the best companies in the world find their buyers. The tools exist. The playbooks exist.
             </p>
             <p style={{ color: "#1C2B2B", fontWeight: 600, fontSize: 17, marginTop: 8 }}>
-              That&apos;s the only client we take.
+              Nobody had brought them to trades.
+            </p>
+            <p style={{
+              fontFamily: "'Bebas Neue', sans-serif",
+              fontSize: "clamp(32px, 4vw, 52px)",
+              color: "#E8A020",
+              letterSpacing: "2px",
+              lineHeight: 1,
+              marginTop: 4,
+              marginBottom: 8,
+            }}>
+              So I did.
+            </p>
+            <p style={{ color: "#8C8070", marginTop: 8 }}>
+              Deeno is for the operator my dad was — the one who does excellent work and just needs someone to get him in the room.
             </p>
             <div style={{ marginTop: 12, paddingTop: 20, borderTop: "1px solid #C8C1B3" }}>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#8C8070", letterSpacing: "1px" }}>
-                — Kierin, Founder
+                — Kierin
               </div>
             </div>
           </div>

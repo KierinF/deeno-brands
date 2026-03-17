@@ -79,10 +79,7 @@ export default function FounderSection() {
           </div>
 
           {/* Right: photo */}
-          <div style={{
-            position: "sticky",
-            top: 40,
-          }}>
+          <div style={{ position: "sticky", top: 40 }}>
             <div style={{
               width: "100%",
               aspectRatio: "3 / 4",
@@ -97,7 +94,7 @@ export default function FounderSection() {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
-                  objectPosition: "center top",
+                  objectPosition: "left top",
                   display: "block",
                 }}
               />

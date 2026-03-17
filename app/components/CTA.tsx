@@ -257,7 +257,7 @@ export default function CTA() {
                     onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
                   >
                     <option value="">Select trade...</option>
-                    {["HVAC", "Commercial Cleaning", "Tree Care", "Waste Management", "Landscaping", "Pest Control", "Plumbing", "Roofing"].map((t) => (
+                    {["HVAC", "Commercial Cleaning", "Tree Care", "Waste Management", "Landscaping", "Pest Control", "Plumbing", "Roofing", "Other"].map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>

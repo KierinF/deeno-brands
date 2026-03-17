@@ -4,11 +4,14 @@ import { useState, useEffect, useRef } from "react";
 
 const industries = [
   { label: "Commercial HVAC", href: "/commercial-hvac" },
+  { label: "Commercial Cleaning", href: "/commercial-cleaning" },
   { label: "Commercial Electrical", href: "/commercial-electrical" },
   { label: "Commercial Plumbing", href: "/commercial-plumbing" },
   { label: "Commercial Landscaping", href: "/commercial-landscaping" },
   { label: "Commercial Pest Control", href: "/commercial-pest-control" },
-  { label: "Commercial Roofing", href: "/#contact" },
+  { label: "Commercial Roofing", href: "/commercial-roofing" },
+  { label: "Commercial Tree Care", href: "/commercial-tree-care" },
+  { label: "Commercial Waste Management", href: "/commercial-waste-management" },
 ];
 
 const links = [
@@ -41,6 +44,17 @@ export default function Nav() {
   }, []);
 
   const navBg = scrolled ? "rgba(247,244,238,0.96)" : "transparent";
+
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.startsWith("/#")) {
+      const id = href.slice(2);
+      const el = document.getElementById(id);
+      if (el) {
+        e.preventDefault();
+        el.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
   return (
     <nav
@@ -121,7 +135,7 @@ export default function Nav() {
                       left: 0,
                       background: "#F7F4EE",
                       border: "1px solid #C8C1B3",
-                      minWidth: 220,
+                      minWidth: 240,
                       marginTop: 4,
                       zIndex: 200,
                       boxShadow: "0 4px 16px rgba(28,43,43,0.08)",
@@ -162,6 +176,7 @@ export default function Nav() {
               <a
                 key={l.label}
                 href={l.href}
+                onClick={(e) => handleNavClick(e, l.href)}
                 style={{
                   fontFamily: "'DM Mono', monospace",
                   fontSize: 11,
@@ -208,7 +223,8 @@ export default function Nav() {
             CLIENT LOGIN
           </a>
           <a
-            href="#contact"
+            href="/#contact"
+            onClick={(e) => handleNavClick(e, "/#contact")}
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 11,
@@ -262,7 +278,7 @@ export default function Nav() {
             <a
               key={l.label}
               href={l.href}
-              onClick={() => setMobileOpen(false)}
+              onClick={(e) => { handleNavClick(e, l.href); setMobileOpen(false); }}
               style={{
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 12,
@@ -309,8 +325,8 @@ export default function Nav() {
             CLIENT LOGIN
           </a>
           <a
-            href="#contact"
-            onClick={() => setMobileOpen(false)}
+            href="/#contact"
+            onClick={(e) => { handleNavClick(e, "/#contact"); setMobileOpen(false); }}
             style={{
               fontFamily: "'DM Mono', monospace",
               fontSize: 12,

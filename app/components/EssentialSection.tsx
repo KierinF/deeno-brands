@@ -23,7 +23,7 @@ export default function EssentialSection() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24, fontSize: 18, lineHeight: 1.8 }}>
           <p style={{ color: "rgba(247,244,238,0.75)" }}>
-            the last thing you want is an empty calendar.
+            The last thing you want is an empty calendar.
           </p>
           <p style={{ color: "rgba(247,244,238,0.75)" }}>
             The guys getting the commercial contracts aren&apos;t better operators than you. They just got in front of the right people first.

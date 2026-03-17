@@ -1,6 +1,6 @@
 export default function ProofSection() {
   return (
-    <section style={{ background: "#F7F4EE", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}>
+    <section id="proof" style={{ background: "#F7F4EE", borderBottom: "1px solid #C8C1B3", padding: "80px 40px" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{
           display: "grid",
@@ -114,12 +114,12 @@ export default function ProofSection() {
                 Boutique tree care and shrub management serving estate and commercial properties across the Hamptons. Strong local reputation, limited commercial pipeline.
               </p>
               <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.7, marginBottom: 28 }}>
-                We built their commercial ICP targeting HOA property managers, estate managers, and commercial facility directors across Southampton, East Hampton, and Bridgehampton. Cold email, LinkedIn, and direct mail running simultaneously.
+                We built their commercial ICP targeting HOA property managers, estate managers, and commercial facility directors across Southampton, East Hampton, and Bridgehampton.
               </p>
 
               {/* Channels */}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 28 }}>
-                {["Cold email", "LinkedIn", "Direct mail", "Cold calling"].map((ch) => (
+                {["Direct mail", "Cold calling"].map((ch) => (
                   <span key={ch} style={{
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 9,
@@ -144,7 +144,7 @@ export default function ProofSection() {
                 border: "1px solid #C8C1B3",
               }}>
                 {[
-                  { label: "Campaign launched", value: "March 2025" },
+                  { label: "Campaign launched", value: "March 2026" },
                   { label: "Territory", value: "Exclusive" },
                   { label: "Target buyers", value: "HOAs + Estates" },
                   { label: "Results", value: "Reporting soon" },

@@ -1,6 +1,7 @@
 export default function FounderSection() {
   return (
     <section
+      id="about"
       style={{
         background: "#F7F4EE",
         padding: "100px 40px",

@@ -1,3 +1,5 @@
+"use client";
+
 const stats = [
   { value: "1", label: "Client per market", caption: "Your territory. Exclusive from day one." },
   { value: "Agreed", label: "Meeting target", caption: "Miss it? We work free until we hit it." },

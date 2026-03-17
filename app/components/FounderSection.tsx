@@ -79,28 +79,28 @@ export default function FounderSection() {
           </div>
 
           {/* Right: photo */}
-          <div>
+          <div style={{
+            position: "sticky",
+            top: 40,
+          }}>
             <div style={{
               width: "100%",
-              aspectRatio: "4 / 3",
-              background: "#EEE9DF",
-              border: "1px solid #C8C1B3",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              aspectRatio: "3 / 4",
               overflow: "hidden",
+              border: "1px solid #C8C1B3",
             }}>
-              {/* Replace src with your photo path once uploaded to /public */}
-              {/* <img src="/kierin.jpg" alt="Kierin" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> */}
-              <span style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 10,
-                color: "#C8C1B3",
-                letterSpacing: "2px",
-                textTransform: "uppercase",
-              }}>
-                Photo — Kierin
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/kierin.png"
+                alt="Kierin, Founder of Deeno Brands"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center top",
+                  display: "block",
+                }}
+              />
             </div>
           </div>
         </div>

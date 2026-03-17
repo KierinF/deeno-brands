@@ -65,7 +65,7 @@ export default function Hero() {
           }}
         >
           <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
-          B2B Pipeline Development for Trades Businesses
+          B2B Pipeline Development — Essential Service Businesses
         </div>
 
         {/* Headline */}

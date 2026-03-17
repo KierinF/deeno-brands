@@ -17,7 +17,7 @@ export default function FounderSection() {
             alignItems: "start",
           }}
         >
-          {/* Left: eyebrow + headline + photo */}
+          {/* Left: eyebrow + headline + copy */}
           <div>
             <div style={{
               fontFamily: "'DM Mono', monospace",
@@ -44,6 +44,42 @@ export default function FounderSection() {
               I built this because I watched my dad fight for the same accounts
               <span style={{ color: "#E8A020" }}> you&apos;re fighting for.</span>
             </h2>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 20, color: "#8C8070", fontSize: 16, lineHeight: 1.85 }}>
+              <p>I grew up on job sites. My dad owned a construction company.</p>
+              <p>
+                I watched him run an excellent operation and fight for every commercial account. He was better than the guys getting the contracts. He just couldn&apos;t get in the room.
+              </p>
+              <p>
+                I got into tech and spent years learning how the best companies in the world find their buyers. The tools exist. The playbooks exist.
+              </p>
+              <p style={{ color: "#1C2B2B", fontWeight: 600, fontSize: 17, marginTop: 8 }}>
+                Nobody had brought them to trades.
+              </p>
+              <p style={{
+                fontFamily: "'Bebas Neue', sans-serif",
+                fontSize: "clamp(32px, 4vw, 52px)",
+                color: "#E8A020",
+                letterSpacing: "2px",
+                lineHeight: 1,
+                marginTop: 4,
+                marginBottom: 8,
+              }}>
+                So I did.
+              </p>
+              <p style={{ color: "#8C8070", marginTop: 8 }}>
+                Deeno is for the operator my dad was — the one who does excellent work and just needs someone to get him in the room.
+              </p>
+              <div style={{ marginTop: 12, paddingTop: 20, borderTop: "1px solid #C8C1B3" }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#8C8070", letterSpacing: "1px" }}>
+                  — Kierin
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: photo */}
+          <div>
             <div style={{
               width: "100%",
               aspectRatio: "4 / 3",
@@ -52,7 +88,10 @@ export default function FounderSection() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              overflow: "hidden",
             }}>
+              {/* Replace src with your photo path once uploaded to /public */}
+              {/* <img src="/kierin.jpg" alt="Kierin" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> */}
               <span style={{
                 fontFamily: "'DM Mono', monospace",
                 fontSize: 10,
@@ -62,39 +101,6 @@ export default function FounderSection() {
               }}>
                 Photo — Kierin
               </span>
-            </div>
-          </div>
-
-          {/* Right: copy */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20, color: "#8C8070", fontSize: 16, lineHeight: 1.85 }}>
-            <p>I grew up on job sites. My dad owned a construction company.</p>
-            <p>
-              I watched him run an excellent operation and fight for every commercial account. He was better than the guys getting the contracts. He just couldn&apos;t get in the room.
-            </p>
-            <p>
-              I got into tech and spent years learning how the best companies in the world find their buyers. The tools exist. The playbooks exist.
-            </p>
-            <p style={{ color: "#1C2B2B", fontWeight: 600, fontSize: 17, marginTop: 8 }}>
-              Nobody had brought them to trades.
-            </p>
-            <p style={{
-              fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: "clamp(32px, 4vw, 52px)",
-              color: "#E8A020",
-              letterSpacing: "2px",
-              lineHeight: 1,
-              marginTop: 4,
-              marginBottom: 8,
-            }}>
-              So I did.
-            </p>
-            <p style={{ color: "#8C8070", marginTop: 8 }}>
-              Deeno is for the operator my dad was — the one who does excellent work and just needs someone to get him in the room.
-            </p>
-            <div style={{ marginTop: 12, paddingTop: 20, borderTop: "1px solid #C8C1B3" }}>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#8C8070", letterSpacing: "1px" }}>
-                — Kierin
-              </div>
             </div>
           </div>
         </div>

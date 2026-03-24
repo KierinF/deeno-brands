@@ -9,8 +9,8 @@ type FilterTab = 'all' | 'priority' | 'callbacks' | 'contacted'
 async function getOutreachData(filter: FilterTab) {
   const supabase = await createClient()
 
-  // Base query: building_intelligence joined with leads
-  let query = supabase
+  // Fetch buildings
+  const { data: buildings, error } = await supabase
     .from('building_intelligence')
     .select(`
       parcel_id,
@@ -25,25 +25,34 @@ async function getOutreachData(filter: FilterTab) {
       last_signal_date,
       incumbent_name,
       incumbent_staleness,
-      owner_name,
-      leads!left(
-        id,
-        status,
-        priority,
-        last_contacted_at,
-        next_followup_at,
-        last_called_at,
-        call_count
-      )
+      owner_name
     `)
     .limit(200)
 
-  if (filter === 'priority') {
-    query = query.not('leads', 'is', null)
-  }
-
-  const { data: buildings, error } = await query
   if (error) throw error
+
+  const parcelIds = (buildings || []).map((b) => b.parcel_id)
+
+  // Fetch leads separately (no FK between building_intelligence and leads)
+  const { data: leadsData } = parcelIds.length
+    ? await supabase
+        .from('leads')
+        .select('parcel_id, id, status, priority, last_contacted_at, next_followup_at, last_called_at, call_count')
+        .in('parcel_id', parcelIds)
+    : { data: [] }
+
+  const leadsMap = Object.fromEntries((leadsData || []).map((l) => [l.parcel_id, l]))
+
+  // Attach lead to each building
+  const buildingsWithLeads = (buildings || []).map((b) => ({
+    ...b,
+    leads: leadsMap[b.parcel_id] || null,
+  }))
+
+  // Apply priority filter
+  const filtered = filter === 'priority'
+    ? buildingsWithLeads.filter((b) => b.leads !== null)
+    : buildingsWithLeads
 
   // Get tasks due today
   const today = new Date().toISOString().split('T')[0]
@@ -54,7 +63,7 @@ async function getOutreachData(filter: FilterTab) {
     .is('completed_at', null)
     .order('due_date', { ascending: true })
 
-  return { buildings: buildings || [], todayTasks: todayTasks || [] }
+  return { buildings: filtered, todayTasks: todayTasks || [] }
 }
 
 function ScoreBadge({ score }: { score: number | null }) {
@@ -109,8 +118,8 @@ export default async function OutreachPage({
     const bHasTask = parcelIdsWithTasks.has(b.parcel_id) ? 0 : 1
     if (aHasTask !== bHasTask) return aHasTask - bHasTask
 
-    const aLead = Array.isArray(a.leads) ? a.leads[0] : a.leads
-    const bLead = Array.isArray(b.leads) ? b.leads[0] : b.leads
+    const aLead = a.leads
+    const bLead = b.leads
     const aCalled = aLead?.last_called_at
     const bCalled = bLead?.last_called_at
 
@@ -330,7 +339,7 @@ export default async function OutreachPage({
           </div>
 
           {sorted.map((b) => {
-            const lead = Array.isArray(b.leads) ? b.leads[0] : b.leads
+            const lead = b.leads
             const hasTask = parcelIdsWithTasks.has(b.parcel_id)
             return (
               <Link

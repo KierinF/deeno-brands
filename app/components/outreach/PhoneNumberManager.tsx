@@ -1,7 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
+
+const DialerPanel = dynamic(() => import('./DialerPanel'), { ssr: false })
 
 type PhoneNumber = {
   id: string
@@ -15,21 +18,36 @@ type PhoneNumber = {
   marked_stale_at?: string | null
 }
 
+type DialerProps = {
+  parcelId: string
+  contactId: string
+  contactName: string
+  buildingAddress: string
+  signalBrief: string
+  leadId?: string | null
+}
+
 type Props = {
   parcelId: string
   numbers: PhoneNumber[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: any
+  dialerProps?: DialerProps
 }
 
 const SOURCES = ['manual', 'scraped', 'whitepages', 'linkedin', 'other']
 
-export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }: Props) {
+export default function PhoneNumberManager({
+  parcelId,
+  numbers: initialNumbers,
+  dialerProps,
+}: Props) {
   const [numbers, setNumbers] = useState<PhoneNumber[]>(initialNumbers)
   const [showAdd, setShowAdd] = useState(false)
   const [newNumber, setNewNumber] = useState('')
   const [newSource, setNewSource] = useState('manual')
   const [adding, setAdding] = useState(false)
+  const [activeDialNumber, setActiveDialNumber] = useState<string | null>(null)
   const supabase = createClient()
 
   async function markStale(id: string) {
@@ -46,9 +64,7 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
 
   async function markBad(id: string) {
     await supabase.from('phone_numbers').update({ status: 'bad' }).eq('id', id)
-    setNumbers((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, status: 'bad' } : n))
-    )
+    setNumbers((prev) => prev.map((n) => (n.id === id ? { ...n, status: 'bad' } : n)))
   }
 
   async function addNumber() {
@@ -65,9 +81,7 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
       })
       .select()
       .single()
-    if (data) {
-      setNumbers((prev) => [...prev, data])
-    }
+    if (data) setNumbers((prev) => [...prev, data])
     setNewNumber('')
     setShowAdd(false)
     setAdding(false)
@@ -80,7 +94,7 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
   }
 
   const inputStyle = {
-    padding: '8px 10px',
+    padding: '7px 10px',
     background: '#FFFFFF',
     border: '1px solid #C8C1B3',
     fontFamily: "'DM Mono', monospace",
@@ -92,17 +106,27 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
   return (
     <div>
       {numbers.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
           {numbers.map((num) => (
-            <div
-              key={num.id}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 10,
-                flexWrap: 'wrap',
-              }}
-            >
+            <div key={num.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {dialerProps && num.status !== 'bad' && (
+                <button
+                  onClick={() => setActiveDialNumber(num.number)}
+                  style={{
+                    padding: '4px 10px',
+                    background: '#E8A020',
+                    color: '#F7F4EE',
+                    border: 'none',
+                    fontFamily: "'DM Mono', monospace",
+                    fontSize: 10,
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  CALL
+                </button>
+              )}
               <span
                 style={{
                   fontFamily: "'DM Mono', monospace",
@@ -120,7 +144,7 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
                     fontSize: 9,
                     letterSpacing: '1px',
                     color: '#C8C1B3',
-                    padding: '2px 6px',
+                    padding: '2px 5px',
                     border: '1px solid #C8C1B3',
                   }}
                 >
@@ -133,11 +157,8 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 9,
                     letterSpacing: '1px',
-                    color:
-                      num.status === 'bad'
-                        ? '#C0392B'
-                        : '#8C8070',
-                    padding: '2px 6px',
+                    color: num.status === 'bad' ? '#C0392B' : '#8C8070',
+                    padding: '2px 5px',
                     border: `1px solid ${num.status === 'bad' ? '#C0392B' : '#8C8070'}`,
                   }}
                 >
@@ -149,34 +170,22 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
                   <button
                     onClick={() => markStale(num.id)}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: 9,
-                      letterSpacing: '1px',
-                      color: '#8C8070',
-                      cursor: 'pointer',
-                      padding: 0,
-                      textDecoration: 'underline',
+                      background: 'none', border: 'none',
+                      fontFamily: "'DM Mono', monospace", fontSize: 9,
+                      color: '#8C8070', cursor: 'pointer', padding: 0, textDecoration: 'underline',
                     }}
                   >
-                    mark stale
+                    stale
                   </button>
                   <button
                     onClick={() => markBad(num.id)}
                     style={{
-                      background: 'none',
-                      border: 'none',
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: 9,
-                      letterSpacing: '1px',
-                      color: '#C0392B',
-                      cursor: 'pointer',
-                      padding: 0,
-                      textDecoration: 'underline',
+                      background: 'none', border: 'none',
+                      fontFamily: "'DM Mono', monospace", fontSize: 9,
+                      color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline',
                     }}
                   >
-                    bad number
+                    bad
                   </button>
                 </>
               )}
@@ -189,14 +198,9 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
         <button
           onClick={() => setShowAdd(true)}
           style={{
-            background: 'none',
-            border: 'none',
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 10,
-            letterSpacing: '1.5px',
-            color: '#E8A020',
-            cursor: 'pointer',
-            padding: 0,
+            background: 'none', border: 'none',
+            fontFamily: "'DM Mono', monospace", fontSize: 10,
+            letterSpacing: '1.5px', color: '#E8A020', cursor: 'pointer', padding: 0,
           }}
         >
           + ADD NUMBER
@@ -210,31 +214,17 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
             value={newNumber}
             onChange={(e) => setNewNumber(e.target.value)}
             placeholder="+1 555 000 0000"
-            style={{ ...inputStyle, width: 160 }}
+            style={{ ...inputStyle, width: 152 }}
           />
-          <select
-            value={newSource}
-            onChange={(e) => setNewSource(e.target.value)}
-            style={{ ...inputStyle }}
-          >
-            {SOURCES.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
+          <select value={newSource} onChange={(e) => setNewSource(e.target.value)} style={{ ...inputStyle }}>
+            {SOURCES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <button
             onClick={addNumber}
             disabled={adding}
             style={{
-              padding: '8px 14px',
-              background: '#E8A020',
-              color: '#F7F4EE',
-              border: 'none',
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
-              cursor: 'pointer',
-              letterSpacing: '1px',
+              padding: '7px 12px', background: '#E8A020', color: '#F7F4EE', border: 'none',
+              fontFamily: "'DM Mono', monospace", fontSize: 11, cursor: 'pointer', letterSpacing: '1px',
             }}
           >
             {adding ? '...' : 'ADD'}
@@ -242,18 +232,27 @@ export default function PhoneNumberManager({ parcelId, numbers: initialNumbers }
           <button
             onClick={() => setShowAdd(false)}
             style={{
-              background: 'none',
-              border: 'none',
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
-              color: '#8C8070',
-              cursor: 'pointer',
-              padding: 0,
+              background: 'none', border: 'none',
+              fontFamily: "'DM Mono', monospace", fontSize: 11,
+              color: '#8C8070', cursor: 'pointer', padding: 0,
             }}
           >
             cancel
           </button>
         </div>
+      )}
+
+      {dialerProps && activeDialNumber && (
+        <DialerPanel
+          parcelId={dialerProps.parcelId}
+          contactId={dialerProps.contactId}
+          contactName={dialerProps.contactName}
+          phoneNumber={activeDialNumber}
+          buildingAddress={dialerProps.buildingAddress}
+          signalBrief={dialerProps.signalBrief}
+          leadId={dialerProps.leadId}
+          onClose={() => setActiveDialNumber(null)}
+        />
       )}
     </div>
   )

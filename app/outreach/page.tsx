@@ -6,11 +6,13 @@ export const dynamic = 'force-dynamic'
 
 type FilterTab = 'all' | 'priority' | 'callbacks' | 'contacted'
 
-async function getOutreachData(filter: FilterTab) {
+async function getOutreachData(filter: FilterTab, page: number, pageSize: number) {
   const supabase = await createClient()
 
-  // Fetch buildings
-  const { data: buildings, error } = await supabase
+  const offset = page * pageSize
+
+  // Fetch buildings with pagination
+  const { data: buildings, error, count } = await supabase
     .from('building_intelligence')
     .select(`
       parcel_id,
@@ -26,8 +28,8 @@ async function getOutreachData(filter: FilterTab) {
       incumbent_name,
       incumbent_staleness,
       owner_name
-    `)
-    .limit(200)
+    `, { count: 'exact' })
+    .range(offset, offset + pageSize - 1)
 
   if (error) throw error
 
@@ -63,7 +65,7 @@ async function getOutreachData(filter: FilterTab) {
     .is('completed_at', null)
     .order('due_date', { ascending: true })
 
-  return { buildings: filtered, todayTasks: todayTasks || [] }
+  return { buildings: filtered, todayTasks: todayTasks || [], total: count ?? 0 }
 }
 
 function ScoreBadge({ score }: { score: number | null }) {
@@ -91,7 +93,7 @@ function ScoreBadge({ score }: { score: number | null }) {
 export default async function OutreachPage({
   searchParams,
 }: {
-  searchParams: Promise<{ filter?: string }>
+  searchParams: Promise<{ filter?: string; page?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -108,7 +110,10 @@ export default async function OutreachPage({
 
   const resolvedParams = await searchParams
   const filter = (resolvedParams.filter as FilterTab) || 'all'
-  const { buildings, todayTasks } = await getOutreachData(filter)
+  const page = Math.max(0, parseInt(resolvedParams.page || '0', 10))
+  const PAGE_SIZE = 100
+  const offset = page * PAGE_SIZE
+  const { buildings, todayTasks, total } = await getOutreachData(filter, page, PAGE_SIZE)
 
   // Sort: tasks first, then never-called (by signal_score desc), then by last_called_at asc
   const parcelIdsWithTasks = new Set(todayTasks.map((t) => t.parcel_id))
@@ -448,6 +453,47 @@ export default async function OutreachPage({
             >
               No buildings found.
             </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 24, paddingBottom: 32 }}>
+          {page > 0 && (
+            <Link
+              href={`/outreach?filter=${filter}&page=${page - 1}`}
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 11,
+                letterSpacing: '1.5px',
+                color: '#1C2B2B',
+                textDecoration: 'none',
+                padding: '8px 16px',
+                border: '1px solid #C8C1B3',
+                background: '#FFFFFF',
+              }}
+            >
+              ← PREV
+            </Link>
+          )}
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#8C8070' }}>
+            {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of {total}
+          </span>
+          {offset + PAGE_SIZE < total && (
+            <Link
+              href={`/outreach?filter=${filter}&page=${page + 1}`}
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 11,
+                letterSpacing: '1.5px',
+                color: '#1C2B2B',
+                textDecoration: 'none',
+                padding: '8px 16px',
+                border: '1px solid #C8C1B3',
+                background: '#FFFFFF',
+              }}
+            >
+              NEXT →
+            </Link>
           )}
         </div>
       </div>

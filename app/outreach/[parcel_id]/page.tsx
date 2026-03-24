@@ -5,9 +5,16 @@ import BuildingNotes from '@/app/components/outreach/BuildingNotes'
 import PhoneNumberManager from '@/app/components/outreach/PhoneNumberManager'
 import TranscriptViewer from '@/app/components/outreach/TranscriptViewer'
 import TaskSection from '@/app/components/outreach/TaskSection'
-import DialerButton from '@/app/components/outreach/DialerButton'
 
 export const dynamic = 'force-dynamic'
+
+const TYPE_ORDER: Record<string, number> = {
+  property_manager: 0,
+  owner: 1,
+  trade_referral: 2,
+  permit_applicant: 3,
+  violation_respondent: 4,
+}
 
 export default async function BuildingDetailPage({
   params,
@@ -15,7 +22,9 @@ export default async function BuildingDetailPage({
   params: Promise<{ parcel_id: string }>
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) redirect('/client-login')
 
   const { data: roleRow } = await supabase
@@ -39,16 +48,13 @@ export default async function BuildingDetailPage({
     { data: signals },
     { data: lead },
   ] = await Promise.all([
-    supabase
-      .from('building_intelligence')
-      .select('*')
-      .eq('parcel_id', parcel_id)
-      .single(),
+    supabase.from('building_intelligence').select('*').eq('parcel_id', parcel_id).single(),
     supabase
       .from('contacts')
       .select('*')
       .eq('parcel_id', parcel_id)
-      .order('confidence', { ascending: false }),
+      .order('confidence', { ascending: false })
+      .limit(10),
     supabase
       .from('phone_numbers')
       .select('*')
@@ -60,27 +66,15 @@ export default async function BuildingDetailPage({
       .eq('parcel_id', parcel_id)
       .order('contacted_at', { ascending: false })
       .limit(20),
-    supabase
-      .from('building_notes')
-      .select('body, updated_at')
-      .eq('parcel_id', parcel_id)
-      .maybeSingle(),
-    supabase
-      .from('tasks')
-      .select('*')
-      .eq('parcel_id', parcel_id)
-      .order('due_date', { ascending: true }),
+    supabase.from('building_notes').select('body, updated_at').eq('parcel_id', parcel_id).maybeSingle(),
+    supabase.from('tasks').select('*').eq('parcel_id', parcel_id).order('due_date', { ascending: true }),
     supabase
       .from('signals')
       .select('*')
       .eq('parcel_id', parcel_id)
       .order('signal_date', { ascending: false })
       .limit(5),
-    supabase
-      .from('leads')
-      .select('*')
-      .eq('parcel_id', parcel_id)
-      .maybeSingle(),
+    supabase.from('leads').select('*').eq('parcel_id', parcel_id).maybeSingle(),
   ])
 
   if (!building) {
@@ -109,21 +103,32 @@ export default async function BuildingDetailPage({
     .filter(Boolean)
     .join(' · ')
 
+  // Sort contacts: by type priority first, then confidence
+  const sortedContacts = [...(contacts || [])].sort((a, b) => {
+    const ta = TYPE_ORDER[a.contact_type?.toLowerCase() ?? ''] ?? 9
+    const tb = TYPE_ORDER[b.contact_type?.toLowerCase() ?? ''] ?? 9
+    if (ta !== tb) return ta - tb
+    return (b.confidence ?? 0) - (a.confidence ?? 0)
+  })
+
   return (
     <div style={{ minHeight: '100vh', background: '#F7F4EE' }}>
       {/* Header */}
       <header
         style={{
           background: '#1C2B2B',
-          padding: '0 32px',
-          height: 56,
+          padding: '0 24px',
+          height: 52,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: '2px solid #E8A020',
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <Link
             href="/outreach"
             style={{
@@ -139,7 +144,7 @@ export default async function BuildingDetailPage({
           <span
             style={{
               fontFamily: "'Bebas Neue', sans-serif",
-              fontSize: 24,
+              fontSize: 22,
               letterSpacing: '3px',
               color: '#E8A020',
             }}
@@ -161,88 +166,85 @@ export default async function BuildingDetailPage({
         </Link>
       </header>
 
-      <div style={{ padding: '32px', maxWidth: 960, margin: '0 auto' }}>
-        {/* Building header */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            border: '1px solid #C8C1B3',
-            padding: '24px',
-            marginBottom: 24,
-          }}
-        >
-          <div
+      {/* Building address bar */}
+      <div
+        style={{
+          background: '#FFFFFF',
+          borderBottom: '1px solid #C8C1B3',
+          padding: '14px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}
+      >
+        {building.signal_score !== null && building.signal_score !== undefined && (
+          <span
             style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'space-between',
-              gap: 16,
-              flexWrap: 'wrap',
+              display: 'inline-block',
+              padding: '3px 9px',
+              background:
+                building.signal_score >= 80
+                  ? '#E8A020'
+                  : building.signal_score >= 50
+                  ? '#1C2B2B'
+                  : '#8C8070',
+              color: '#F7F4EE',
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 12,
+              fontWeight: 700,
+              letterSpacing: '1px',
+              flexShrink: 0,
             }}
           >
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                {building.signal_score !== null && building.signal_score !== undefined && (
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      padding: '4px 10px',
-                      background:
-                        building.signal_score >= 80
-                          ? '#E8A020'
-                          : building.signal_score >= 50
-                          ? '#1C2B2B'
-                          : '#8C8070',
-                      color: '#F7F4EE',
-                      fontFamily: "'DM Mono', monospace",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      letterSpacing: '1px',
-                    }}
-                  >
-                    {building.signal_score}
-                  </span>
-                )}
-                <h1
-                  style={{
-                    fontFamily: "'Bebas Neue', sans-serif",
-                    fontSize: 28,
-                    letterSpacing: '2px',
-                    color: '#1C2B2B',
-                    margin: 0,
-                  }}
-                >
-                  {building.address}
-                </h1>
-              </div>
-              {lead && (
-                <p
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 11,
-                    color: '#8C8070',
-                    margin: 0,
-                    letterSpacing: '1px',
-                  }}
-                >
-                  {lead.status?.toUpperCase() || 'NEW'}
-                  {lead.call_count ? ` · ${lead.call_count} calls` : ''}
-                  {lead.last_called_at
-                    ? ` · Last called ${new Date(lead.last_called_at).toLocaleDateString()}`
-                    : ''}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
+            {building.signal_score}
+          </span>
+        )}
+        <h1
+          style={{
+            fontFamily: "'Bebas Neue', sans-serif",
+            fontSize: 24,
+            letterSpacing: '2px',
+            color: '#1C2B2B',
+            margin: 0,
+            flex: 1,
+          }}
+        >
+          {building.address}
+        </h1>
+        <span
+          style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 10,
+            letterSpacing: '1.5px',
+            color: '#8C8070',
+            flexShrink: 0,
+          }}
+        >
+          {lead?.status?.toUpperCase() || 'NEW'}
+          {lead?.call_count ? ` · ${lead.call_count} CALLS` : ''}
+          {lead?.last_called_at
+            ? ` · LAST ${new Date(lead.last_called_at).toLocaleDateString()}`
+            : ''}
+        </span>
+      </div>
 
-        {/* WHY THIS BUILDING */}
+      {/* Two-column body */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '380px 1fr',
+          gap: 0,
+          maxWidth: 1280,
+          margin: '0 auto',
+          minHeight: 'calc(100vh - 104px)',
+        }}
+      >
+        {/* LEFT: contacts */}
         <div
           style={{
-            background: '#FFFFFF',
-            border: '1px solid #C8C1B3',
-            padding: '20px 24px',
-            marginBottom: 24,
+            borderRight: '1px solid #C8C1B3',
+            padding: '20px 20px',
+            overflowY: 'auto',
           }}
         >
           <p
@@ -251,171 +253,15 @@ export default async function BuildingDetailPage({
               fontSize: 10,
               letterSpacing: '2px',
               color: '#8C8070',
-              marginBottom: 16,
-              margin: '0 0 16px 0',
-            }}
-          >
-            WHY THIS BUILDING
-          </p>
-          <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-            <div>
-              <p
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  letterSpacing: '1.5px',
-                  color: '#8C8070',
-                  margin: '0 0 4px 0',
-                }}
-              >
-                OPEN VIOLATIONS
-              </p>
-              <p
-                style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: 32,
-                  letterSpacing: '2px',
-                  color: building.open_violation_count > 0 ? '#E8A020' : '#1C2B2B',
-                  margin: 0,
-                }}
-              >
-                {building.open_violation_count ?? 0}
-              </p>
-            </div>
-            <div>
-              <p
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  letterSpacing: '1.5px',
-                  color: '#8C8070',
-                  margin: '0 0 4px 0',
-                }}
-              >
-                LAST SIGNAL
-              </p>
-              <p
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 13,
-                  color: '#1C2B2B',
-                  margin: 0,
-                }}
-              >
-                {building.last_signal_date
-                  ? new Date(building.last_signal_date).toLocaleDateString()
-                  : '—'}
-              </p>
-              {signals && signals.length > 0 && (
-                <p
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 10,
-                    color: '#8C8070',
-                    margin: '4px 0 0 0',
-                  }}
-                >
-                  {signals[0].signal_type}
-                </p>
-              )}
-            </div>
-            <div>
-              <p
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  letterSpacing: '1.5px',
-                  color: '#8C8070',
-                  margin: '0 0 4px 0',
-                }}
-              >
-                INCUMBENT
-              </p>
-              <p
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 13,
-                  color: '#1C2B2B',
-                  margin: 0,
-                }}
-              >
-                {building.incumbent_name || '—'}
-              </p>
-              {building.incumbent_staleness && (
-                <p
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 10,
-                    color: '#8C8070',
-                    margin: '4px 0 0 0',
-                  }}
-                >
-                  {building.incumbent_staleness}
-                </p>
-              )}
-            </div>
-            <div>
-              <p
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  letterSpacing: '1.5px',
-                  color: '#8C8070',
-                  margin: '0 0 4px 0',
-                }}
-              >
-                PM
-              </p>
-              <p
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 13,
-                  color: '#1C2B2B',
-                  margin: 0,
-                }}
-              >
-                {building.pm_name || 'Unknown'}
-              </p>
-              {building.pm_confidence && (
-                <p
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 10,
-                    color: '#8C8070',
-                    margin: '4px 0 0 0',
-                  }}
-                >
-                  {building.pm_confidence}% confidence
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* CONTACTS */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            border: '1px solid #C8C1B3',
-            padding: '20px 24px',
-            marginBottom: 24,
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 10,
-              letterSpacing: '2px',
-              color: '#8C8070',
-              margin: '0 0 16px 0',
+              margin: '0 0 12px 0',
             }}
           >
             CONTACTS
           </p>
 
-          {contacts && contacts.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {contacts.map((contact) => {
+          {sortedContacts.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {sortedContacts.map((contact) => {
                 const contactPhones = (phoneNumbers || []).filter(
                   (p) => p.contact_id === contact.id
                 )
@@ -426,39 +272,35 @@ export default async function BuildingDetailPage({
                   <div
                     key={contact.id}
                     style={{
-                      padding: '12px 16px',
-                      background: '#F7F4EE',
+                      padding: '12px 14px',
+                      background: '#FFFFFF',
                       border: '1px solid #C8C1B3',
                     }}
                   >
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        marginBottom: contactPhones.length > 0 ? 12 : 0,
-                      }}
-                    >
-                      <div>
+                    <div style={{ marginBottom: 8 }}>
+                      <span
+                        style={{
+                          fontFamily: "'DM Mono', monospace",
+                          fontSize: 13,
+                          color: '#1C2B2B',
+                          display: 'block',
+                          marginBottom: 4,
+                        }}
+                      >
+                        {name}
+                      </span>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                         <span
                           style={{
                             fontFamily: "'DM Mono', monospace",
-                            fontSize: 13,
-                            color: '#1C2B2B',
-                          }}
-                        >
-                          {name}
-                        </span>
-                        <span
-                          style={{
-                            fontFamily: "'DM Mono', monospace",
-                            fontSize: 10,
-                            color: '#8C8070',
-                            marginLeft: 10,
+                            fontSize: 9,
                             letterSpacing: '1px',
+                            color: '#F7F4EE',
+                            background: '#8C8070',
+                            padding: '2px 6px',
                           }}
                         >
-                          {contact.contact_type?.toUpperCase()}
+                          {contact.contact_type?.toUpperCase().replace('_', ' ')}
                         </span>
                         {contact.confidence && (
                           <span
@@ -466,31 +308,26 @@ export default async function BuildingDetailPage({
                               fontFamily: "'DM Mono', monospace",
                               fontSize: 10,
                               color: '#C8C1B3',
-                              marginLeft: 8,
                             }}
                           >
                             {contact.confidence}%
                           </span>
                         )}
                       </div>
-                      {contact.phone && (
-                        <DialerButton
-                          parcelId={parcel_id}
-                          contactId={contact.id}
-                          contactName={name}
-                          phoneNumber={contact.phone}
-                          buildingAddress={building.address}
-                          signalBrief={signalBrief}
-                        />
-                      )}
                     </div>
-                    {contactPhones.length > 0 && (
-                      <PhoneNumberManager
-                        parcelId={parcel_id}
-                        numbers={contactPhones}
-                        onUpdate={null}
-                      />
-                    )}
+                    <PhoneNumberManager
+                      parcelId={parcel_id}
+                      numbers={contactPhones}
+                      onUpdate={null}
+                      dialerProps={{
+                        parcelId: parcel_id,
+                        contactId: contact.id,
+                        contactName: name,
+                        buildingAddress: building.address,
+                        signalBrief,
+                        leadId: lead?.id ?? null,
+                      }}
+                    />
                   </div>
                 )
               })}
@@ -530,177 +367,201 @@ export default async function BuildingDetailPage({
           )}
         </div>
 
-        {/* NOTES */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            border: '1px solid #C8C1B3',
-            padding: '20px 24px',
-            marginBottom: 24,
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 10,
-              letterSpacing: '2px',
-              color: '#8C8070',
-              margin: '0 0 12px 0',
-            }}
-          >
-            NOTES
-          </p>
-          <BuildingNotes
-            parcelId={parcel_id}
-            initialBody={buildingNotes?.body || ''}
-          />
-        </div>
+        {/* RIGHT: context + notes + tasks + activity */}
+        <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-        {/* TASKS */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            border: '1px solid #C8C1B3',
-            padding: '20px 24px',
-            marginBottom: 24,
-          }}
-        >
-          <p
+          {/* WHY THIS BUILDING */}
+          <div
             style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 10,
-              letterSpacing: '2px',
-              color: '#8C8070',
-              margin: '0 0 12px 0',
+              background: '#FFFFFF',
+              border: '1px solid #C8C1B3',
+              padding: '16px 20px',
             }}
           >
-            TASKS
-          </p>
-          <TaskSection parcelId={parcel_id} initialTasks={tasks || []} />
-        </div>
+            <p
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 10,
+                letterSpacing: '2px',
+                color: '#8C8070',
+                margin: '0 0 12px 0',
+              }}
+            >
+              WHY THIS BUILDING
+            </p>
+            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+              <div>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', margin: '0 0 3px 0' }}>
+                  OPEN VIOLATIONS
+                </p>
+                <p style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, color: building.open_violation_count > 0 ? '#E8A020' : '#1C2B2B', margin: 0 }}>
+                  {building.open_violation_count ?? 0}
+                </p>
+              </div>
+              <div>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', margin: '0 0 3px 0' }}>
+                  LAST SIGNAL
+                </p>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#1C2B2B', margin: 0 }}>
+                  {building.last_signal_date
+                    ? new Date(building.last_signal_date).toLocaleDateString()
+                    : '—'}
+                </p>
+                {signals && signals[0] && (
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#8C8070', margin: '3px 0 0 0' }}>
+                    {signals[0].signal_type}
+                  </p>
+                )}
+              </div>
+              <div>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', margin: '0 0 3px 0' }}>
+                  INCUMBENT
+                </p>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#1C2B2B', margin: 0 }}>
+                  {building.incumbent_name || '—'}
+                </p>
+                {building.incumbent_staleness && (
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#8C8070', margin: '3px 0 0 0' }}>
+                    {building.incumbent_staleness}
+                  </p>
+                )}
+              </div>
+              <div>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', margin: '0 0 3px 0' }}>
+                  PM
+                </p>
+                <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#1C2B2B', margin: 0 }}>
+                  {building.pm_name || 'Unknown'}
+                </p>
+                {building.pm_confidence && (
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#8C8070', margin: '3px 0 0 0' }}>
+                    {building.pm_confidence}% confidence
+                  </p>
+                )}
+              </div>
+              {building.building_sqft && (
+                <div>
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', margin: '0 0 3px 0' }}>
+                    SIZE
+                  </p>
+                  <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#1C2B2B', margin: 0 }}>
+                    {Number(building.building_sqft).toLocaleString()} sqft
+                  </p>
+                  {building.floors && (
+                    <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#8C8070', margin: '3px 0 0 0' }}>
+                      {building.floors} floors
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
-        {/* ACTIVITY LOG */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            border: '1px solid #C8C1B3',
-            padding: '20px 24px',
-          }}
-        >
-          <p
-            style={{
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 10,
-              letterSpacing: '2px',
-              color: '#8C8070',
-              margin: '0 0 16px 0',
-            }}
-          >
-            ACTIVITY LOG
-          </p>
-          {activityLog && activityLog.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {activityLog.map((entry, i) => (
-                <div
-                  key={entry.id}
-                  style={{
-                    padding: '14px 0',
-                    borderBottom:
-                      i < activityLog.length - 1 ? '1px solid #C8C1B3' : 'none',
-                  }}
-                >
+          {/* NOTES */}
+          <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '16px 20px' }}>
+            <p
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 10,
+                letterSpacing: '2px',
+                color: '#8C8070',
+                margin: '0 0 10px 0',
+              }}
+            >
+              NOTES
+            </p>
+            <BuildingNotes parcelId={parcel_id} initialBody={buildingNotes?.body || ''} />
+          </div>
+
+          {/* TASKS */}
+          <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '16px 20px' }}>
+            <p
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 10,
+                letterSpacing: '2px',
+                color: '#8C8070',
+                margin: '0 0 10px 0',
+              }}
+            >
+              TASKS
+            </p>
+            <TaskSection parcelId={parcel_id} initialTasks={tasks || []} />
+          </div>
+
+          {/* ACTIVITY LOG */}
+          <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '16px 20px' }}>
+            <p
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 10,
+                letterSpacing: '2px',
+                color: '#8C8070',
+                margin: '0 0 12px 0',
+              }}
+            >
+              ACTIVITY LOG
+            </p>
+            {activityLog && activityLog.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {activityLog.map((entry, i) => (
                   <div
+                    key={entry.id}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 12,
-                      marginBottom: 6,
-                      flexWrap: 'wrap',
+                      padding: '12px 0',
+                      borderBottom: i < activityLog.length - 1 ? '1px solid #C8C1B3' : 'none',
                     }}
                   >
-                    <span
-                      style={{
-                        fontFamily: "'DM Mono', monospace",
-                        fontSize: 10,
-                        letterSpacing: '1px',
-                        color: '#F7F4EE',
-                        background:
-                          entry.outcome === 'connected'
-                            ? '#1C2B2B'
-                            : entry.outcome === 'voicemail'
-                            ? '#8C8070'
-                            : '#C8C1B3',
-                        padding: '2px 8px',
-                      }}
-                    >
-                      {entry.outcome?.toUpperCase() || 'CALL'}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "'DM Mono', monospace",
-                        fontSize: 11,
-                        color: '#8C8070',
-                      }}
-                    >
-                      {entry.contacted_at
-                        ? new Date(entry.contacted_at).toLocaleString()
-                        : ''}
-                    </span>
-                    {entry.duration_secs && (
-                      <span
-                        style={{
-                          fontFamily: "'DM Mono', monospace",
-                          fontSize: 11,
-                          color: '#8C8070',
-                        }}
-                      >
-                        {Math.floor(entry.duration_secs / 60)}m{entry.duration_secs % 60}s
-                      </span>
-                    )}
-                    {entry.direction && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6, flexWrap: 'wrap' }}>
                       <span
                         style={{
                           fontFamily: "'DM Mono', monospace",
                           fontSize: 10,
-                          color: '#C8C1B3',
                           letterSpacing: '1px',
+                          color: '#F7F4EE',
+                          background:
+                            entry.outcome === 'connected'
+                              ? '#1C2B2B'
+                              : entry.outcome === 'voicemail'
+                              ? '#8C8070'
+                              : '#C8C1B3',
+                          padding: '2px 8px',
                         }}
                       >
-                        {entry.direction.toUpperCase()}
+                        {entry.outcome?.toUpperCase() || 'CALL'}
                       </span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: '#8C8070' }}>
+                        {entry.contacted_at ? new Date(entry.contacted_at).toLocaleString() : ''}
+                      </span>
+                      {entry.duration_secs && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: '#8C8070' }}>
+                          {Math.floor(entry.duration_secs / 60)}m{entry.duration_secs % 60}s
+                        </span>
+                      )}
+                      {entry.direction && (
+                        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#C8C1B3', letterSpacing: '1px' }}>
+                          {entry.direction.toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    {entry.notes && (
+                      <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#1C2B2B', margin: '0 0 8px 0', lineHeight: 1.6 }}>
+                        {entry.notes}
+                      </p>
                     )}
+                    <TranscriptViewer
+                      transcript={entry.transcript || null}
+                      recordingUrl={entry.recording_url || null}
+                    />
                   </div>
-                  {entry.notes && (
-                    <p
-                      style={{
-                        fontFamily: "'DM Mono', monospace",
-                        fontSize: 12,
-                        color: '#1C2B2B',
-                        margin: '0 0 8px 0',
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      {entry.notes}
-                    </p>
-                  )}
-                  <TranscriptViewer
-                    transcript={entry.transcript || null}
-                    recordingUrl={entry.recording_url || null}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 12,
-                color: '#8C8070',
-              }}
-            >
-              No activity yet.
-            </p>
-          )}
+                ))}
+              </div>
+            ) : (
+              <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#8C8070' }}>
+                No activity yet.
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>

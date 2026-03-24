@@ -27,11 +27,40 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  const pathname = request.nextUrl.pathname
+
+  // Protect /dashboard — clients only
+  if (!user && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/client-login', request.url))
   }
 
-  if (user && request.nextUrl.pathname === '/client-login') {
+  // Protect /outreach — internal/admin only
+  if (pathname.startsWith('/outreach')) {
+    if (!user) {
+      return NextResponse.redirect(new URL('/client-login', request.url))
+    }
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+    const role = roleRow?.role
+    if (role !== 'internal' && role !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
+
+  // Already logged in — redirect away from login
+  if (user && pathname === '/client-login') {
+    const { data: roleRow } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single()
+    const role = roleRow?.role
+    if (role === 'internal' || role === 'admin') {
+      return NextResponse.redirect(new URL('/outreach', request.url))
+    }
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -39,5 +68,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/client-login'],
+  matcher: ['/dashboard/:path*', '/outreach/:path*', '/client-login'],
 }

@@ -17,18 +17,33 @@ export default function ClientLoginPage() {
     setError(null)
     setLoading(true)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
 
-    setLoading(false)
-
     if (signInError) {
+      setLoading(false)
       setError(signInError.message)
-    } else {
-      router.push('/dashboard')
+      return
     }
+
+    // Check role and route accordingly
+    const userId = authData.user?.id
+    if (userId) {
+      const { data: roleRow } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .single()
+      const role = roleRow?.role
+      if (role === 'internal' || role === 'admin') {
+        router.push('/outreach')
+        return
+      }
+    }
+
+    router.push('/dashboard')
   }
 
   return (

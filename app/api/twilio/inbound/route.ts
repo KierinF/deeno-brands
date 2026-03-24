@@ -21,7 +21,6 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (phoneRecord?.parcel_id) {
-      // Get contact name
       let callerName = 'Unknown'
       if (phoneRecord.contact_id) {
         const { data: contact } = await supabase
@@ -43,8 +42,6 @@ export async function POST(request: NextRequest) {
         if (org) callerName = org.business_name || 'Unknown'
       }
 
-      // Get rep settings to send SMS notification
-      // Use first internal/admin rep (in a real setup you'd route to the assigned rep)
       const { data: repSettings } = await supabase
         .from('rep_settings')
         .select('cell_number, twilio_number')
@@ -54,7 +51,7 @@ export async function POST(request: NextRequest) {
       if (repSettings?.cell_number) {
         const buildingUrl = `${APP_BASE_URL}/outreach/${phoneRecord.parcel_id}`
         await twilioClient.messages.create({
-          body: `Inbound call from ${callerName} (${From}) re: building ${buildingUrl}`,
+          body: `📞 Incoming: ${callerName} (${From})\n${buildingUrl}`,
           from: repSettings.twilio_number || process.env.TWILIO_NUMBER!,
           to: repSettings.cell_number,
         })
@@ -64,12 +61,13 @@ export async function POST(request: NextRequest) {
     console.error('Inbound call lookup error:', err)
   }
 
-  // Try browser client first, fall back to cell
+  // Try browser client first (15s), then fall back to cell
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dial = twiml.dial({
-    timeout: '15',
+    timeout: 15,
     action: `${APP_BASE_URL}/api/twilio/fallback`,
     method: 'POST',
-  } as Parameters<typeof twiml.dial>[0])
+  } as any)
 
   dial.client('rep')
 

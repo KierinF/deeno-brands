@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
   if (parcelId) statusCallbackUrl.searchParams.set('parcel_id', parcelId)
   if (contactId) statusCallbackUrl.searchParams.set('contact_id', contactId)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dial = twiml.dial({
     callerId: TWILIO_NUMBER,
     record: 'record-from-answer',
@@ -29,13 +30,14 @@ export async function POST(request: NextRequest) {
     recordingStatusCallbackMethod: 'POST',
     action: statusCallbackUrl.toString(),
     method: 'POST',
-  } as Parameters<typeof twiml.dial>[0])
+  } as any)
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dial.number({
     statusCallback: statusCallbackUrl.toString(),
     statusCallbackMethod: 'POST',
     statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
-  } as Parameters<typeof dial.number>[0], To)
+  } as any, To)
 
   return new NextResponse(twiml.toString(), {
     headers: { 'Content-Type': 'text/xml' },

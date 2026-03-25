@@ -4,7 +4,7 @@ import OutreachListClient from '@/app/components/outreach/OutreachListClient'
 
 export const dynamic = 'force-dynamic'
 
-type FilterTab = 'properties' | 'managers' | 'owners' | 'contractors' | 'brokers'
+type FilterTab = 'properties' | 'managers' | 'owners' | 'contractors' | 'brokers' | 'incumbents'
 
 const FETCH_CHUNK = 1000
 
@@ -29,7 +29,7 @@ async function getListData(filter: FilterTab) {
   const buildings = await fetchAllRows((start) =>
     supabase
       .from('building_intelligence')
-      .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness')
+      .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness, incumbent_name, open_fines_total, total_fines')
       .not('building_class', 'like', 'Y%')
       .range(start, start + FETCH_CHUNK - 1) as any
   )
@@ -59,18 +59,28 @@ async function getListData(filter: FilterTab) {
   // For org-centric tabs, fetch relevant contacts
   let contacts: any[] = []
   if (filter === 'owners' || filter === 'contractors' || filter === 'brokers') {
-    const contactType =
-      filter === 'owners' ? 'owner' :
-      filter === 'contractors' ? 'trade_referral' : 'leasing_broker'
-    contacts = await fetchAllRows((start) =>
-      supabase
-        .from('contacts')
-        .select('parcel_id, business_name, contact_type, first_name, last_name, confidence')
-        .eq('contact_type', contactType)
-        .neq('is_bad_data', true)
-        .not('business_name', 'is', null)
-        .range(start, start + FETCH_CHUNK - 1) as any
-    )
+    if (filter === 'contractors') {
+      contacts = await fetchAllRows((start) =>
+        supabase
+          .from('contacts')
+          .select('parcel_id, business_name, contact_type, first_name, last_name, confidence, source_date')
+          .in('contact_type', ['trade_referral', 'permit_applicant'])
+          .neq('is_bad_data', true)
+          .not('business_name', 'is', null)
+          .range(start, start + FETCH_CHUNK - 1) as any
+      )
+    } else {
+      const contactType = filter === 'owners' ? 'owner' : 'leasing_broker'
+      contacts = await fetchAllRows((start) =>
+        supabase
+          .from('contacts')
+          .select('parcel_id, business_name, contact_type, first_name, last_name, confidence, source_date')
+          .eq('contact_type', contactType)
+          .neq('is_bad_data', true)
+          .not('business_name', 'is', null)
+          .range(start, start + FETCH_CHUNK - 1) as any
+      )
+    }
   }
 
   // Get tasks due today (for badge)
@@ -107,7 +117,7 @@ export default async function OutreachPage({
   const resolvedParams = await searchParams
   const rawFilter = resolvedParams.filter
   const filter: FilterTab =
-    rawFilter === 'managers' || rawFilter === 'owners' || rawFilter === 'contractors' || rawFilter === 'brokers'
+    rawFilter === 'managers' || rawFilter === 'owners' || rawFilter === 'contractors' || rawFilter === 'brokers' || rawFilter === 'incumbents'
       ? rawFilter
       : 'properties'
 

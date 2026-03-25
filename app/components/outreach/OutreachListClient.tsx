@@ -15,7 +15,7 @@ function fmtDate(dateStr: string | null | undefined) {
 
 const BuildingPanel = dynamic(() => import('./BuildingPanel'), { ssr: false })
 
-type FilterTab = 'properties' | 'managers' | 'owners' | 'contractors' | 'brokers'
+type FilterTab = 'properties' | 'managers' | 'owners' | 'contractors' | 'brokers' | 'incumbents'
 
 type Row = {
   parcel_id: string
@@ -24,6 +24,9 @@ type Row = {
   pm_name: string | null
   pm_confidence: number | null
   open_violation_count: number | null
+  open_fines_total: number | null
+  total_fines: number | null
+  incumbent_name: string | null
   incumbent_staleness: string | null
   lead: {
     id: string
@@ -42,12 +45,24 @@ type ContactRow = {
   first_name: string | null
   last_name: string | null
   confidence: number | null
+  source_date: string | null
 }
+
+function fmtFines(amount: number | null | undefined): string {
+  if (!amount) return ''
+  if (amount >= 1_000_000) return `$${(amount / 1_000_000).toFixed(1)}M`
+  if (amount >= 1_000) return `$${(amount / 1_000).toFixed(0)}k`
+  return `$${amount}`
+}
+
+const CONTRACTOR_KEYWORDS = /scaffold|construct|contrac|builder|plumb|electric|hvac|mechanical|sprinkler|suppression|fire.?prot|demolit|mason|carpent|paint|tile|glass|roofing|welding|elevator|boiler|service|install|repair|maint|management.*(?:llc|inc|corp)/i
 
 type OrgGroup = {
   name: string
   buildings: Row[]
   topScore: number
+  openFines: number
+  totalFines: number
 }
 
 const PAGE_SIZE = 100
@@ -65,6 +80,7 @@ const TABS: { key: FilterTab; label: string }[] = [
   { key: 'owners', label: 'OWNERS' },
   { key: 'contractors', label: 'CONTRACTORS' },
   { key: 'brokers', label: 'BROKERS' },
+  { key: 'incumbents', label: 'INCUMBENTS' },
 ]
 
 const STAGE_COLORS: Record<string, string> = {
@@ -100,20 +116,35 @@ export default function OutreachListClient({
     if (filter === 'properties') return []
     const q = search.trim().toLowerCase()
 
-    if (filter === 'managers') {
+    function buildingFines(buildings: Row[]) {
+      return {
+        openFines: buildings.reduce((s, r) => s + (r.open_fines_total ?? 0), 0),
+        totalFines: buildings.reduce((s, r) => s + (r.total_fines ?? 0), 0),
+      }
+    }
+
+    if (filter === 'managers' || filter === 'incumbents') {
       const groups: Map<string, Row[]> = new Map()
       for (const row of initialRows) {
-        const name = row.pm_name || '(Unknown PM)'
+        const name = filter === 'incumbents'
+          ? (row.incumbent_name || null)
+          : (row.pm_name || '(Unknown PM)')
+        if (!name) continue
         if (q && !name.toLowerCase().includes(q) && !(row.address || '').toLowerCase().includes(q)) continue
         if (!groups.has(name)) groups.set(name, [])
         groups.get(name)!.push(row)
       }
       return Array.from(groups.entries())
-        .map(([name, buildings]) => ({
-          name,
-          buildings,
-          topScore: Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)),
-        }))
+        .map(([name, rawBuildings]) => {
+          const buildings = [...rawBuildings].sort((a, b) =>
+            (b.lead?.score ?? b.signal_score ?? 0) - (a.lead?.score ?? a.signal_score ?? 0))
+          return {
+            name,
+            buildings,
+            topScore: Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)),
+            ...buildingFines(buildings),
+          }
+        })
         .sort((a, b) => b.buildings.length - a.buildings.length || b.topScore - a.topScore)
     }
 
@@ -122,6 +153,8 @@ export default function OutreachListClient({
     for (const c of (contacts || [])) {
       const name = (c.business_name || '').trim()
       if (!name) continue
+      // Filter obvious contractor names out of owners tab
+      if (filter === 'owners' && CONTRACTOR_KEYWORDS.test(name)) continue
       if (q && !name.toLowerCase().includes(q) && !(rowsByParcel[c.parcel_id]?.address || '').toLowerCase().includes(q)) continue
       if (!groups.has(name)) groups.set(name, new Set())
       groups.get(name)!.add(c.parcel_id)
@@ -136,6 +169,7 @@ export default function OutreachListClient({
           name,
           buildings,
           topScore: buildings.length ? Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)) : 0,
+          ...buildingFines(buildings),
         }
       })
       .filter(g => g.buildings.length > 0)
@@ -285,6 +319,13 @@ export default function OutreachListClient({
 
               {pageGroups.map((group) => {
                 const isExpanded = expandedOrgs.has(group.name)
+                // For incumbents tab, derive staleness from the buildings in the group
+                const stalenessValues = filter === 'incumbents'
+                  ? group.buildings.map(r => r.incumbent_staleness).filter(Boolean)
+                  : []
+                const worstStaleness = stalenessValues.includes('very_stale') ? 'very_stale'
+                  : stalenessValues.includes('stale') ? 'stale'
+                  : stalenessValues.includes('fresh') ? 'fresh' : null
                 return (
                   <div key={group.name} style={{ borderBottom: '1px solid #C8C1B3' }}>
                     {/* Org header row */}
@@ -301,31 +342,47 @@ export default function OutreachListClient({
                         padding: '10px 16px',
                         background: '#F7F4EE',
                         cursor: 'pointer',
-                        borderLeft: '3px solid #C8C1B3',
+                        borderLeft: worstStaleness === 'very_stale' ? '3px solid #C0392B'
+                          : worstStaleness === 'stale' ? '3px solid #E8A020'
+                          : '3px solid #C8C1B3',
                       }}
                     >
                       <span style={{ ...mono, fontSize: 9, color: '#8C8070', flexShrink: 0 }}>
                         {isExpanded ? '▾' : '▸'}
                       </span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ ...mono, fontSize: 12, color: '#1C2B2B', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {group.name}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <div style={{ ...mono, fontSize: 12, color: '#1C2B2B', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {group.name}
+                          </div>
+                          {worstStaleness && (
+                            <span style={{
+                              ...mono, fontSize: 8, letterSpacing: '1px',
+                              padding: '1px 5px',
+                              background: worstStaleness === 'very_stale' ? '#C0392B' : '#E8A020',
+                              color: worstStaleness === 'very_stale' ? '#FFF' : '#1C2B2B',
+                              flexShrink: 0,
+                            }}>
+                              {worstStaleness === 'very_stale' ? 'VERY STALE' : 'STALE'}
+                            </span>
+                          )}
                         </div>
                         <div style={{ ...mono, fontSize: 9, color: '#8C8070', marginTop: 2 }}>
                           {group.buildings.length} building{group.buildings.length !== 1 ? 's' : ''}
                         </div>
                       </div>
-                      {group.topScore > 0 && (
-                        <span style={{
-                          ...mono, fontSize: 10, fontWeight: 700,
-                          padding: '2px 6px',
-                          ...(group.topScore >= 70 ? { background: '#C0392B', color: '#FFFFFF' } :
-                              group.topScore >= 40 ? { background: '#E8A020', color: '#1C2B2B' } :
-                              { background: '#2E5D8E', color: '#FFFFFF' }),
-                        }}>
-                          {group.topScore}
-                        </span>
-                      )}
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2, flexShrink: 0 }}>
+                        {group.openFines > 0 && (
+                          <span style={{ ...mono, fontSize: 10, fontWeight: 700, color: '#C0392B' }}>
+                            {fmtFines(group.openFines)} open
+                          </span>
+                        )}
+                        {group.totalFines > 0 && (
+                          <span style={{ ...mono, fontSize: 9, color: '#8C8070' }}>
+                            {fmtFines(group.totalFines)} total
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Expanded building rows */}

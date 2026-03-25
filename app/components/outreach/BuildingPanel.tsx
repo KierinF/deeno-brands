@@ -107,10 +107,10 @@ function normalizeName(s: string): string {
 const CONTACT_GROUPS = [
   { key: 'property_manager',   label: 'PROPERTY MANAGERS', hint: 'Primary — decision makers for service contracts' },
   { key: 'owner',              label: 'OWNERS',            hint: 'Fallback if PM unknown or unresponsive' },
+  { key: 'leasing_broker',     label: 'BROKERS',           hint: 'Leasing brokers — know the building and often have PM relationships' },
   { key: 'tenant',             label: 'TENANTS',           hint: 'In the building daily — good referral source for PM/owner' },
   { key: 'institution',        label: 'INSTITUTIONS',      hint: 'Hospital, university, church — control their own suppression' },
-  { key: 'trade_referral',     label: 'TRADE REFERRALS',   hint: 'Contractors on site — know the PM personally' },
-  { key: 'permit_applicant',   label: 'PERMIT APPLICANTS', hint: 'Pulled permits — possible contractor relationships' },
+  { key: 'trade_referral',     label: 'CONTRACTORS',       hint: 'Contractors on site or pulled permits — know the PM personally' },
   { key: 'violation_respondent', label: 'OTHER CONTACTS',  hint: 'Unclassified or government — low priority' },
 ]
 
@@ -276,15 +276,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     return null
   }
 
-  // Score each signal, dedupe by type (keep highest score per signal_type), show top 3
+  // Score each signal, dedupe by type (keep highest score per signal_type), pick top 3, then sort by recency
   const scoredSigs = (signals || [])
     .filter((s: any) => s.is_open || !DROP_IF_CLOSED.has(s.signal_type))
     .map((s: any) => ({ sig: s, score: scoredWeight(s) }))
     .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
 
-  // Dedupe: one card per signal_type (except violation_fire — one per charge code)
+  // Dedupe: one card per signal_type (except violation_fire — one per charge code), pick top 3 by score
   const seen = new Set<string>()
-  const whyCards: WhyCard[] = []
+  const whyCardsUnsorted: (WhyCard & { date: string | null })[] = []
   for (const { sig, score } of scoredSigs) {
     const key = sig.signal_type === 'violation_fire'
       ? `violation_fire:${sig.raw_data?.charges?.[0]?.code || 'generic'}`
@@ -292,9 +292,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     if (seen.has(key)) continue
     seen.add(key)
     const card = narrativeForSig(sig, score)
-    if (card) whyCards.push(card)
-    if (whyCards.length >= 3) break
+    if (card) whyCardsUnsorted.push({ ...card, date: sig.signal_date })
+    if (whyCardsUnsorted.length >= 3) break
   }
+  // Sort the top 3 by recency (most recent first)
+  const whyCards: WhyCard[] = whyCardsUnsorted
+    .sort((a, b) => (b.date || '').localeCompare(a.date || ''))
 
   // Combo multiplier bonuses — shown as a callout if active
   const openSigTypes = new Set((signals || []).filter((s: any) => s.is_open).map((s: any) => s.signal_type))
@@ -326,10 +329,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const closedSignals = thisSignals.filter((s: any) => !s.is_open)
 
   // Group contacts by type, then sub-group by company (exclude bad data)
+  // permit_applicant merges into trade_referral (both shown as CONTRACTORS)
   const contactsByType: Record<string, any[]> = {}
   for (const c of (contacts || [])) {
     if (c.is_bad_data) continue
-    const t = (c.contact_type || 'other').toLowerCase()
+    let t = (c.contact_type || 'other').toLowerCase()
+    if (t === 'permit_applicant') t = 'trade_referral'
     if (!contactsByType[t]) contactsByType[t] = []
     contactsByType[t].push(c)
   }
@@ -391,7 +396,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   // ── Company block ─────────────────────────────────────────────────────────
 
-  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null) => {
+  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null) => {
     const org = findOrgForName(companyName) || fallbackOrg
     const orgPhones = org
       ? (phoneNumbers || []).filter((p: any) =>
@@ -410,6 +415,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
             {conf != null && conf > 0 && (
               <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{conf}%</span>
+            )}
+            {workDate && (
+              <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>work: {workDate}</span>
             )}
             {org?.phone && (
               <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{org.phone}</span>
@@ -488,7 +496,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         if (group.length === 0 && !showPmOrg) return null
 
         const isExpanded = expandedGroups.has(key)
-        const COLLAPSE_AT = (key === 'trade_referral' || key === 'permit_applicant') ? 2 : 99
+        const COLLAPSE_AT = key === 'trade_referral' ? 2 : 99
 
         const byCompany: Record<string, any[]> = {}
         const standalone: any[] = []
@@ -537,7 +545,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   entry.type === 'company'
                     ? (
                       <div key={entry.name + i} style={{ position: 'relative' }}>
-                        {renderCompanyBlock(entry.displayName || entry.name, entry.contacts)}
+                        {renderCompanyBlock(entry.displayName || entry.name, entry.contacts, undefined, undefined,
+                          key === 'trade_referral' ? (() => {
+                            const dates = entry.contacts.map((c: any) => c.source_date).filter(Boolean).sort().reverse()
+                            return dates[0] ? fmtDate(dates[0]) : null
+                          })() : null
+                        )}
                         <button
                           onClick={() => { entry.contacts.forEach((c: any) => markContactBad(c.id)) }}
                           style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}

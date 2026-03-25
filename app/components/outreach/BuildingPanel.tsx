@@ -286,7 +286,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         }
         const companies = Object.entries(byCompany)
         const allEntries = [
-          ...companies.map(([name, cs]) => ({ type: 'company', name, contacts: cs })),
+          ...companies.map(([name, cs]) => ({
+            type: 'company',
+            name, // raw business_name — used as key and for org matching
+            displayName: cs[0]?.ai_corrected_name || name, // corrected for display only
+            contacts: cs,
+          })),
           ...standalone.map(c => ({ type: 'person', contact: c })),
         ]
         const visible = isExpanded ? allEntries : allEntries.slice(0, COLLAPSE_AT)
@@ -314,7 +319,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
                 {visible.map((entry: any, i) =>
                   entry.type === 'company'
-                    ? <div key={entry.name + i}>{renderCompanyBlock(entry.name, entry.contacts)}</div>
+                    ? <div key={entry.name + i}>{renderCompanyBlock(entry.displayName || entry.name, entry.contacts)}</div>
                     : (
                       <div key={entry.contact.id} style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 14px', marginBottom: 8 }}>
                         <div style={{ ...m, fontSize: 11, color: '#1C2B2B', marginBottom: 6 }}>

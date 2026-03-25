@@ -38,7 +38,7 @@ SUPABASE_KEY = os.environ["SUPABASE_SERVICE_KEY"]  # service role key needed
 OPENAI_KEY   = os.environ["OPENAI_API_KEY"]
 
 BATCH_SIZE   = 50
-MODEL        = "gpt-4o-mini"
+MODEL        = "gpt-4.1-mini"
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 openai_client    = OpenAI(api_key=OPENAI_KEY)
@@ -138,10 +138,9 @@ def classify_batch(contacts: list[dict]) -> list[dict]:
 # ── Fetch contacts ────────────────────────────────────────────────────────────
 
 def fetch_contacts(source: str, contact_type: str, limit: Optional[int]) -> list[dict]:
-    # Join building address for better context
     q = (
         supabase.table("contacts")
-        .select("id, first_name, last_name, business_name, source, parcel_id, building_intelligence(address)")
+        .select("id, first_name, last_name, business_name, source, parcel_id")
         .eq("source", source)
         .eq("contact_type", contact_type)
         .is_("ai_classified_at", "null")
@@ -151,10 +150,21 @@ def fetch_contacts(source: str, contact_type: str, limit: Optional[int]) -> list
 
     rows = q.execute().data
 
-    # Flatten nested building address
+    # Fetch building addresses in one query for context
+    parcel_ids = list({r["parcel_id"] for r in rows if r.get("parcel_id")})
+    addr_map = {}
+    if parcel_ids:
+        bi_rows = (
+            supabase.table("building_intelligence")
+            .select("parcel_id, address")
+            .in_("parcel_id", parcel_ids)
+            .execute()
+            .data
+        )
+        addr_map = {r["parcel_id"]: r["address"] for r in bi_rows}
+
     for r in rows:
-        bi = r.pop("building_intelligence", None) or {}
-        r["building_address"] = bi.get("address", "") if isinstance(bi, dict) else ""
+        r["building_address"] = addr_map.get(r.get("parcel_id"), "")
 
     return rows
 
@@ -290,11 +300,9 @@ def apply_classifications(min_confidence: float):
             "ai_entity_type":    entity_type,
             "ai_corrected_name": corrected,
             "ai_confidence":     confidence,
+            # Never touch business_name — it's raw source data used for dedup
+            # and org matching. Use ai_corrected_name for display only.
         }
-
-        # Apply corrected business name if present
-        if corrected:
-            update["business_name"] = corrected
 
         # Only change contact_type if we have a clear mapping
         new_type = TYPE_MAP.get(entity_type)

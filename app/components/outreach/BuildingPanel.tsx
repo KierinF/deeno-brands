@@ -233,13 +233,13 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   // ── Company block ─────────────────────────────────────────────────────────
 
-  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any) => {
+  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null) => {
     const org = findOrgForName(companyName) || fallbackOrg
     const orgPhones = org
       ? (phoneNumbers || []).filter((p: any) => p.org_id === org.id)
       : []
     const noIndividuals = contactList.every((c: any) => !c.first_name)
-    const conf = org?.confidence ?? (contactList.length > 0 ? Math.max(...contactList.map((c: any) => c.confidence ?? 0)) : null)
+    const conf = confOverride ?? org?.confidence ?? (contactList.length > 0 ? Math.max(...contactList.map((c: any) => c.confidence ?? 0)) : null)
 
     return (
       <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', marginBottom: 10 }}>
@@ -370,7 +370,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               <>
                 <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
-                {showPmOrg && group.length === 0 && renderCompanyBlock(building.pm_name, [])}
+                {showPmOrg && group.length === 0 && renderCompanyBlock(building.pm_name, [], undefined, building.pm_confidence)}
 
                 {visible.map((entry: any, i) =>
                   entry.type === 'company'

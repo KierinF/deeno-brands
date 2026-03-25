@@ -14,11 +14,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const accountSid   = process.env.TWILIO_ACCOUNT_SID
-    const authToken    = process.env.TWILIO_AUTH_TOKEN
-    const twimlAppSid  = process.env.TWILIO_TWIML_APP_SID
-    const apiKeySid    = process.env.TWILIO_API_KEY_SID
-    const apiKeySecret = process.env.TWILIO_API_KEY_SECRET
+    const accountSid   = process.env.TWILIO_ACCOUNT_SID?.trim()
+    const authToken    = process.env.TWILIO_AUTH_TOKEN?.trim()
+    const twimlAppSid  = process.env.TWILIO_TWIML_APP_SID?.trim()
+    const apiKeySid    = process.env.TWILIO_API_KEY_SID?.trim()
+    const apiKeySecret = process.env.TWILIO_API_KEY_SECRET?.trim()
 
     if (!accountSid || !authToken || !twimlAppSid) {
       console.error('Missing Twilio env vars:', { accountSid: !!accountSid, authToken: !!authToken, twimlAppSid: !!twimlAppSid })

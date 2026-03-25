@@ -27,7 +27,8 @@ export async function GET(request: Request) {
     supabase.from('outreach_log').select('*').eq('parcel_id', parcel_id).order('contacted_at', { ascending: false }).limit(20),
     supabase.from('building_notes').select('body, updated_at').eq('parcel_id', parcel_id).maybeSingle(),
     supabase.from('tasks').select('*').eq('parcel_id', parcel_id).order('due_date', { ascending: true }),
-    supabase.from('signals').select('id, signal_type, signal_date, is_open, source, raw_data').eq('parcel_id', parcel_id).order('signal_date', { ascending: false }).limit(20),
+    // Fetch up to 150 signals — order open first, then by date, so violations aren't buried by proximity fires
+    supabase.from('signals').select('id, signal_type, signal_date, is_open, source, raw_data').eq('parcel_id', parcel_id).order('is_open', { ascending: false }).order('signal_date', { ascending: false }).limit(150),
     supabase.from('leads').select('*').eq('parcel_id', parcel_id).maybeSingle(),
     // Organizations: PM, owner, incumbent orgs with phone numbers
     supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),

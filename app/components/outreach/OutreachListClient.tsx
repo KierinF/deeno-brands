@@ -114,7 +114,7 @@ export default function OutreachListClient({
           buildings,
           topScore: Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)),
         }))
-        .sort((a, b) => b.topScore - a.topScore)
+        .sort((a, b) => b.buildings.length - a.buildings.length || b.topScore - a.topScore)
     }
 
     // owners / contractors / brokers — grouped from contacts

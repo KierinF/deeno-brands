@@ -47,6 +47,12 @@ export default function DialerPanel({
   async function initAndCall() {
     setState('connecting')
     setError(null)
+    // Warn if number isn't E.164 — Twilio requires +1XXXXXXXXXX
+    if (!phoneNumber.startsWith('+')) {
+      setError(`Number must be in E.164 format (e.g. +12125550000). Got: ${phoneNumber}`)
+      setState('idle')
+      return
+    }
     try {
       const { Device } = await import('@twilio/voice-sdk')
       const res = await fetch('/api/twilio/token', { method: 'POST' })
@@ -75,13 +81,16 @@ export default function DialerPanel({
         setState('ended')
         if (timerRef.current) clearInterval(timerRef.current)
       })
-      call.on('error', (err: Error) => {
-        setError(err.message)
+      call.on('error', (err: { message?: string; code?: number | string; name?: string }) => {
+        const code = err.code ? ` [${err.code}]` : ''
+        setError((err.message || err.name || 'Call error') + code)
         setState('ended')
         if (timerRef.current) clearInterval(timerRef.current)
       })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to connect')
+    } catch (err: unknown) {
+      const e = err as { message?: string; code?: number | string; name?: string }
+      const code = e.code ? ` [${e.code}]` : ''
+      setError((e.message || e.name || 'Connection failed') + code)
       setState('idle')
     }
   }

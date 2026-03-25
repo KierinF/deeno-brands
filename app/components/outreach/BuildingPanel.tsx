@@ -141,24 +141,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     building.incumbent_name ? `Incumbent: ${building.incumbent_name}` : null,
   ].filter(Boolean).join(' · ')
 
-  // Determine if a signal's address matches this building
-  const addrPrefix = (building.address || '').split(' ').slice(0, 2).join(' ').toUpperCase()
-  function isThisBuilding(sig: any) {
-    const rawAddr = sig.raw_data?.address
-    return !rawAddr || rawAddr.toUpperCase().includes(addrPrefix)
-  }
-
   // Filter signals: drop closed permits, keep closed violations + fire incidents
-  // Separate "wrong address" signals into their own bucket
-  const allFiltered = (signals || []).filter((s: any) => {
-    if (!s.is_open && DROP_IF_CLOSED.has(s.signal_type)) return false
-    return true
-  })
-
-  const thisSignals = allFiltered.filter((s: any) => isThisBuilding(s))
+  // All signals are already filtered by parcel_id (BBL), so all belong to this building
+  const thisSignals = (signals || [])
+    .filter((s: any) => {
+      if (!s.is_open && DROP_IF_CLOSED.has(s.signal_type)) return false
+      return true
+    })
     .sort((a: any, b: any) => signalWeight(b) - signalWeight(a))
-  const wrongAddrSignals = allFiltered.filter((s: any) => !isThisBuilding(s))
-    .sort((a: any, b: any) => signalWeight(b) - signalWeight(a))
+  const wrongAddrSignals: any[] = []
 
   const openSignals = thisSignals.filter((s: any) => s.is_open)
   const closedSignals = thisSignals.filter((s: any) => !s.is_open)

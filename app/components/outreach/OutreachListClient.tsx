@@ -18,6 +18,7 @@ type Row = {
   incumbent_staleness: string | null
   lead: {
     id: string
+    score: number | null
     status: string | null
     last_called_at: string | null
     call_count: number | null
@@ -180,26 +181,29 @@ export default function OutreachListClient({
                   opacity: 1,
                 }}
               >
-                {/* Score */}
+                {/* Score — use lead.score (post-multiplier) when scored; signal_score only as fallback for scored leads */}
                 <div>
-                  {row.signal_score != null ? (
-                    <span style={{
-                      ...mono, fontSize: 11, fontWeight: 700,
-                      display: 'inline-block',
-                      padding: '2px 6px',
-                      ...(row.signal_score >= 70
-                        ? { background: '#C0392B', color: '#FFFFFF' }
-                        : row.signal_score >= 40
-                        ? { background: '#E8A020', color: '#1C2B2B' }
-                        : row.signal_score > 0
-                        ? { background: '#2E5D8E', color: '#FFFFFF' }
-                        : { background: '#C8C1B3', color: '#8C8070' }),
-                    }}>
-                      {row.signal_score}
-                    </span>
-                  ) : (
-                    <span style={{ ...mono, fontSize: 10, color: '#C8C1B3' }}>—</span>
-                  )}
+                  {(() => {
+                    const displayScore = row.lead?.score ?? (row.lead ? row.signal_score : null)
+                    return displayScore != null ? (
+                      <span style={{
+                        ...mono, fontSize: 11, fontWeight: 700,
+                        display: 'inline-block',
+                        padding: '2px 6px',
+                        ...(displayScore >= 70
+                          ? { background: '#C0392B', color: '#FFFFFF' }
+                          : displayScore >= 40
+                          ? { background: '#E8A020', color: '#1C2B2B' }
+                          : displayScore > 0
+                          ? { background: '#2E5D8E', color: '#FFFFFF' }
+                          : { background: '#C8C1B3', color: '#8C8070' }),
+                      }}>
+                        {displayScore}
+                      </span>
+                    ) : (
+                      <span style={{ ...mono, fontSize: 10, color: '#C8C1B3' }}>—</span>
+                    )
+                  })()}
                 </div>
 
                 {/* Address */}

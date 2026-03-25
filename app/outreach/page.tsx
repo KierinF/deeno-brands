@@ -23,7 +23,7 @@ async function getListData(filter: FilterTab, page: number, pageSize: number) {
   const { data: leadsData } = parcelIds.length
     ? await supabase
         .from('leads')
-        .select('parcel_id, id, status, last_called_at, call_count, next_followup_at')
+        .select('parcel_id, id, score, status, last_called_at, call_count, next_followup_at')
         .in('parcel_id', parcelIds)
     : { data: [] }
 

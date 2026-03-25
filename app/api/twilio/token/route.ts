@@ -32,11 +32,12 @@ export async function POST(request: NextRequest) {
       incomingAllow: true,
     })
 
-    // Use API key if set, otherwise fall back to authToken (legacy)
+    // Use API key if available (must start with SK), otherwise fall back to accountSid/authToken
+    const hasApiKey = apiKeySid?.startsWith('SK') && !!apiKeySecret
     const accessToken = new AccessToken(
       accountSid,
-      apiKeySid    ?? accountSid,
-      apiKeySecret ?? authToken,
+      hasApiKey ? apiKeySid! : accountSid,
+      hasApiKey ? apiKeySecret! : authToken,
       { identity, ttl: 3600 }
     )
     accessToken.addGrant(voiceGrant)

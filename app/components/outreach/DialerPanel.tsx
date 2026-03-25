@@ -14,6 +14,7 @@ type Props = {
   signalBrief: string
   leadId?: string | null
   contactId?: string | null
+  onCallStarted?: () => void
   onClose: () => void
 }
 
@@ -25,6 +26,7 @@ export default function DialerPanel({
   signalBrief,
   leadId,
   contactId,
+  onCallStarted,
   onClose,
 }: Props) {
   const [state, setState] = useState<DialerState>('idle')
@@ -47,6 +49,7 @@ export default function DialerPanel({
   async function initAndCall() {
     setState('connecting')
     setError(null)
+    console.log('[Twilio] initAndCall — number:', phoneNumber, 'leadId:', leadId)
     // Warn if number isn't E.164 — Twilio requires +1XXXXXXXXXX
     if (!phoneNumber.startsWith('+')) {
       setError(`Number must be in E.164 format (e.g. +12125550000). Got: ${phoneNumber}`)
@@ -55,13 +58,30 @@ export default function DialerPanel({
     }
     try {
       const { Device } = await import('@twilio/voice-sdk')
-      const res = await fetch('/api/twilio/token', { method: 'POST' })
-      if (!res.ok) throw new Error('Failed to get token')
-      const { token } = await res.json()
 
-      const device = new Device(token, { logLevel: 1 })
+      console.log('[Twilio] Fetching token from /api/twilio/token...')
+      const res = await fetch('/api/twilio/token', { method: 'POST' })
+      console.log('[Twilio] Token response status:', res.status)
+      if (!res.ok) {
+        const body = await res.text()
+        console.error('[Twilio] Token error body:', body)
+        throw new Error(`Failed to get token (${res.status}): ${body}`)
+      }
+      const tokenData = await res.json()
+      console.log('[Twilio] Got token, identity:', tokenData.identity, 'token length:', tokenData.token?.length)
+
+      const device = new Device(tokenData.token, { logLevel: 1 })
       deviceRef.current = device
+
+      device.on('error', (err: { message?: string; code?: number | string }) => {
+        console.error('[Twilio] Device error:', err)
+      })
+      device.on('registered', () => console.log('[Twilio] Device registered'))
+      device.on('unregistered', () => console.log('[Twilio] Device unregistered'))
+
+      console.log('[Twilio] Registering device...')
       await device.register()
+      console.log('[Twilio] Device registered, connecting to:', phoneNumber)
 
       const call = await device.connect({
         params: {
@@ -71,17 +91,25 @@ export default function DialerPanel({
         },
       })
       callRef.current = call
+      console.log('[Twilio] device.connect() returned call object')
+
+      // Auto-transition lead to in_progress when call is initiated
+      onCallStarted?.()
 
       call.on('accept', () => {
+        console.log('[Twilio] call accepted, CallSid:', call.parameters?.CallSid)
         setState('connected')
         setCallSid(call.parameters?.CallSid || null)
         timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000)
       })
+      call.on('ringing', () => console.log('[Twilio] call ringing'))
       call.on('disconnect', () => {
+        console.log('[Twilio] call disconnected')
         setState('ended')
         if (timerRef.current) clearInterval(timerRef.current)
       })
       call.on('error', (err: { message?: string; code?: number | string; name?: string }) => {
+        console.error('[Twilio] call error:', err)
         const code = err.code ? ` [${err.code}]` : ''
         setError((err.message || err.name || 'Call error') + code)
         setState('ended')
@@ -89,6 +117,7 @@ export default function DialerPanel({
       })
     } catch (err: unknown) {
       const e = err as { message?: string; code?: number | string; name?: string }
+      console.error('[Twilio] initAndCall exception:', e)
       const code = e.code ? ` [${e.code}]` : ''
       setError((e.message || e.name || 'Connection failed') + code)
       setState('idle')

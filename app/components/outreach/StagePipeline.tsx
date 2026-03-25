@@ -4,12 +4,11 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 const STAGES = [
-  { key: 'new',       label: 'NEW' },
-  { key: 'attempted', label: 'ATTEMPTED' },
-  { key: 'contacted', label: 'CONTACTED' },
-  { key: 'qualified', label: 'QUALIFIED' },
-  { key: 'proposal',  label: 'PROPOSAL' },
-  { key: 'closed',    label: 'CLOSED' },
+  { key: 'new',            label: 'NEW' },
+  { key: 'in_progress',    label: 'IN PROGRESS' },
+  { key: 'meeting_booked', label: 'MEETING' },
+  { key: 'not_interested', label: 'NOT INTERESTED' },
+  { key: 'nurture',        label: 'NURTURE' },
 ]
 
 export default function StagePipeline({

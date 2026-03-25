@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type Outcome = 'connected' | 'voicemail' | 'no-answer' | 'bad-number'
+type Dispo = 'none' | 'meeting_booked' | 'not_interested' | 'nurture'
 
 type Props = {
   parcelId: string
@@ -14,29 +15,28 @@ type Props = {
 }
 
 const OUTCOMES: { key: Outcome; label: string }[] = [
-  { key: 'connected', label: 'CONNECTED' },
-  { key: 'voicemail', label: 'VOICEMAIL' },
-  { key: 'no-answer', label: 'NO ANSWER' },
+  { key: 'connected',  label: 'CONNECTED' },
+  { key: 'voicemail',  label: 'VOICEMAIL' },
+  { key: 'no-answer',  label: 'NO ANSWER' },
   { key: 'bad-number', label: 'BAD NUMBER' },
 ]
 
-const STAGES = [
-  { key: 'new', label: 'New' },
-  { key: 'contacted', label: 'Contacted' },
-  { key: 'interested', label: 'Interested' },
-  { key: 'proposal', label: 'Proposal Sent' },
-  { key: 'won', label: 'Won' },
-  { key: 'lost', label: 'Lost' },
-  { key: 'not-interested', label: 'Not Interested' },
+// Dispositions only shown when outcome = connected.
+// Each maps to an automatic stage transition.
+const DISPOS: { key: Dispo; label: string; stage: string | null }[] = [
+  { key: 'none',            label: 'NO DISPO',       stage: null },
+  { key: 'meeting_booked',  label: 'MEETING BOOKED', stage: 'meeting_booked' },
+  { key: 'not_interested',  label: 'NOT INTERESTED', stage: 'not_interested' },
+  { key: 'nurture',         label: 'NURTURE',        stage: 'nurture' },
 ]
 
 export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSave }: Props) {
   const [outcome, setOutcome] = useState<Outcome | null>(null)
+  const [dispo, setDispo] = useState<Dispo>('none')
   const [notes, setNotes] = useState('')
   const [followup, setFollowup] = useState<'none' | 'schedule'>('none')
   const [followupDate, setFollowupDate] = useState('')
   const [followupTime, setFollowupTime] = useState('')
-  const [stage, setStage] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -66,9 +66,10 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSa
         await supabase.from('outreach_log').insert(logEntry)
       }
 
-      // Update lead stage
-      if (leadId && stage) {
-        await supabase.from('leads').update({ status: stage }).eq('id', leadId)
+      // Auto-transition stage based on disposition
+      const stageFromDispo = DISPOS.find(d => d.key === dispo)?.stage
+      if (leadId && stageFromDispo) {
+        await supabase.from('leads').update({ status: stageFromDispo }).eq('id', leadId)
       }
 
       // Create follow-up task
@@ -154,22 +155,33 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSa
         />
       </div>
 
-      {/* Stage */}
-      <div>
-        <label style={labelStyle}>UPDATE STAGE</label>
-        <select
-          value={stage}
-          onChange={(e) => setStage(e.target.value)}
-          style={inputStyle}
-        >
-          <option value="">No change</option>
-          {STAGES.map((s) => (
-            <option key={s.key} value={s.key}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Disposition — only relevant when connected, drives auto stage transition */}
+      {outcome === 'connected' && (
+        <div>
+          <span style={labelStyle}>DISPOSITION</span>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {DISPOS.map((d) => (
+              <button
+                key={d.key}
+                onClick={() => setDispo(d.key)}
+                style={{
+                  padding: '8px 12px',
+                  background: dispo === d.key ? '#E8A020' : '#2E3E3E',
+                  color: dispo === d.key ? '#F7F4EE' : '#8C8070',
+                  border: '1px solid',
+                  borderColor: dispo === d.key ? '#E8A020' : '#3E4E4E',
+                  fontFamily: "'DM Mono', monospace",
+                  fontSize: 10,
+                  letterSpacing: '1px',
+                  cursor: 'pointer',
+                }}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Follow-up */}
       <div>

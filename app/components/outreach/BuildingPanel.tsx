@@ -150,7 +150,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   const signalBrief = [
     building.open_violation_count ? `${building.open_violation_count} violations` : null,
-    building.signal_score ? `Score ${building.signal_score}` : null,
+    lead?.score ? `Score ${lead.score}` : null,
     building.incumbent_name ? `Incumbent: ${building.incumbent_name}` : null,
   ].filter(Boolean).join(' · ')
 
@@ -511,7 +511,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   // ── Main render ──────────────────────────────────────────────────────────
 
-  const scoreStyle = scoreBadgeStyle(building.signal_score)
+  const displayScore = lead?.score ?? null
+  const scoreStyle = scoreBadgeStyle(displayScore)
+
+  async function handleCallStarted() {
+    if (!lead?.id) return
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    await supabase.from('leads').update({ status: 'in_progress' }).eq('id', lead.id)
+    load()
+  }
 
   return (
     <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
@@ -522,9 +530,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         {/* Header */}
         <div style={{ background: '#1C2B2B', padding: '0 20px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2E3E3E', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-            {building.signal_score != null && (
+            {displayScore != null && (
               <span style={{ ...m, fontSize: 11, fontWeight: 700, padding: '3px 8px', flexShrink: 0, ...scoreStyle }}>
-                {building.signal_score}
+                {displayScore}
               </span>
             )}
             <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -534,9 +542,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           <button onClick={onClose} title="Esc" style={{ ...m, fontSize: 18, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, flexShrink: 0 }}>×</button>
         </div>
 
-        {/* Stage */}
+        {/* Stage — key forces remount when lead status changes externally (e.g. auto in_progress) */}
         <div style={{ flexShrink: 0 }}>
-          <StagePipeline parcelId={parcelId} initialStage={lead?.status ?? 'new'} leadId={lead?.id ?? null} />
+          <StagePipeline key={lead?.status ?? 'new'} parcelId={parcelId} initialStage={lead?.status ?? 'new'} leadId={lead?.id ?? null} />
         </div>
 
         {/* Stats bar */}
@@ -549,8 +557,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               const pmName = pmContacts.length > 0
                 ? (pmContacts[0].business_name || `${pmContacts[0].first_name || ''} ${pmContacts[0].last_name || ''}`.trim())
                 : building.pm_name
-              const pmConf = pmContacts.length > 0 ? pmContacts[0].confidence : building.pm_confidence
-              const pmSource = pmContacts.length > 0 ? 'HPD' : pmConf ? `${pmConf}%` : null
+              // Always use building_intelligence pm_confidence — it reflects how confident we are
+              // that this entity manages this specific building (not org-level source confidence).
+              const pmConf = building.pm_confidence
+              const pmSource = pmConf ? `${pmConf}%` : null
               const pmDisplay = pmName ? (pmName.length > 20 ? pmName.substring(0, 20) + '…' : pmName) : '—'
               return { label: 'PM', value: pmDisplay, sub: pmSource }
             })(),
@@ -702,6 +712,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           buildingAddress={building.address}
           signalBrief={signalBrief}
           leadId={lead?.id ?? null}
+          onCallStarted={handleCallStarted}
           onClose={() => setActiveDial(null)}
         />
       )}

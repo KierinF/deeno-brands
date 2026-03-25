@@ -322,9 +322,9 @@ export default function OutreachListClient({
                 const stalenessValues = filter === 'incumbents'
                   ? group.buildings.map(r => r.incumbent_staleness).filter(Boolean)
                   : []
-                const worstStaleness = stalenessValues.includes('very_stale') ? 'very_stale'
-                  : stalenessValues.includes('stale') ? 'stale'
-                  : stalenessValues.includes('fresh') ? 'fresh' : null
+                const worstStaleness = stalenessValues.includes('active') ? 'active'
+                  : stalenessValues.includes('dormant') ? 'dormant'
+                  : stalenessValues.includes('stale') ? 'stale' : null
                 return (
                   <div key={group.name} style={{ borderBottom: '1px solid #C8C1B3' }}>
                     {/* Org header row */}
@@ -341,8 +341,8 @@ export default function OutreachListClient({
                         padding: '10px 16px',
                         background: '#F7F4EE',
                         cursor: 'pointer',
-                        borderLeft: worstStaleness === 'very_stale' ? '3px solid #C0392B'
-                          : worstStaleness === 'stale' ? '3px solid #E8A020'
+                        borderLeft: worstStaleness === 'active' ? '3px solid #C0392B'
+                          : worstStaleness === 'dormant' ? '3px solid #E8A020'
                           : '3px solid #C8C1B3',
                       }}
                     >
@@ -358,11 +358,11 @@ export default function OutreachListClient({
                             <span style={{
                               ...mono, fontSize: 8, letterSpacing: '1px',
                               padding: '1px 5px',
-                              background: worstStaleness === 'very_stale' ? '#C0392B' : '#E8A020',
-                              color: worstStaleness === 'very_stale' ? '#FFF' : '#1C2B2B',
+                              background: worstStaleness === 'active' ? '#C0392B' : '#E8A020',
+                              color: worstStaleness === 'active' ? '#FFF' : '#1C2B2B',
                               flexShrink: 0,
                             }}>
-                              {worstStaleness === 'very_stale' ? 'VERY STALE' : 'STALE'}
+                              {worstStaleness === 'active' ? 'ACTIVE' : worstStaleness === 'dormant' ? 'DORMANT' : 'STALE'}
                             </span>
                           )}
                         </div>
@@ -414,7 +414,7 @@ export default function OutreachListClient({
                       }
 
                       // Incumbents: sub-group by score band, sort within band by job recency (fresh first)
-                      const STALENESS_ORDER: Record<string, number> = { fresh: 0, stale: 1, very_stale: 2 }
+                      const STALENESS_ORDER: Record<string, number> = { active: 0, dormant: 1, stale: 2 }
                       const bands = [
                         { label: '80–100', min: 80, max: 100 },
                         { label: '50–79', min: 50, max: 79 },

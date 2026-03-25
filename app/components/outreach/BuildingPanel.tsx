@@ -173,7 +173,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   const signalBrief = [
     building.open_violation_count ? `${building.open_violation_count} violations` : null,
-    lead?.score ? `Score ${lead.score}` : null,
+    building.signal_score ? `Score ${building.signal_score}` : null,
     building.incumbent_name ? `Incumbent: ${building.incumbent_name}` : null,
   ].filter(Boolean).join(' · ')
 
@@ -686,7 +686,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   // ── Main render ──────────────────────────────────────────────────────────
 
-  const displayScore = lead?.score ?? null
+  const displayScore = building.signal_score || null
   const scoreStyle = scoreBadgeStyle(displayScore)
 
   function handleCallStarted() {

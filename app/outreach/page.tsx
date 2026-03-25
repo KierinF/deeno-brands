@@ -38,7 +38,7 @@ async function getListData(filter: FilterTab) {
   const leadsData = await fetchAllRows((start) =>
     supabase
       .from('leads')
-      .select('parcel_id, id, score, status, last_called_at, call_count, next_followup_at')
+      .select('parcel_id, id, status, last_called_at, call_count, next_followup_at')
       .range(start, start + FETCH_CHUNK - 1) as any
   )
 
@@ -49,12 +49,8 @@ async function getListData(filter: FilterTab) {
     lead: leadsMap[b.parcel_id] || null,
   }))
 
-  // Sort by leads.score desc, then signal_score
-  rows.sort((a, b) => {
-    const sa = a.lead?.score ?? a.signal_score ?? -1
-    const sb = b.lead?.score ?? b.signal_score ?? -1
-    return sb - sa
-  })
+  // Sort by signal_score desc
+  rows.sort((a, b) => (b.signal_score ?? -1) - (a.signal_score ?? -1))
 
   // For org-centric tabs, fetch relevant contacts
   let contacts: any[] = []

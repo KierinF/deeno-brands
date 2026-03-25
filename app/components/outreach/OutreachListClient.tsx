@@ -30,7 +30,6 @@ type Row = {
   incumbent_staleness: string | null
   lead: {
     id: string
-    score: number | null
     status: string | null
     last_called_at: string | null
     call_count: number | null
@@ -137,11 +136,11 @@ export default function OutreachListClient({
       return Array.from(groups.entries())
         .map(([name, rawBuildings]) => {
           const buildings = [...rawBuildings].sort((a, b) =>
-            (b.lead?.score ?? b.signal_score ?? 0) - (a.lead?.score ?? a.signal_score ?? 0))
+            (b.signal_score ?? 0) - (a.signal_score ?? 0))
           return {
             name,
             buildings,
-            topScore: Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)),
+            topScore: Math.max(...buildings.map(r => r.signal_score ?? 0)),
             ...buildingFines(buildings),
           }
         })
@@ -164,11 +163,11 @@ export default function OutreachListClient({
         const buildings = Array.from(parcelSet)
           .map(pid => rowsByParcel[pid])
           .filter(Boolean)
-          .sort((a, b) => (b.lead?.score ?? b.signal_score ?? 0) - (a.lead?.score ?? a.signal_score ?? 0))
+          .sort((a, b) => (b.signal_score ?? 0) - (a.signal_score ?? 0))
         return {
           name,
           buildings,
-          topScore: buildings.length ? Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)) : 0,
+          topScore: buildings.length ? Math.max(...buildings.map(r => r.signal_score ?? 0)) : 0,
           ...buildingFines(buildings),
         }
       })
@@ -441,7 +440,7 @@ export default function OutreachListClient({
     const stage = row.lead?.status || 'new'
     const lastCalled = row.lead?.last_called_at
     const stageColor = STAGE_COLORS[stage] || '#C8C1B3'
-    const displayScore = row.lead?.score ?? (row.lead ? row.signal_score : null)
+    const displayScore = row.signal_score || null
 
     return (
       <div

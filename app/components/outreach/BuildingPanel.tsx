@@ -126,6 +126,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const [activeDial, setActiveDial] = useState<ActiveDial | null>(null)
   const [addContact, setAddContact] = useState<AddContactState | null>(null)
   const [savingContact, setSavingContact] = useState(false)
+  const [localLeadStatus, setLocalLeadStatus] = useState<string | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -515,10 +516,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const scoreStyle = scoreBadgeStyle(displayScore)
 
   async function handleCallStarted() {
+    setLocalLeadStatus('in_progress')
     if (!lead?.id) return
     const supabase = (await import('@/lib/supabase/client')).createClient()
-    await supabase.from('leads').update({ status: 'in_progress' }).eq('id', lead.id)
-    load()
+    await supabase.from('leads').update({ status: 'in_progress' }).eq('parcel_id', parcelId)
   }
 
   return (
@@ -544,7 +545,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
         {/* Stage — key forces remount when lead status changes externally (e.g. auto in_progress) */}
         <div style={{ flexShrink: 0 }}>
-          <StagePipeline key={lead?.status ?? 'new'} parcelId={parcelId} initialStage={lead?.status ?? 'new'} leadId={lead?.id ?? null} />
+          <StagePipeline key={localLeadStatus ?? lead?.status ?? 'new'} parcelId={parcelId} initialStage={localLeadStatus ?? lead?.status ?? 'new'} leadId={lead?.id ?? null} />
         </div>
 
         {/* Stats bar */}

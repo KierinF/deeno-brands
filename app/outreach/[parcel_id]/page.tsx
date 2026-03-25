@@ -319,14 +319,7 @@ export default async function BuildingDetailPage({
                       parcelId={parcel_id}
                       numbers={contactPhones}
                       onUpdate={null}
-                      dialerProps={{
-                        parcelId: parcel_id,
-                        contactId: contact.id,
-                        contactName: name,
-                        buildingAddress: building.address,
-                        signalBrief,
-                        leadId: lead?.id ?? null,
-                      }}
+                      onCallRequest={() => {}}
                     />
                   </div>
                 )

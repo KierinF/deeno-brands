@@ -4,96 +4,91 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 const STAGES = [
-  { key: 'new', label: 'NEW' },
+  { key: 'new',       label: 'NEW' },
   { key: 'attempted', label: 'ATTEMPTED' },
   { key: 'contacted', label: 'CONTACTED' },
   { key: 'qualified', label: 'QUALIFIED' },
-  { key: 'proposal', label: 'PROPOSAL' },
-  { key: 'closed', label: 'CLOSED' },
+  { key: 'proposal',  label: 'PROPOSAL' },
+  { key: 'closed',    label: 'CLOSED' },
 ]
 
-type Props = {
+export default function StagePipeline({
+  parcelId,
+  initialStage,
+  leadId,
+}: {
   parcelId: string
   initialStage: string | null
   leadId: string | null
-}
-
-export default function StagePipeline({ parcelId, initialStage, leadId }: Props) {
+}) {
   const [stage, setStage] = useState(initialStage || 'new')
   const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
   const supabase = createClient()
 
-  async function setStageValue(key: string) {
-    if (saving) return
+  async function updateStage(key: string) {
+    if (saving || key === stage) return
     setSaving(true)
+    setSaved(false)
     setStage(key)
+
     if (leadId) {
       await supabase.from('leads').update({ status: key }).eq('id', leadId)
     } else {
-      // Create lead row
-      await supabase.from('leads').upsert({ parcel_id: parcelId, status: key }, { onConflict: 'parcel_id' })
+      await supabase.from('leads').upsert(
+        { parcel_id: parcelId, status: key },
+        { onConflict: 'parcel_id' }
+      )
     }
+
     setSaving(false)
+    setSaved(true)
+    setTimeout(() => setSaved(false), 1500)
   }
 
   const currentIdx = STAGES.findIndex((s) => s.key === stage)
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0,
-        background: '#1C2B2B',
-        padding: '0',
-        overflowX: 'auto',
-      }}
-    >
+    <div style={{ display: 'flex', alignItems: 'stretch', background: '#1C2B2B' }}>
       {STAGES.map((s, i) => {
         const isActive = s.key === stage
         const isPast = i < currentIdx
-
         return (
           <button
             key={s.key}
-            onClick={() => setStageValue(s.key)}
+            onClick={() => updateStage(s.key)}
             style={{
-              flex: 1,
-              minWidth: 0,
-              padding: '10px 8px',
+              flex: 1, minWidth: 0,
+              padding: '9px 4px',
               background: isActive ? '#E8A020' : isPast ? '#2E3E3E' : 'transparent',
               color: isActive ? '#1C2B2B' : isPast ? '#C8C1B3' : '#8C8070',
               border: 'none',
               borderRight: i < STAGES.length - 1 ? '1px solid #2E3E3E' : 'none',
               fontFamily: "'DM Mono', monospace",
               fontSize: 9,
-              letterSpacing: '1.5px',
+              letterSpacing: '1px',
               fontWeight: isActive ? 700 : 400,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              position: 'relative',
+              overflow: 'hidden',
             }}
           >
             {s.label}
-            {isActive && (
-              <span
-                style={{
-                  display: 'block',
-                  position: 'absolute',
-                  bottom: 0,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 0,
-                  height: 0,
-                  borderLeft: '5px solid transparent',
-                  borderRight: '5px solid transparent',
-                  borderTop: '5px solid #E8A020',
-                }}
-              />
-            )}
           </button>
         )
       })}
+      {/* Save status */}
+      <div style={{
+        padding: '0 10px',
+        display: 'flex', alignItems: 'center',
+        fontFamily: "'DM Mono', monospace",
+        fontSize: 9,
+        color: saving ? '#8C8070' : saved ? '#E8A020' : 'transparent',
+        flexShrink: 0,
+        minWidth: 48,
+      }}>
+        {saving ? 'saving' : saved ? 'SAVED ✓' : '·'}
+      </div>
     </div>
   )
 }

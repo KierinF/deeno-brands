@@ -30,8 +30,16 @@ export async function GET(request: Request) {
     supabase.from('signals').select('id, signal_type, signal_date, is_open, source, raw_data').eq('parcel_id', parcel_id).order('signal_date', { ascending: false }).limit(20),
     supabase.from('leads').select('*').eq('parcel_id', parcel_id).maybeSingle(),
     // Organizations: PM, owner, incumbent orgs with phone numbers
-    supabase.from('organizations').select('id, business_name, org_type, phone, management_signal_type, confidence, source').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),
+    supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),
   ])
 
-  return NextResponse.json({ building, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs })
+  // Fetch phone_numbers for any org_profiles linked to this building's orgs
+  const orgProfileIds = (orgs || []).map((o: any) => o.org_profile_id).filter(Boolean)
+  const { data: profilePhones } = orgProfileIds.length > 0
+    ? await supabase.from('phone_numbers').select('*').in('org_profile_id', orgProfileIds)
+    : { data: [] }
+
+  const allPhoneNumbers = [...(phoneNumbers || []), ...(profilePhones || [])]
+
+  return NextResponse.json({ building, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs })
 }

@@ -1,12 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
+function fmtDate(dateStr: string | null | undefined) {
+  if (!dateStr) return 'Never'
+  try {
+    return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  } catch {
+    return dateStr
+  }
+}
+
 const BuildingPanel = dynamic(() => import('./BuildingPanel'), { ssr: false })
 
-type FilterTab = 'all' | 'priority' | 'callbacks' | 'contacted'
+type FilterTab = 'properties' | 'managers' | 'owners' | 'contractors' | 'brokers'
 
 type Row = {
   parcel_id: string
@@ -26,20 +35,36 @@ type Row = {
   } | null
 }
 
+type ContactRow = {
+  parcel_id: string
+  business_name: string
+  contact_type: string
+  first_name: string | null
+  last_name: string | null
+  confidence: number | null
+}
+
+type OrgGroup = {
+  name: string
+  buildings: Row[]
+  topScore: number
+}
+
+const PAGE_SIZE = 100
+
 type Props = {
   initialRows: Row[]
-  total: number
-  page: number
-  pageSize: number
+  contacts: ContactRow[]
   filter: FilterTab
   tasksParcelIds: string[]
 }
 
 const TABS: { key: FilterTab; label: string }[] = [
-  { key: 'all', label: 'ALL' },
-  { key: 'priority', label: 'PRIORITY (70+)' },
-  { key: 'callbacks', label: 'CALLBACKS' },
-  { key: 'contacted', label: 'CONTACTED' },
+  { key: 'properties', label: 'PROPERTIES' },
+  { key: 'managers', label: 'MANAGERS' },
+  { key: 'owners', label: 'OWNERS' },
+  { key: 'contractors', label: 'CONTRACTORS' },
+  { key: 'brokers', label: 'BROKERS' },
 ]
 
 const STAGE_COLORS: Record<string, string> = {
@@ -53,16 +78,84 @@ const STAGE_COLORS: Record<string, string> = {
 
 export default function OutreachListClient({
   initialRows,
-  total,
-  page,
-  pageSize,
+  contacts,
   filter,
   tasksParcelIds,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set())
   const tasksSet = new Set(tasksParcelIds)
-  const offset = page * pageSize
   const mono = { fontFamily: "'DM Mono', monospace" }
+
+  const rowsByParcel = useMemo(() => {
+    const m: Record<string, Row> = {}
+    for (const r of initialRows) m[r.parcel_id] = r
+    return m
+  }, [initialRows])
+
+  // Build org groups for managers/owners/contractors/brokers tabs
+  const orgGroups = useMemo((): OrgGroup[] => {
+    if (filter === 'properties') return []
+    const q = search.trim().toLowerCase()
+
+    if (filter === 'managers') {
+      const groups: Map<string, Row[]> = new Map()
+      for (const row of initialRows) {
+        const name = row.pm_name || '(Unknown PM)'
+        if (q && !name.toLowerCase().includes(q) && !(row.address || '').toLowerCase().includes(q)) continue
+        if (!groups.has(name)) groups.set(name, [])
+        groups.get(name)!.push(row)
+      }
+      return Array.from(groups.entries())
+        .map(([name, buildings]) => ({
+          name,
+          buildings,
+          topScore: Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)),
+        }))
+        .sort((a, b) => b.topScore - a.topScore)
+    }
+
+    // owners / contractors / brokers — grouped from contacts
+    const groups: Map<string, Set<string>> = new Map()
+    for (const c of (contacts || [])) {
+      const name = (c.business_name || '').trim()
+      if (!name) continue
+      if (q && !name.toLowerCase().includes(q) && !(rowsByParcel[c.parcel_id]?.address || '').toLowerCase().includes(q)) continue
+      if (!groups.has(name)) groups.set(name, new Set())
+      groups.get(name)!.add(c.parcel_id)
+    }
+    return Array.from(groups.entries())
+      .map(([name, parcelSet]) => {
+        const buildings = Array.from(parcelSet)
+          .map(pid => rowsByParcel[pid])
+          .filter(Boolean)
+          .sort((a, b) => (b.lead?.score ?? b.signal_score ?? 0) - (a.lead?.score ?? a.signal_score ?? 0))
+        return {
+          name,
+          buildings,
+          topScore: buildings.length ? Math.max(...buildings.map(r => r.lead?.score ?? r.signal_score ?? 0)) : 0,
+        }
+      })
+      .filter(g => g.buildings.length > 0)
+      .sort((a, b) => b.buildings.length - a.buildings.length || b.topScore - a.topScore)
+  }, [filter, initialRows, contacts, rowsByParcel, search])
+
+  const filteredRows = useMemo(() => {
+    if (filter !== 'properties') return []
+    const q = search.trim().toLowerCase()
+    if (!q) return initialRows
+    return initialRows.filter(r =>
+      (r.address || '').toLowerCase().includes(q) ||
+      (r.pm_name || '').toLowerCase().includes(q)
+    )
+  }, [filter, initialRows, search])
+
+  const total = filter === 'properties' ? filteredRows.length : orgGroups.length
+  const offset = page * PAGE_SIZE
+  const pageRows = filteredRows.slice(offset, offset + PAGE_SIZE)
+  const pageGroups = orgGroups.slice(offset, offset + PAGE_SIZE)
 
   return (
     <div style={{ minHeight: '100vh', background: '#F7F4EE', display: 'flex', flexDirection: 'column' }}>
@@ -104,6 +197,7 @@ export default function OutreachListClient({
           <Link
             key={tab.key}
             href={`/outreach?filter=${tab.key}`}
+            onClick={() => { setPage(0); setSearch('') }}
             style={{
               ...mono,
               fontSize: 9,
@@ -121,6 +215,26 @@ export default function OutreachListClient({
         ))}
       </div>
 
+      {/* Search bar */}
+      <div style={{ background: '#F7F4EE', borderBottom: '1px solid #C8C1B3', padding: '8px 16px', flexShrink: 0 }}>
+        <input
+          type="text"
+          placeholder={filter === 'properties' ? 'Search address or PM...' : `Search ${filter}...`}
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(0) }}
+          style={{
+            width: '100%', boxSizing: 'border-box',
+            padding: '7px 12px',
+            border: '1px solid #C8C1B3',
+            background: '#FFFFFF',
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 11,
+            color: '#1C2B2B',
+            outline: 'none',
+          }}
+        />
+      </div>
+
       {/* Split view */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
@@ -133,149 +247,119 @@ export default function OutreachListClient({
           transition: 'width 0.2s ease',
         }}>
 
-          {/* Column headers */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: selectedId ? '44px 1fr 70px' : '44px 1fr 120px 100px 100px',
-            gap: 0,
-            padding: '8px 16px',
-            borderBottom: '1px solid #C8C1B3',
-            background: '#F7F4EE',
-            position: 'sticky',
-            top: 0,
-            zIndex: 1,
-          }}>
-            {['SCR', 'ADDRESS', selectedId ? 'LAST CALL' : 'STAGE', ...(!selectedId ? ['LAST CALL', 'VIOLATIONS'] : [])].map((h) => (
-              <span key={h} style={{ ...mono, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070' }}>{h}</span>
-            ))}
-          </div>
-
-          {initialRows.length === 0 && (
-            <div style={{ padding: '40px 16px', textAlign: 'center', ...mono, fontSize: 12, color: '#8C8070' }}>
-              No buildings found.
-            </div>
-          )}
-
-          {initialRows.map((row) => {
-            const hasTask = tasksSet.has(row.parcel_id)
-            const isSelected = selectedId === row.parcel_id
-            const stage = row.lead?.status || 'new'
-            const lastCalled = row.lead?.last_called_at
-            const stageColor = STAGE_COLORS[stage] || '#C8C1B3'
-
-            return (
-              <div
-                key={row.parcel_id}
-                onClick={() => setSelectedId(isSelected ? null : row.parcel_id)}
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: selectedId ? '44px 1fr 70px' : '44px 1fr 120px 100px 100px',
-                  gap: 0,
-                  padding: '12px 16px',
-                  background: isSelected ? '#FFFFFF' : '#FFFFFF',
-                  borderBottom: '1px solid #C8C1B3',
-                  borderLeft: hasTask ? '3px solid #E8A020' : isSelected ? '3px solid #1C2B2B' : '3px solid transparent',
-                  alignItems: 'center',
-                  cursor: 'pointer',
-                  boxShadow: isSelected ? 'inset 3px 0 0 #1C2B2B' : 'none',
-                  opacity: 1,
-                }}
-              >
-                {/* Score — use lead.score (post-multiplier) when scored; signal_score only as fallback for scored leads */}
-                <div>
-                  {(() => {
-                    const displayScore = row.lead?.score ?? (row.lead ? row.signal_score : null)
-                    return displayScore != null ? (
-                      <span style={{
-                        ...mono, fontSize: 11, fontWeight: 700,
-                        display: 'inline-block',
-                        padding: '2px 6px',
-                        ...(displayScore >= 70
-                          ? { background: '#C0392B', color: '#FFFFFF' }
-                          : displayScore >= 40
-                          ? { background: '#E8A020', color: '#1C2B2B' }
-                          : displayScore > 0
-                          ? { background: '#2E5D8E', color: '#FFFFFF' }
-                          : { background: '#C8C1B3', color: '#8C8070' }),
-                      }}>
-                        {displayScore}
-                      </span>
-                    ) : (
-                      <span style={{ ...mono, fontSize: 10, color: '#C8C1B3' }}>—</span>
-                    )
-                  })()}
-                </div>
-
-                {/* Address */}
-                <div style={{ minWidth: 0 }}>
-                  <div style={{
-                    ...mono, fontSize: 12, color: isSelected ? '#1C2B2B' : '#1C2B2B',
-                    fontWeight: isSelected ? 700 : 400,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}>
-                    {row.address}
-                  </div>
-                  {row.pm_name && !selectedId && (
-                    <div style={{ ...mono, fontSize: 10, color: '#8C8070', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {row.pm_name}{row.pm_confidence ? ` ${row.pm_confidence}%` : ''}
-                    </div>
-                  )}
-                </div>
-
-                {/* Stage (collapsed) or Last call (expanded) */}
-                {selectedId ? (
-                  <div style={{ ...mono, fontSize: 10, color: '#8C8070', whiteSpace: 'nowrap' }}>
-                    {lastCalled ? new Date(lastCalled).toLocaleDateString() : 'Never'}
-                  </div>
-                ) : (
-                  <div>
-                    <span style={{
-                      ...mono, fontSize: 9, letterSpacing: '1px',
-                      color: '#F7F4EE',
-                      background: stageColor,
-                      padding: '2px 6px',
-                    }}>
-                      {stage.toUpperCase()}
-                    </span>
-                  </div>
-                )}
-
-                {!selectedId && (
-                  <>
-                    <div style={{ ...mono, fontSize: 11, color: '#8C8070' }}>
-                      {lastCalled ? new Date(lastCalled).toLocaleDateString() : 'Never'}
-                    </div>
-                    <div style={{ ...mono, fontSize: 11, color: row.open_violation_count ? '#E8A020' : '#C8C1B3' }}>
-                      {row.open_violation_count ?? '—'}
-                    </div>
-                  </>
-                )}
+          {filter === 'properties' ? (
+            <>
+              {/* Column headers */}
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: selectedId ? '44px 1fr 70px' : '44px 1fr 120px 100px 100px',
+                gap: 0,
+                padding: '8px 16px',
+                borderBottom: '1px solid #C8C1B3',
+                background: '#F7F4EE',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+              }}>
+                {['SCR', 'ADDRESS', selectedId ? 'LAST CALL' : 'STAGE', ...(!selectedId ? ['LAST CALL', 'VIOLATIONS'] : [])].map((h) => (
+                  <span key={h} style={{ ...mono, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070' }}>{h}</span>
+                ))}
               </div>
-            )
-          })}
+
+              {pageRows.length === 0 && (
+                <div style={{ padding: '40px 16px', textAlign: 'center', ...mono, fontSize: 12, color: '#8C8070' }}>
+                  {search ? 'No results.' : 'No buildings found.'}
+                </div>
+              )}
+
+              {pageRows.map((row) => renderBuildingRow(row))}
+            </>
+          ) : (
+            <>
+              {/* Org grouped view */}
+              {pageGroups.length === 0 && (
+                <div style={{ padding: '40px 16px', textAlign: 'center', ...mono, fontSize: 12, color: '#8C8070' }}>
+                  {search ? 'No results.' : `No ${filter} found.`}
+                </div>
+              )}
+
+              {pageGroups.map((group) => {
+                const isExpanded = expandedOrgs.has(group.name)
+                return (
+                  <div key={group.name} style={{ borderBottom: '1px solid #C8C1B3' }}>
+                    {/* Org header row */}
+                    <div
+                      onClick={() => setExpandedOrgs(prev => {
+                        const n = new Set(prev)
+                        n.has(group.name) ? n.delete(group.name) : n.add(group.name)
+                        return n
+                      })}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 16px',
+                        background: '#F7F4EE',
+                        cursor: 'pointer',
+                        borderLeft: '3px solid #C8C1B3',
+                      }}
+                    >
+                      <span style={{ ...mono, fontSize: 9, color: '#8C8070', flexShrink: 0 }}>
+                        {isExpanded ? '▾' : '▸'}
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ ...mono, fontSize: 12, color: '#1C2B2B', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {group.name}
+                        </div>
+                        <div style={{ ...mono, fontSize: 9, color: '#8C8070', marginTop: 2 }}>
+                          {group.buildings.length} building{group.buildings.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                      {group.topScore > 0 && (
+                        <span style={{
+                          ...mono, fontSize: 10, fontWeight: 700,
+                          padding: '2px 6px',
+                          ...(group.topScore >= 70 ? { background: '#C0392B', color: '#FFFFFF' } :
+                              group.topScore >= 40 ? { background: '#E8A020', color: '#1C2B2B' } :
+                              { background: '#2E5D8E', color: '#FFFFFF' }),
+                        }}>
+                          {group.topScore}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Expanded building rows */}
+                    {isExpanded && group.buildings.map((row) => (
+                      <div key={row.parcel_id} style={{ paddingLeft: 20 }}>
+                        {renderBuildingRow(row, true)}
+                      </div>
+                    ))}
+                  </div>
+                )
+              })}
+            </>
+          )}
 
           {/* Pagination */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px', borderTop: '1px solid #C8C1B3' }}>
             {page > 0 && (
-              <Link
-                href={`/outreach?filter=${filter}&page=${page - 1}`}
-                style={{ ...mono, fontSize: 10, color: '#1C2B2B', textDecoration: 'none', padding: '6px 12px', border: '1px solid #C8C1B3', background: '#FFFFFF' }}
+              <button
+                onClick={() => setPage(p => p - 1)}
+                style={{ ...mono, fontSize: 10, color: '#1C2B2B', padding: '6px 12px', border: '1px solid #C8C1B3', background: '#FFFFFF', cursor: 'pointer' }}
               >
                 ← PREV
-              </Link>
+              </button>
             )}
             <span style={{ ...mono, fontSize: 9, color: '#8C8070' }}>
-              {offset + 1}–{Math.min(offset + pageSize, total)} of {total}
+              {total === 0 ? '0' : `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)}`} of {total}
             </span>
-            {offset + pageSize < total && (
-              <Link
-                href={`/outreach?filter=${filter}&page=${page + 1}`}
-                style={{ ...mono, fontSize: 10, color: '#1C2B2B', textDecoration: 'none', padding: '6px 12px', border: '1px solid #C8C1B3', background: '#FFFFFF' }}
+            {offset + PAGE_SIZE < total && (
+              <button
+                onClick={() => setPage(p => p + 1)}
+                style={{ ...mono, fontSize: 10, color: '#1C2B2B', padding: '6px 12px', border: '1px solid #C8C1B3', background: '#FFFFFF', cursor: 'pointer' }}
               >
                 NEXT →
-              </Link>
+              </button>
             )}
           </div>
         </div>
@@ -293,4 +377,86 @@ export default function OutreachListClient({
       </div>
     </div>
   )
+
+  function renderBuildingRow(row: Row, indented = false) {
+    const hasTask = tasksSet.has(row.parcel_id)
+    const isSelected = selectedId === row.parcel_id
+    const stage = row.lead?.status || 'new'
+    const lastCalled = row.lead?.last_called_at
+    const stageColor = STAGE_COLORS[stage] || '#C8C1B3'
+    const displayScore = row.lead?.score ?? (row.lead ? row.signal_score : null)
+
+    return (
+      <div
+        key={row.parcel_id}
+        onClick={() => setSelectedId(isSelected ? null : row.parcel_id)}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: selectedId ? '44px 1fr 70px' : '44px 1fr 120px 100px 100px',
+          gap: 0,
+          padding: indented ? '10px 16px 10px 0' : '12px 16px',
+          background: isSelected ? '#FFFFFF' : '#FFFFFF',
+          borderBottom: '1px solid #C8C1B3',
+          borderLeft: hasTask ? '3px solid #E8A020' : isSelected ? '3px solid #1C2B2B' : '3px solid transparent',
+          alignItems: 'center',
+          cursor: 'pointer',
+          boxShadow: isSelected ? 'inset 3px 0 0 #1C2B2B' : 'none',
+        }}
+      >
+        <div>
+          {displayScore != null ? (
+            <span style={{
+              ...mono, fontSize: 11, fontWeight: 700,
+              display: 'inline-block',
+              padding: '2px 6px',
+              ...(displayScore >= 70 ? { background: '#C0392B', color: '#FFFFFF' } :
+                  displayScore >= 40 ? { background: '#E8A020', color: '#1C2B2B' } :
+                  displayScore > 0 ? { background: '#2E5D8E', color: '#FFFFFF' } :
+                  { background: '#C8C1B3', color: '#8C8070' }),
+            }}>
+              {displayScore}
+            </span>
+          ) : (
+            <span style={{ ...mono, fontSize: 10, color: '#C8C1B3' }}>—</span>
+          )}
+        </div>
+
+        <div style={{ minWidth: 0 }}>
+          <div style={{
+            ...mono, fontSize: 12, color: '#1C2B2B',
+            fontWeight: isSelected ? 700 : 400,
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>
+            {row.address}
+          </div>
+          {row.pm_name && !selectedId && filter === 'properties' && (
+            <div style={{ ...mono, fontSize: 10, color: '#8C8070', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {row.pm_name}{row.pm_confidence ? ` ${row.pm_confidence}%` : ''}
+            </div>
+          )}
+        </div>
+
+        {selectedId ? (
+          <div style={{ ...mono, fontSize: 10, color: '#8C8070', whiteSpace: 'nowrap' }}>
+            {fmtDate(lastCalled)}
+          </div>
+        ) : (
+          <div>
+            <span style={{ ...mono, fontSize: 9, letterSpacing: '1px', color: '#F7F4EE', background: stageColor, padding: '2px 6px' }}>
+              {stage.toUpperCase()}
+            </span>
+          </div>
+        )}
+
+        {!selectedId && (
+          <>
+            <div style={{ ...mono, fontSize: 11, color: '#8C8070' }}>{fmtDate(lastCalled)}</div>
+            <div style={{ ...mono, fontSize: 11, color: row.open_violation_count ? '#E8A020' : '#C8C1B3' }}>
+              {row.open_violation_count ?? '—'}
+            </div>
+          </>
+        )}
+      </div>
+    )
+  }
 }

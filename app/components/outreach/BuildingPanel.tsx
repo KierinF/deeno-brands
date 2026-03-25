@@ -10,6 +10,18 @@ import TranscriptViewer from './TranscriptViewer'
 
 const DialerPanel = dynamic(() => import('./DialerPanel'), { ssr: false })
 
+// ── Date formatting ───────────────────────────────────────────────────────────
+
+function fmtDate(dateStr: string | null | undefined) {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+function fmtDateTime(dateStr: string | null | undefined) {
+  if (!dateStr) return '—'
+  return new Date(dateStr).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
 // ── Signal config ─────────────────────────────────────────────────────────────
 
 const SIGNAL_LABELS: Record<string, string> = {
@@ -149,11 +161,57 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   const { building, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs } = data
 
+  // Compute fine totals from all violation_fire signals
+  const allViolations = (signals || []).filter((s: any) => s.signal_type === 'violation_fire')
+  const openFines = allViolations
+    .filter((s: any) => s.is_open)
+    .reduce((sum: number, s: any) =>
+      sum + (s.raw_data?.charges || []).reduce((cs: number, c: any) => cs + (Number(c.amount) || 0), 0), 0)
+  const totalFines = allViolations
+    .reduce((sum: number, s: any) =>
+      sum + (s.raw_data?.charges || []).reduce((cs: number, c: any) => cs + (Number(c.amount) || 0), 0), 0)
+
   const signalBrief = [
     building.open_violation_count ? `${building.open_violation_count} violations` : null,
     lead?.score ? `Score ${lead.score}` : null,
     building.incumbent_name ? `Incumbent: ${building.incumbent_name}` : null,
   ].filter(Boolean).join(' · ')
+
+  // Build "Why we're calling" lines
+  const openViolations = (signals || []).filter((s: any) => s.signal_type === 'violation_fire' && s.is_open)
+  const whyLines: { tag: string; text: string; color: string }[] = []
+  {
+    const openSigs = (signals || []).filter((s: any) => s.is_open)
+    const hasVacate      = openSigs.some((s: any) => s.signal_type === 'vacate_order')
+    const hasFireDirect  = (signals || []).some((s: any) => s.signal_type === 'fire_incident_direct')
+    const hasFireNearby  = (signals || []).some((s: any) => s.signal_type === 'fire_incident_proximity')
+    const hasLargeReno   = openSigs.some((s: any) => s.signal_type === 'permit_large_renovation')
+    const hasChangeOcc   = openSigs.some((s: any) => s.signal_type === 'permit_change_of_occupancy')
+    const hasFireSystem  = openSigs.some((s: any) => s.signal_type === 'permit_fire_system')
+    const hasSLA         = openSigs.some((s: any) => s.signal_type === 'license_sla')
+
+    if (hasVacate) whyLines.push({ tag: 'VACATE', text: 'Vacate order issued — building cleared, needs compliance before re-occupancy', color: '#C0392B' })
+    if (hasFireDirect) whyLines.push({ tag: 'FIRE', text: 'Fire at this building — suppression inspection/upgrade likely needed', color: '#C0392B' })
+    if (openFines > 0) {
+      const topCharge = openViolations
+        .flatMap((s: any) => s.raw_data?.charges || [])
+        .sort((a: any, b: any) => Number(b.amount) - Number(a.amount))[0]
+      const chargeLabel = topCharge ? (CHARGE_LABELS[topCharge.code] || topCharge.code) : null
+      whyLines.push({ tag: 'FINES', text: chargeLabel ? `$${openFines.toLocaleString()} open — top charge: ${chargeLabel}` : `$${openFines.toLocaleString()} in open fines (${openViolations.length} violation${openViolations.length !== 1 ? 's' : ''})`, color: '#E8A020' })
+    } else if (openViolations.length > 0) {
+      whyLines.push({ tag: 'VIOLATIONS', text: `${openViolations.length} open FDNY violation${openViolations.length !== 1 ? 's' : ''} — fire safety non-compliance`, color: '#E8A020' })
+    }
+    if (hasLargeReno)  whyLines.push({ tag: 'RENO', text: 'Large renovation permit open — suppression update likely required', color: '#8C8070' })
+    if (hasChangeOcc)  whyLines.push({ tag: 'OCCUPANCY', text: 'Change of occupancy — new fire suppression requirements apply', color: '#8C8070' })
+    if (hasFireSystem) whyLines.push({ tag: 'FIRE SYSTEM', text: 'Active fire system permit — suppression upgrade in progress', color: '#8C8070' })
+    if (hasSLA)        whyLines.push({ tag: 'SLA', text: 'Liquor license filed — hood and suppression required for commercial kitchen', color: '#8C8070' })
+    if (building.incumbent_staleness === 'very_stale' && building.incumbent_name) {
+      whyLines.push({ tag: 'INCUMBENT', text: `${building.incumbent_name} contract appears very stale — likely open to new vendors`, color: '#8C8070' })
+    }
+    if (hasFireNearby && whyLines.length === 0) {
+      whyLines.push({ tag: 'NEARBY FIRE', text: 'Fire incident on this block — area-wide suppression awareness', color: '#C8C1B3' })
+    }
+  }
 
   // Filter signals: drop closed permits, keep closed violations + fire incidents
   // All signals are already filtered by parcel_id (BBL), so all belong to this building
@@ -237,7 +295,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null) => {
     const org = findOrgForName(companyName) || fallbackOrg
     const orgPhones = org
-      ? (phoneNumbers || []).filter((p: any) => p.org_id === org.id)
+      ? (phoneNumbers || []).filter((p: any) =>
+          p.org_id === org.id ||
+          (org.org_profile_id && p.org_profile_id === org.org_profile_id)
+        )
       : []
     const noIndividuals = contactList.every((c: any) => !c.first_name)
     const conf = confOverride ?? org?.confidence ?? (contactList.length > 0 ? Math.max(...contactList.map((c: any) => c.confidence ?? 0)) : null)
@@ -468,10 +529,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     const w = signalWeight(sig)
     const charges = sig.raw_data?.charges || []
     const charge = charges[0]
-    const rawAddr = sig.raw_data?.address
     const filingStatus = (sig.raw_data?.filing_status || '').toLowerCase()
     const contractorEngaged = sig.signal_type === 'permit_renovation_fire' && CONTRACTOR_ENGAGED_STATUSES.has(filingStatus)
     const isProximity = sig.signal_type === 'fire_incident_proximity'
+    const proximityStreet = sig.raw_data?.incident_street
+    const proximityType = sig.raw_data?.incident_type?.replace(/^\d+\s*-\s*/, '')
 
     return (
       <div key={sig.id || i} style={{
@@ -501,9 +563,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             </div>
           )}
           <div style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>
-            {sig.signal_date ? new Date(sig.signal_date).toLocaleDateString() : ''}
-            {/* Proximity fires always show address. Other signals show if available. */}
-            {rawAddr && isProximity && ` · fire at ${rawAddr}`}
+            {fmtDate(sig.signal_date)}
+            {isProximity && proximityStreet && ` · ${proximityStreet}`}
+            {isProximity && proximityType && ` · ${proximityType}`}
           </div>
         </div>
       </div>
@@ -545,32 +607,44 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           <StagePipeline key={localLeadStatus ?? lead?.status ?? 'new'} parcelId={parcelId} initialStage={localLeadStatus ?? lead?.status ?? 'new'} leadId={lead?.id ?? null} />
         </div>
 
-        {/* Stats bar */}
-        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '8px 20px', display: 'flex', gap: 20, flexWrap: 'wrap', flexShrink: 0 }}>
-          {[
-            { label: 'VIOLATIONS', value: building.open_violation_count ?? 0, big: true, accent: building.open_violation_count > 0 },
-            { label: 'LAST SIGNAL', value: building.last_signal_date ? new Date(building.last_signal_date).toLocaleDateString() : '—' },
-            (() => {
-              const pmContacts = contactsByType['property_manager'] || []
-              const pmName = pmContacts.length > 0
-                ? (pmContacts[0].business_name || `${pmContacts[0].first_name || ''} ${pmContacts[0].last_name || ''}`.trim())
-                : building.pm_name
-              // Always use building_intelligence pm_confidence — it reflects how confident we are
-              // that this entity manages this specific building (not org-level source confidence).
-              const pmConf = building.pm_confidence
-              const pmSource = pmConf ? `${pmConf}%` : null
-              const pmDisplay = pmName ? (pmName.length > 20 ? pmName.substring(0, 20) + '…' : pmName) : '—'
-              return { label: 'PM', value: pmDisplay, sub: pmSource }
-            })(),
-            { label: 'INCUMBENT', value: building.incumbent_name ? (building.incumbent_name.length > 18 ? building.incumbent_name.substring(0, 18) + '…' : building.incumbent_name) : '—', sub: building.incumbent_staleness?.replace('_', ' ') },
-            ...(building.building_sqft ? [{ label: 'SIZE', value: `${Math.round(building.building_sqft / 1000)}k sqft`, sub: building.floors ? `${building.floors} fl` : null }] : []),
-          ].map((item: any) => (
-            <div key={item.label}>
-              <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>{item.label}</div>
-              <div style={{ fontFamily: item.big ? "'Bebas Neue', sans-serif" : "'DM Mono', monospace", fontSize: item.big ? 20 : 11, color: item.accent ? '#E8A020' : '#1C2B2B', lineHeight: 1 }}>{item.value}</div>
-              {item.sub && <div style={{ ...m, fontSize: 9, color: item.label === 'INCUMBENT' && building.incumbent_staleness === 'very_stale' ? '#E8A020' : '#8C8070', marginTop: 1 }}>{item.sub}</div>}
+        {/* Why we're calling bar */}
+        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '10px 20px', flexShrink: 0 }}>
+          {/* Size + Fines */}
+          {(building.building_sqft || totalFines > 0) && (
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: whyLines.length > 0 ? 10 : 0 }}>
+              {building.building_sqft && (
+                <div>
+                  <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>SIZE</div>
+                  <div style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{Math.round(building.building_sqft / 1000)}k sqft{building.floors ? ` · ${building.floors} fl` : ''}</div>
+                </div>
+              )}
+              {totalFines > 0 && (
+                <div>
+                  <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>OPEN FINES</div>
+                  <div style={{ ...m, fontSize: 11, color: openFines > 0 ? '#E8A020' : '#1C2B2B' }}>
+                    ${openFines.toLocaleString()}<span style={{ color: '#8C8070' }}> / ${totalFines.toLocaleString()} total</span>
+                  </div>
+                </div>
+              )}
             </div>
-          ))}
+          )}
+          {/* Why we're calling */}
+          {whyLines.length > 0 && (
+            <div>
+              <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 6 }}>WHY WE'RE CALLING</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+                {whyLines.map((line, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                    <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: line.color, flexShrink: 0, fontWeight: 700 }}>{line.tag}</span>
+                    <span style={{ ...m, fontSize: 11, color: '#1C2B2B', lineHeight: 1.4 }}>{line.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {whyLines.length === 0 && !building.building_sqft && totalFines === 0 && (
+            <div style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>No active signals</div>
+          )}
         </div>
 
         {/* Tabs */}
@@ -622,7 +696,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                             {entry.outcome?.toUpperCase() || 'CALL'}
                           </span>
                           <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>
-                            {entry.contacted_at ? new Date(entry.contacted_at).toLocaleString() : ''}
+                            {fmtDateTime(entry.contacted_at)}
                           </span>
                           {entry.duration_secs && <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{Math.floor(entry.duration_secs / 60)}m{entry.duration_secs % 60}s</span>}
                         </div>
@@ -652,7 +726,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                         </span>
                       )}
                     </div>
-                    {building.incumbent_last_job && <div style={{ ...m, fontSize: 10, color: '#8C8070' }}>Last job: {new Date(building.incumbent_last_job).toLocaleDateString()}{building.incumbent_n_jobs ? ` · ${building.incumbent_n_jobs} jobs on record` : ''}</div>}
+                    {building.incumbent_last_job && <div style={{ ...m, fontSize: 10, color: '#8C8070' }}>Last job: {fmtDate(building.incumbent_last_job)}{building.incumbent_n_jobs ? ` · ${building.incumbent_n_jobs} jobs on record` : ''}</div>}
                     <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>This is who you're displacing.</div>
                   </div>
                 </div>

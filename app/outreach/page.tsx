@@ -4,49 +4,77 @@ import OutreachListClient from '@/app/components/outreach/OutreachListClient'
 
 export const dynamic = 'force-dynamic'
 
-type FilterTab = 'all' | 'priority' | 'callbacks' | 'contacted'
+type FilterTab = 'properties' | 'managers' | 'owners' | 'contractors' | 'brokers'
 
-async function getListData(filter: FilterTab, page: number, pageSize: number) {
+const FETCH_CHUNK = 1000
+
+async function fetchAllRows(fetcher: (start: number) => Promise<{ data: any[] | null; error: any }>): Promise<any[]> {
+  const results: any[] = []
+  let start = 0
+  while (true) {
+    const { data, error } = await fetcher(start)
+    if (error) throw error
+    if (!data?.length) break
+    results.push(...data)
+    if (data.length < FETCH_CHUNK) break
+    start += FETCH_CHUNK
+  }
+  return results
+}
+
+async function getListData(filter: FilterTab) {
   const supabase = await createClient()
-  const offset = page * pageSize
 
-  const { data: buildings, error, count } = await supabase
-    .from('building_intelligence')
-    .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness', { count: 'exact' })
-    .not('building_class', 'like', 'Y%')
-    .order('signal_score', { ascending: false, nullsFirst: false })
-    .range(offset, offset + pageSize - 1)
+  // Fetch all non-govt buildings in sequential 1k chunks (bypasses PostgREST default cap)
+  const buildings = await fetchAllRows((start) =>
+    supabase
+      .from('building_intelligence')
+      .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness')
+      .not('building_class', 'like', 'Y%')
+      .range(start, start + FETCH_CHUNK - 1) as any
+  )
 
-  if (error) throw error
+  // Fetch all leads in sequential 1k chunks
+  const leadsData = await fetchAllRows((start) =>
+    supabase
+      .from('leads')
+      .select('parcel_id, id, score, status, last_called_at, call_count, next_followup_at')
+      .range(start, start + FETCH_CHUNK - 1) as any
+  )
 
-  const parcelIds = (buildings || []).map((b) => b.parcel_id)
-
-  const { data: leadsData } = parcelIds.length
-    ? await supabase
-        .from('leads')
-        .select('parcel_id, id, score, status, last_called_at, call_count, next_followup_at')
-        .in('parcel_id', parcelIds)
-    : { data: [] }
-
-  const leadsMap = Object.fromEntries((leadsData || []).map((l) => [l.parcel_id, l]))
+  const leadsMap = Object.fromEntries(leadsData.map((l: any) => [l.parcel_id, l]))
 
   const rows = (buildings || []).map((b) => ({
     ...b,
     lead: leadsMap[b.parcel_id] || null,
   }))
 
-  // Apply filters
-  const today = new Date().toISOString().split('T')[0]
-  const filtered =
-    filter === 'priority'
-      ? rows.filter((b) => b.signal_score && b.signal_score >= 70)
-      : filter === 'callbacks'
-      ? rows.filter((b) => b.lead?.next_followup_at && b.lead.next_followup_at.split('T')[0] <= today)
-      : filter === 'contacted'
-      ? rows.filter((b) => b.lead?.last_called_at)
-      : rows
+  // Sort by leads.score desc, then signal_score
+  rows.sort((a, b) => {
+    const sa = a.lead?.score ?? a.signal_score ?? -1
+    const sb = b.lead?.score ?? b.signal_score ?? -1
+    return sb - sa
+  })
+
+  // For org-centric tabs, fetch relevant contacts
+  let contacts: any[] = []
+  if (filter === 'owners' || filter === 'contractors' || filter === 'brokers') {
+    const contactType =
+      filter === 'owners' ? 'owner' :
+      filter === 'contractors' ? 'trade_referral' : 'leasing_broker'
+    contacts = await fetchAllRows((start) =>
+      supabase
+        .from('contacts')
+        .select('parcel_id, business_name, contact_type, first_name, last_name, confidence')
+        .eq('contact_type', contactType)
+        .neq('is_bad_data', true)
+        .not('business_name', 'is', null)
+        .range(start, start + FETCH_CHUNK - 1) as any
+    )
+  }
 
   // Get tasks due today (for badge)
+  const today = new Date().toISOString().split('T')[0]
   const { data: todayTasks } = await supabase
     .from('tasks')
     .select('parcel_id')
@@ -55,7 +83,7 @@ async function getListData(filter: FilterTab, page: number, pageSize: number) {
 
   const tasksSet = new Set((todayTasks || []).map((t) => t.parcel_id))
 
-  return { rows: filtered, total: count ?? 0, tasksSet: Array.from(tasksSet) }
+  return { rows, contacts, tasksSet: Array.from(tasksSet) }
 }
 
 export default async function OutreachPage({
@@ -77,18 +105,18 @@ export default async function OutreachPage({
   }
 
   const resolvedParams = await searchParams
-  const filter = (resolvedParams.filter as FilterTab) || 'all'
-  const page = Math.max(0, parseInt(resolvedParams.page || '0', 10))
-  const PAGE_SIZE = 100
+  const rawFilter = resolvedParams.filter
+  const filter: FilterTab =
+    rawFilter === 'managers' || rawFilter === 'owners' || rawFilter === 'contractors' || rawFilter === 'brokers'
+      ? rawFilter
+      : 'properties'
 
-  const { rows, total, tasksSet } = await getListData(filter, page, PAGE_SIZE)
+  const { rows, contacts, tasksSet } = await getListData(filter)
 
   return (
     <OutreachListClient
       initialRows={rows}
-      total={total}
-      page={page}
-      pageSize={PAGE_SIZE}
+      contacts={contacts}
       filter={filter}
       tasksParcelIds={tasksSet}
     />

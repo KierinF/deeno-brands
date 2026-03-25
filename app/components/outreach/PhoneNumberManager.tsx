@@ -8,8 +8,10 @@ type PhoneNumber = {
   parcel_id: string
   contact_id?: string | null
   org_id?: string | null
+  org_profile_id?: string | null
   number: string
   source?: string | null
+  source_url?: string | null
   status?: string | null
   added_at?: string | null
   marked_stale_at?: string | null
@@ -25,7 +27,7 @@ type Props = {
   onCallRequest?: (phoneNumber: string) => void
 }
 
-const SOURCES = ['manual', 'scraped', 'whitepages', 'linkedin', 'other']
+const SOURCES = ['manual', 'scraped', 'web_enriched', 'whitepages', 'linkedin', 'other']
 
 // Normalize to E.164 for US numbers
 function toE164(input: string): string {
@@ -145,9 +147,21 @@ export default function PhoneNumberManager({
                 {num.number}
               </span>
               {num.source && (
-                <span style={{ ...m, fontSize: 9, letterSpacing: '1px', color: '#C8C1B3', padding: '2px 5px', border: '1px solid #C8C1B3' }}>
-                  {num.source.toUpperCase()}
-                </span>
+                num.source_url ? (
+                  <a
+                    href={num.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={`Source: ${num.source_url}`}
+                    style={{ ...m, fontSize: 9, letterSpacing: '1px', color: '#C8C1B3', padding: '2px 5px', border: '1px solid #C8C1B3', textDecoration: 'none' }}
+                  >
+                    {num.source.toUpperCase()} ↗
+                  </a>
+                ) : (
+                  <span style={{ ...m, fontSize: 9, letterSpacing: '1px', color: '#C8C1B3', padding: '2px 5px', border: '1px solid #C8C1B3' }}>
+                    {num.source.toUpperCase()}
+                  </span>
+                )
               )}
               {num.status && num.status !== 'active' && (
                 <span style={{ ...m, fontSize: 9, letterSpacing: '1px', color: num.status === 'bad' ? '#C0392B' : '#8C8070', padding: '2px 5px', border: `1px solid ${num.status === 'bad' ? '#C0392B' : '#8C8070'}` }}>

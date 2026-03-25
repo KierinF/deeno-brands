@@ -187,8 +187,13 @@ export default function OutreachListClient({
                       ...mono, fontSize: 11, fontWeight: 700,
                       display: 'inline-block',
                       padding: '2px 6px',
-                      background: row.signal_score >= 80 ? '#E8A020' : row.signal_score >= 50 ? '#1C2B2B' : '#E8EDE8',
-                      color: row.signal_score >= 50 ? '#F7F4EE' : '#8C8070',
+                      ...(row.signal_score >= 70
+                        ? { background: '#C0392B', color: '#FFFFFF' }
+                        : row.signal_score >= 40
+                        ? { background: '#E8A020', color: '#1C2B2B' }
+                        : row.signal_score > 0
+                        ? { background: '#2E5D8E', color: '#FFFFFF' }
+                        : { background: '#C8C1B3', color: '#8C8070' }),
                     }}>
                       {row.signal_score}
                     </span>

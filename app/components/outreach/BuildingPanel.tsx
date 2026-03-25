@@ -515,11 +515,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const displayScore = lead?.score ?? null
   const scoreStyle = scoreBadgeStyle(displayScore)
 
-  async function handleCallStarted() {
+  function handleCallStarted() {
     setLocalLeadStatus('in_progress')
-    if (!lead?.id) return
-    const supabase = (await import('@/lib/supabase/client')).createClient()
-    await supabase.from('leads').update({ status: 'in_progress' }).eq('parcel_id', parcelId)
   }
 
   return (

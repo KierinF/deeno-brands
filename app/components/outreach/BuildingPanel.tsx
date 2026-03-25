@@ -177,41 +177,140 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     building.incumbent_name ? `Incumbent: ${building.incumbent_name}` : null,
   ].filter(Boolean).join(' · ')
 
-  // Build "Why we're calling" lines
+  // ── Score-driven "Why we're calling" ─────────────────────────────────────────
   const openViolations = (signals || []).filter((s: any) => s.signal_type === 'violation_fire' && s.is_open)
-  const whyLines: { tag: string; text: string; color: string }[] = []
-  {
-    const openSigs = (signals || []).filter((s: any) => s.is_open)
-    const hasVacate      = openSigs.some((s: any) => s.signal_type === 'vacate_order')
-    const hasFireDirect  = (signals || []).some((s: any) => s.signal_type === 'fire_incident_direct')
-    const hasFireNearby  = (signals || []).some((s: any) => s.signal_type === 'fire_incident_proximity')
-    const hasLargeReno   = openSigs.some((s: any) => s.signal_type === 'permit_large_renovation')
-    const hasChangeOcc   = openSigs.some((s: any) => s.signal_type === 'permit_change_of_occupancy')
-    const hasFireSystem  = openSigs.some((s: any) => s.signal_type === 'permit_fire_system')
-    const hasSLA         = openSigs.some((s: any) => s.signal_type === 'license_sla')
 
-    if (hasVacate) whyLines.push({ tag: 'VACATE', text: 'Vacate order issued — building cleared, needs compliance before re-occupancy', color: '#C0392B' })
-    if (hasFireDirect) whyLines.push({ tag: 'FIRE', text: 'Fire at this building — suppression inspection/upgrade likely needed', color: '#C0392B' })
-    if (openFines > 0) {
-      const topCharge = openViolations
-        .flatMap((s: any) => s.raw_data?.charges || [])
-        .sort((a: any, b: any) => Number(b.amount) - Number(a.amount))[0]
-      const chargeLabel = topCharge ? (CHARGE_LABELS[topCharge.code] || topCharge.code) : null
-      whyLines.push({ tag: 'FINES', text: chargeLabel ? `$${openFines.toLocaleString()} open — top charge: ${chargeLabel}` : `$${openFines.toLocaleString()} in open fines (${openViolations.length} violation${openViolations.length !== 1 ? 's' : ''})`, color: '#E8A020' })
-    } else if (openViolations.length > 0) {
-      whyLines.push({ tag: 'VIOLATIONS', text: `${openViolations.length} open FDNY violation${openViolations.length !== 1 ? 's' : ''} — fire safety non-compliance`, color: '#E8A020' })
-    }
-    if (hasLargeReno)  whyLines.push({ tag: 'RENO', text: 'Large renovation permit open — suppression update likely required', color: '#8C8070' })
-    if (hasChangeOcc)  whyLines.push({ tag: 'OCCUPANCY', text: 'Change of occupancy — new fire suppression requirements apply', color: '#8C8070' })
-    if (hasFireSystem) whyLines.push({ tag: 'FIRE SYSTEM', text: 'Active fire system permit — suppression upgrade in progress', color: '#8C8070' })
-    if (hasSLA)        whyLines.push({ tag: 'SLA', text: 'Liquor license filed — hood and suppression required for commercial kitchen', color: '#8C8070' })
-    if (building.incumbent_staleness === 'very_stale' && building.incumbent_name) {
-      whyLines.push({ tag: 'INCUMBENT', text: `${building.incumbent_name} contract appears very stale — likely open to new vendors`, color: '#8C8070' })
-    }
-    if (hasFireNearby && whyLines.length === 0) {
-      whyLines.push({ tag: 'NEARBY FIRE', text: 'Fire incident on this block — area-wide suppression awareness', color: '#C8C1B3' })
-    }
+  function ageDecay(dateStr: string | null): number {
+    if (!dateStr) return 0.5
+    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
+    if (days < 30) return 1.0
+    if (days < 60) return 0.7
+    if (days < 90) return 0.4
+    return 0.1
   }
+
+  function fineMultiplier(amount: number): number {
+    if (amount < 500) return 1.0
+    if (amount < 1000) return 1.1
+    if (amount < 2000) return 1.25
+    return 1.4
+  }
+
+  function scoredWeight(sig: any): number {
+    let base = signalWeight(sig)
+    const decay = ageDecay(sig.signal_date)
+    let mult = 1.0
+    if (sig.signal_type === 'violation_fire') {
+      const total = (sig.raw_data?.charges || []).reduce((s: number, c: any) => s + Number(c.amount || 0), 0)
+      mult = fineMultiplier(total)
+    }
+    return Math.round(base * decay * mult)
+  }
+
+  function daysAgoStr(dateStr: string | null): string {
+    if (!dateStr) return ''
+    const d = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000)
+    return d === 0 ? 'today' : d === 1 ? '1d ago' : `${d}d ago`
+  }
+
+  type WhyCard = { tag: string; headline: string; detail: string; meaning: string; score: number; color: string }
+
+  const SIG_HEADLINES: Record<string, string> = {
+    BF20: 'Failed ITM inspection',
+    BF12: 'Fire protection system deficiency',
+    BF35: 'Unnecessary alarm responses',
+    BF17: 'Certificate of Fitness lapse',
+    BF01: 'Extinguisher / hose failure',
+    BF19: 'Documentation violation',
+  }
+  const SIG_MEANINGS: Record<string, string> = {
+    BF20: 'This is exactly what you sell — they need a certified contractor to re-certify and close the violation',
+    BF12: 'Documented suppression system deficiency — direct upgrade opportunity',
+    BF35: 'Alarm generating unnecessary FDNY responses — calibration or replacement needed',
+    BF17: 'Certificates of Fitness expired — compliance urgency, low-friction entry point',
+    BF01: 'Extinguisher or hose out of compliance — basic service contract renewal',
+    BF19: 'Affidavit / documentation gap — fast close, low technical bar',
+  }
+
+  function narrativeForSig(sig: any, score: number): WhyCard | null {
+    const da = daysAgoStr(sig.signal_date)
+    const openStr = sig.is_open ? 'OPEN' : 'closed'
+
+    if (sig.signal_type === 'violation_fire') {
+      const charges = [...(sig.raw_data?.charges || [])].sort((a: any, b: any) => Number(b.amount) - Number(a.amount))
+      const top = charges[0]
+      const code = top?.code || ''
+      const amount = top ? Number(top.amount) : 0
+      const headline = SIG_HEADLINES[code] || (CHARGE_LABELS[code] ? `Violation — ${CHARGE_LABELS[code]}` : 'FDNY fire safety violation')
+      const meaning = SIG_MEANINGS[code] || 'Open FDNY violation — certified contractor needed to cure and close'
+      const detail = [amount > 0 ? `$${amount.toLocaleString()} fine` : null, da, openStr].filter(Boolean).join(' · ')
+      return { tag: code || 'VIOLATION', headline, detail, meaning, score, color: score >= 70 ? '#C0392B' : '#E8A020' }
+    }
+    if (sig.signal_type === 'vacate_order') {
+      return { tag: 'VACATE', headline: 'Vacate order', detail: [da, openStr].filter(Boolean).join(' · '), meaning: 'Building cleared — cannot re-occupy without full fire compliance sign-off', score, color: '#C0392B' }
+    }
+    if (sig.signal_type === 'fire_incident_direct') {
+      return { tag: 'FIRE', headline: 'Fire at this building', detail: da, meaning: 'Post-fire inspection mandatory — suppression system likely needs repair or replacement', score, color: '#C0392B' }
+    }
+    if (sig.signal_type === 'complaint_fire') {
+      return { tag: 'COMPLAINT', headline: 'DOB fire safety complaint', detail: [da, openStr].filter(Boolean).join(' · '), meaning: 'Active complaint on record — building under scrutiny, PM motivated to resolve quickly', score, color: '#E8A020' }
+    }
+    if (sig.signal_type === 'permit_new_building') {
+      return { tag: 'NEW BUILD', headline: 'New building permit', detail: [da, openStr].filter(Boolean).join(' · '), meaning: 'No incumbent fire contractor yet — ~60-90d window before the GC locks in their sub', score, color: '#E8A020' }
+    }
+    if (sig.signal_type === 'permit_change_of_occupancy') {
+      return { tag: 'CO CHANGE', headline: 'Change of occupancy permit', detail: [da, openStr].filter(Boolean).join(' · '), meaning: 'New use = new fire suppression code requirements — existing system likely non-compliant', score, color: '#E8A020' }
+    }
+    if (sig.signal_type === 'permit_large_renovation') {
+      return { tag: 'RENO', headline: 'Large renovation underway', detail: [da, openStr].filter(Boolean).join(' · '), meaning: 'Major work requires suppression update before CO — strong sub-contractor opportunity', score, color: '#8C8070' }
+    }
+    if (sig.signal_type === 'permit_fire_system') {
+      return { tag: 'FIRE SYSTEM', headline: 'Fire system permit active', detail: [da, openStr].filter(Boolean).join(' · '), meaning: 'Someone is already working on the system — early contract or follow-on opportunity', score, color: '#8C8070' }
+    }
+    if (sig.signal_type === 'license_sla') {
+      return { tag: 'SLA', headline: 'Liquor license filed', detail: da, meaning: 'Commercial kitchen hood and suppression required by law before license is approved', score, color: '#8C8070' }
+    }
+    if (sig.signal_type === 'fire_incident_proximity') {
+      return { tag: 'NEARBY FIRE', headline: 'Fire incident on this block', detail: da, meaning: 'Area event — PM safety awareness elevated, receptive to suppression conversations', score, color: '#C8C1B3' }
+    }
+    return null
+  }
+
+  // Score each signal, dedupe by type (keep highest score per signal_type), show top 3
+  const scoredSigs = (signals || [])
+    .filter((s: any) => s.is_open || !DROP_IF_CLOSED.has(s.signal_type))
+    .map((s: any) => ({ sig: s, score: scoredWeight(s) }))
+    .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
+
+  // Dedupe: one card per signal_type (except violation_fire — one per charge code)
+  const seen = new Set<string>()
+  const whyCards: WhyCard[] = []
+  for (const { sig, score } of scoredSigs) {
+    const key = sig.signal_type === 'violation_fire'
+      ? `violation_fire:${sig.raw_data?.charges?.[0]?.code || 'generic'}`
+      : sig.signal_type
+    if (seen.has(key)) continue
+    seen.add(key)
+    const card = narrativeForSig(sig, score)
+    if (card) whyCards.push(card)
+    if (whyCards.length >= 3) break
+  }
+
+  // Combo multiplier bonuses — shown as a callout if active
+  const openSigTypes = new Set((signals || []).filter((s: any) => s.is_open).map((s: any) => s.signal_type))
+  const hasOpenViol = openViolations.length > 0
+  let comboNote: string | null = null
+  if (openSigTypes.has('permit_change_of_occupancy') && hasOpenViol)
+    comboNote = '+30% urgency — must clear violations to receive CO, window is closing'
+  else if (openSigTypes.has('fire_incident_direct') && hasOpenViol)
+    comboNote = '+20% urgency — fire event + existing violations, system failed while non-compliant'
+  else if ((openSigTypes.has('permit_new_building') || openSigTypes.has('permit_large_renovation')) && hasOpenViol)
+    comboNote = '+20% urgency — active construction cannot get CO/TCO until violations are cleared'
+
+  // Competitive angle
+  const incumbentNote = (building.incumbent_staleness === 'very_stale' || building.incumbent_staleness === 'stale') && building.incumbent_name
+    ? `Incumbent: ${building.incumbent_name} — last job ${building.incumbent_staleness === 'very_stale' ? 'very stale' : 'stale'}, no active relationship to displace`
+    : null
 
   // Filter signals: drop closed permits, keep closed violations + fire incidents
   // All signals are already filtered by parcel_id (BBL), so all belong to this building
@@ -609,9 +708,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
         {/* Why we're calling bar */}
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '10px 20px', flexShrink: 0 }}>
-          {/* Size + Fines */}
+          {/* Size + Fines mini row */}
           {(building.building_sqft || totalFines > 0) && (
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: whyLines.length > 0 ? 10 : 0 }}>
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: whyCards.length > 0 || comboNote || incumbentNote ? 10 : 0 }}>
               {building.building_sqft && (
                 <div>
                   <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>SIZE</div>
@@ -628,21 +727,43 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               )}
             </div>
           )}
-          {/* Why we're calling */}
-          {whyLines.length > 0 && (
+
+          {/* Score-driven signal cards */}
+          {whyCards.length > 0 && (
             <div>
-              <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 6 }}>WHY WE'RE CALLING</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {whyLines.map((line, i) => (
-                  <div key={i} style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                    <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: line.color, flexShrink: 0, fontWeight: 700 }}>{line.tag}</span>
-                    <span style={{ ...m, fontSize: 11, color: '#1C2B2B', lineHeight: 1.4 }}>{line.text}</span>
+              <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 8 }}>WHY WE'RE CALLING</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {whyCards.map((card, i) => (
+                  <div key={i} style={{ borderLeft: `2px solid ${card.color}`, paddingLeft: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
+                      <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: card.color, fontWeight: 700, flexShrink: 0 }}>{card.tag}</span>
+                      <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 600 }}>{card.headline}</span>
+                      {card.detail && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{card.detail}</span>}
+                    </div>
+                    <div style={{ ...m, fontSize: 10, color: '#5A5A5A', lineHeight: 1.5 }}>{card.meaning}</div>
                   </div>
                 ))}
               </div>
             </div>
           )}
-          {whyLines.length === 0 && !building.building_sqft && totalFines === 0 && (
+
+          {/* Combo multiplier callout */}
+          {comboNote && (
+            <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #F0EDE8' }}>
+              <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: '#C0392B', fontWeight: 700 }}>COMBO  </span>
+              <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{comboNote}</span>
+            </div>
+          )}
+
+          {/* Competitive angle */}
+          {incumbentNote && (
+            <div style={{ marginTop: comboNote ? 4 : 8, paddingTop: comboNote ? 0 : 8, borderTop: comboNote ? 'none' : '1px solid #F0EDE8' }}>
+              <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: '#8C8070', fontWeight: 700 }}>COMPETITIVE  </span>
+              <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{incumbentNote}</span>
+            </div>
+          )}
+
+          {whyCards.length === 0 && !building.building_sqft && totalFines === 0 && (
             <div style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>No active signals</div>
           )}
         </div>

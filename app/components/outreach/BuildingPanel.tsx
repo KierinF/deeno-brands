@@ -268,8 +268,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   }
 
   // ── Contacts section ──────────────────────────────────────────────────────
+  // NOTE: called as a render function {renderContacts()}, NOT as <ContactsSection />.
+  // Defining inline components inside render creates a new type each render,
+  // causing React to remount children and lose PhoneNumberManager state on every setActiveDial call.
 
-  const ContactsSection = () => (
+  function renderContacts() { return (
     <div>
       {CONTACT_GROUPS.map(({ key, label, hint }) => {
         const group = contactsByType[key] || []
@@ -355,7 +358,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         <div style={{ ...m, fontSize: 12, color: '#8C8070' }}>No contacts found.</div>
       )}
     </div>
-  )
+  )}
 
   // ── Signal row ───────────────────────────────────────────────────────────
 
@@ -485,7 +488,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', overflow: 'hidden' }}>
               <div style={{ overflowY: 'auto', padding: '16px 16px 40px 20px', borderRight: '1px solid #C8C1B3' }}>
                 <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 12 }}>WHO TO CALL</div>
-                <ContactsSection />
+                {renderContacts()}
               </div>
               <div style={{ overflowY: 'auto', padding: '16px 20px 40px 16px' }}>
                 <div style={{ marginBottom: 16 }}>

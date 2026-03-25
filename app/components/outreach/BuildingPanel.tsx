@@ -199,6 +199,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       ? (phoneNumbers || []).filter((p: any) => p.org_id === org.id)
       : []
     const noIndividuals = contactList.every((c: any) => !c.first_name)
+    // Confidence: use org confidence, or max contact confidence
+    const conf = org?.confidence ?? (contactList.length > 0 ? Math.max(...contactList.map((c: any) => c.confidence ?? 0)) : null)
 
     return (
       <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', marginBottom: 10 }}>
@@ -206,8 +208,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         <div style={{ padding: '10px 14px', borderBottom: contactList.length > 0 ? '1px solid #E8EDE8' : 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
             <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
+            {conf != null && conf > 0 && (
+              <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{conf}%</span>
+            )}
             {org?.phone && (
-              <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{org.phone}</span>
+              <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{org.phone}</span>
             )}
           </div>
           <PhoneNumberManager
@@ -435,7 +440,16 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           {[
             { label: 'VIOLATIONS', value: building.open_violation_count ?? 0, big: true, accent: building.open_violation_count > 0 },
             { label: 'LAST SIGNAL', value: building.last_signal_date ? new Date(building.last_signal_date).toLocaleDateString() : '—' },
-            { label: 'PM', value: building.pm_name ? (building.pm_name.length > 20 ? building.pm_name.substring(0, 20) + '…' : building.pm_name) : '—', sub: building.pm_confidence ? `${building.pm_confidence}%` : null },
+            (() => {
+              const pmContacts = contactsByType['property_manager'] || []
+              const pmName = pmContacts.length > 0
+                ? (pmContacts[0].business_name || `${pmContacts[0].first_name || ''} ${pmContacts[0].last_name || ''}`.trim())
+                : building.pm_name
+              const pmConf = pmContacts.length > 0 ? pmContacts[0].confidence : building.pm_confidence
+              const pmSource = pmContacts.length > 0 ? 'HPD' : pmConf ? `${pmConf}%` : null
+              const pmDisplay = pmName ? (pmName.length > 20 ? pmName.substring(0, 20) + '…' : pmName) : '—'
+              return { label: 'PM', value: pmDisplay, sub: pmSource }
+            })(),
             { label: 'INCUMBENT', value: building.incumbent_name ? (building.incumbent_name.length > 18 ? building.incumbent_name.substring(0, 18) + '…' : building.incumbent_name) : '—', sub: building.incumbent_staleness?.replace('_', ' ') },
             ...(building.building_sqft ? [{ label: 'SIZE', value: `${Math.round(building.building_sqft / 1000)}k sqft`, sub: building.floors ? `${building.floors} fl` : null }] : []),
           ].map((item: any) => (
@@ -475,15 +489,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               </div>
               <div style={{ overflowY: 'auto', padding: '16px 20px 40px 16px' }}>
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>NOTES</div>
-                  <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
-                    <BuildingNotes parcelId={parcelId} initialBody={buildingNotes?.body || ''} />
-                  </div>
-                </div>
-                <div style={{ marginBottom: 16 }}>
                   <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>TASKS</div>
                   <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
                     <TaskSection parcelId={parcelId} initialTasks={tasks || []} />
+                  </div>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>NOTES</div>
+                  <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
+                    <BuildingNotes parcelId={parcelId} initialBody={buildingNotes?.body || ''} />
                   </div>
                 </div>
                 <div>

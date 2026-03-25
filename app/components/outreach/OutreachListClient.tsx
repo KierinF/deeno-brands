@@ -280,6 +280,7 @@ export default function OutreachListClient({
         {selectedId && (
           <div style={{ flex: 1, background: '#F7F4EE', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
             <BuildingPanel
+              key={selectedId}
               parcelId={selectedId}
               onClose={() => setSelectedId(null)}
             />

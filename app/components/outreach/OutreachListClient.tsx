@@ -294,7 +294,7 @@ export default function OutreachListClient({
                 top: 0,
                 zIndex: 1,
               }}>
-                {['SCR', 'ADDRESS', selectedId ? 'LAST CALL' : 'STAGE', ...(!selectedId ? ['LAST CALL', 'VIOLATIONS'] : [])].map((h) => (
+                {['SCR', 'ADDRESS', selectedId ? 'LAST CALL' : 'STAGE', ...(!selectedId ? ['LAST CALL', 'FINES'] : [])].map((h) => (
                   <span key={h} style={{ ...mono, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070' }}>{h}</span>
                 ))}
               </div>
@@ -385,11 +385,78 @@ export default function OutreachListClient({
                     </div>
 
                     {/* Expanded building rows */}
-                    {isExpanded && group.buildings.map((row) => (
-                      <div key={row.parcel_id} style={{ paddingLeft: 20 }}>
-                        {renderBuildingRow(row, true)}
-                      </div>
-                    ))}
+                    {isExpanded && (() => {
+                      const colHeader = (
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: selectedId ? '44px 1fr 70px' : '44px 1fr 120px 100px 100px',
+                          padding: '5px 16px 5px 36px',
+                          background: '#F0EDE7',
+                          borderBottom: '1px solid #C8C1B3',
+                        }}>
+                          {['SCR', 'ADDRESS', selectedId ? 'LAST CALL' : 'STAGE', ...(!selectedId ? ['LAST CALL', 'FINES'] : [])].map((h) => (
+                            <span key={h} style={{ ...mono, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070' }}>{h}</span>
+                          ))}
+                        </div>
+                      )
+
+                      if (filter !== 'incumbents') {
+                        return (
+                          <>
+                            {colHeader}
+                            {group.buildings.map((row) => (
+                              <div key={row.parcel_id} style={{ paddingLeft: 20 }}>
+                                {renderBuildingRow(row, true)}
+                              </div>
+                            ))}
+                          </>
+                        )
+                      }
+
+                      // Incumbents: sub-group by score band, sort within band by job recency (fresh first)
+                      const STALENESS_ORDER: Record<string, number> = { fresh: 0, stale: 1, very_stale: 2 }
+                      const bands = [
+                        { label: '80–100', min: 80, max: 100 },
+                        { label: '50–79', min: 50, max: 79 },
+                        { label: '0–49', min: 0, max: 49 },
+                      ]
+                      return (
+                        <>
+                          {colHeader}
+                          {bands.map(({ label, min, max }) => {
+                            const rows = group.buildings
+                              .filter(r => (r.signal_score ?? 0) >= min && (r.signal_score ?? 0) <= max)
+                              .sort((a, b) =>
+                                (STALENESS_ORDER[a.incumbent_staleness ?? ''] ?? 3) -
+                                (STALENESS_ORDER[b.incumbent_staleness ?? ''] ?? 3)
+                              )
+                            if (!rows.length) return null
+                            return (
+                              <div key={label}>
+                                <div style={{
+                                  padding: '4px 16px 4px 36px',
+                                  background: '#EAE7E1',
+                                  borderBottom: '1px solid #C8C1B3',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 8,
+                                }}>
+                                  <span style={{ ...mono, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070' }}>
+                                    SCORE {label}
+                                  </span>
+                                  <span style={{ ...mono, fontSize: 8, color: '#C8C1B3' }}>· sorted by recency</span>
+                                </div>
+                                {rows.map((row) => (
+                                  <div key={row.parcel_id} style={{ paddingLeft: 20 }}>
+                                    {renderBuildingRow(row, true)}
+                                  </div>
+                                ))}
+                              </div>
+                            )
+                          })}
+                        </>
+                      )
+                    })()}
                   </div>
                 )
               })}
@@ -507,8 +574,13 @@ export default function OutreachListClient({
         {!selectedId && (
           <>
             <div style={{ ...mono, fontSize: 11, color: '#8C8070' }}>{fmtDate(lastCalled)}</div>
-            <div style={{ ...mono, fontSize: 11, color: row.open_violation_count ? '#E8A020' : '#C8C1B3' }}>
-              {row.open_violation_count ?? '—'}
+            <div style={{ lineHeight: 1.3 }}>
+              {row.open_fines_total
+                ? <div style={{ ...mono, fontSize: 10, fontWeight: 700, color: '#C0392B' }}>{fmtFines(row.open_fines_total)} open</div>
+                : <div style={{ ...mono, fontSize: 10, color: '#C8C1B3' }}>—</div>}
+              {row.total_fines
+                ? <div style={{ ...mono, fontSize: 9, color: '#8C8070' }}>{fmtFines(row.total_fines)} total</div>
+                : null}
             </div>
           </>
         )}

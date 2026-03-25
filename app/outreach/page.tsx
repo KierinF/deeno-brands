@@ -13,6 +13,7 @@ async function getListData(filter: FilterTab, page: number, pageSize: number) {
   const { data: buildings, error, count } = await supabase
     .from('building_intelligence')
     .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness', { count: 'exact' })
+    .not('building_class', 'like', 'Y%')
     .order('signal_score', { ascending: false, nullsFirst: false })
     .range(offset, offset + pageSize - 1)
 

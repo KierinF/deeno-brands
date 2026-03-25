@@ -33,8 +33,12 @@ export async function GET(request: Request) {
     supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),
   ])
 
-  // Fetch phone_numbers for any org_profiles linked to this building's orgs
-  const orgProfileIds = (orgs || []).map((o: any) => o.org_profile_id).filter(Boolean)
+  // Collect org_profile_ids from both organizations and contacts (web_enriched contacts link directly)
+  const orgProfileIds = [
+    ...(orgs || []).map((o: any) => o.org_profile_id),
+    ...(contacts || []).map((c: any) => c.org_profile_id),
+  ].filter((id, i, arr) => id && arr.indexOf(id) === i)  // dedupe
+
   const { data: profilePhones } = orgProfileIds.length > 0
     ? await supabase.from('phone_numbers').select('*').in('org_profile_id', orgProfileIds)
     : { data: [] }

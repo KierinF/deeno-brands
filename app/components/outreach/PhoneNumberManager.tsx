@@ -18,6 +18,8 @@ type PhoneNumber = {
 type Props = {
   parcelId: string
   numbers: PhoneNumber[]
+  contactId?: string | null
+  orgId?: string | null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onUpdate: any
   onCallRequest?: (phoneNumber: string) => void
@@ -36,6 +38,8 @@ function toE164(input: string): string {
 export default function PhoneNumberManager({
   parcelId,
   numbers: initialNumbers,
+  contactId,
+  orgId,
   onCallRequest,
 }: Props) {
   const [numbers, setNumbers] = useState<PhoneNumber[]>(initialNumbers)
@@ -83,6 +87,8 @@ export default function PhoneNumberManager({
         source: newSource,
         status: 'active',
         added_at: new Date().toISOString(),
+        ...(contactId ? { contact_id: contactId } : {}),
+        ...(orgId ? { org_id: orgId } : {}),
       })
       .select()
       .single()

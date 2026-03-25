@@ -93,16 +93,27 @@ function normalizeName(s: string): string {
 // ── Contact group config ──────────────────────────────────────────────────────
 
 const CONTACT_GROUPS = [
-  { key: 'property_manager', label: 'PROPERTY MANAGERS', hint: 'Primary — decision makers for service contracts' },
-  { key: 'owner',            label: 'OWNERS',            hint: 'Fallback if PM unknown or unresponsive' },
-  { key: 'trade_referral',   label: 'TRADE REFERRALS',   hint: 'Have worked here — may know or refer the PM' },
-  { key: 'permit_applicant', label: 'PERMIT APPLICANTS', hint: 'Pulled permits — possible contractor relationships' },
+  { key: 'property_manager',   label: 'PROPERTY MANAGERS', hint: 'Primary — decision makers for service contracts' },
+  { key: 'owner',              label: 'OWNERS',            hint: 'Fallback if PM unknown or unresponsive' },
+  { key: 'tenant',             label: 'TENANTS',           hint: 'In the building daily — good referral source for PM/owner' },
+  { key: 'institution',        label: 'INSTITUTIONS',      hint: 'Hospital, university, church — control their own suppression' },
+  { key: 'trade_referral',     label: 'TRADE REFERRALS',   hint: 'Contractors on site — know the PM personally' },
+  { key: 'permit_applicant',   label: 'PERMIT APPLICANTS', hint: 'Pulled permits — possible contractor relationships' },
+  { key: 'violation_respondent', label: 'OTHER CONTACTS',  hint: 'Unclassified or government — low priority' },
 ]
 
 type ActiveDial = {
   phoneNumber: string
   contactId: string
   contactName: string
+}
+
+type AddContactState = {
+  sectionKey: string
+  firstName: string
+  lastName: string
+  businessName: string
+  phone: string
 }
 
 type Tab = 'main' | 'signals'
@@ -113,6 +124,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const [tab, setTab] = useState<Tab>('main')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['property_manager', 'owner']))
   const [activeDial, setActiveDial] = useState<ActiveDial | null>(null)
+  const [addContact, setAddContact] = useState<AddContactState | null>(null)
+  const [savingContact, setSavingContact] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -154,9 +167,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const openSignals = thisSignals.filter((s: any) => s.is_open)
   const closedSignals = thisSignals.filter((s: any) => !s.is_open)
 
-  // Group contacts by type, then sub-group by company
+  // Group contacts by type, then sub-group by company (exclude bad data)
   const contactsByType: Record<string, any[]> = {}
   for (const c of (contacts || [])) {
+    if (c.is_bad_data) continue
     const t = (c.contact_type || 'other').toLowerCase()
     if (!contactsByType[t]) contactsByType[t] = []
     contactsByType[t].push(c)
@@ -182,6 +196,41 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n
   })
 
+  async function markContactBad(contactId: string) {
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    await supabase.from('contacts').update({ is_bad_data: true }).eq('id', contactId)
+    load()
+  }
+
+  async function saveNewContact() {
+    if (!addContact) return
+    setSavingContact(true)
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    const { data: newC } = await supabase.from('contacts').insert({
+      parcel_id: parcelId,
+      contact_type: addContact.sectionKey,
+      first_name: addContact.firstName.trim() || null,
+      last_name: addContact.lastName.trim() || null,
+      business_name: addContact.businessName.trim() || null,
+      source: 'manual',
+    }).select().single()
+    if (newC && addContact.phone.trim()) {
+      const digits = addContact.phone.replace(/\D/g, '')
+      const e164 = digits.length === 10 ? `+1${digits}` : digits.length === 11 && digits[0] === '1' ? `+${digits}` : addContact.phone.trim()
+      await supabase.from('phone_numbers').insert({
+        parcel_id: parcelId,
+        contact_id: newC.id,
+        number: e164,
+        source: 'manual',
+        status: 'active',
+        added_at: new Date().toISOString(),
+      })
+    }
+    setAddContact(null)
+    setSavingContact(false)
+    load()
+  }
+
   // ── Company block ─────────────────────────────────────────────────────────
 
   const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any) => {
@@ -190,7 +239,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       ? (phoneNumbers || []).filter((p: any) => p.org_id === org.id)
       : []
     const noIndividuals = contactList.every((c: any) => !c.first_name)
-    // Confidence: use org confidence, or max contact confidence
     const conf = org?.confidence ?? (contactList.length > 0 ? Math.max(...contactList.map((c: any) => c.confidence ?? 0)) : null)
 
     return (
@@ -208,6 +256,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           </div>
           <PhoneNumberManager
             parcelId={parcelId}
+            orgId={org?.id ?? null}
             numbers={org?.phone && orgPhones.length === 0
               ? [{ id: `org-${org.id}`, parcel_id: parcelId, number: org.phone, source: 'enriched', status: 'active', org_id: org.id }]
               : orgPhones
@@ -220,10 +269,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             })}
           />
           {!org?.phone && orgPhones.length === 0 && (
-            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No company number — add the main line below</div>
+            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No company number — add below</div>
           )}
           {noIndividuals && (
-            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No individual contacts identified</div>
+            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No individual contacts on record</div>
           )}
         </div>
 
@@ -235,14 +284,20 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             : contact.business_name || 'Unknown'
           return (
             <div key={contact.id} style={{ padding: '8px 14px 8px 24px', borderBottom: '1px solid #F0EDE8' }}>
-              <div style={{ ...m, fontSize: 11, color: '#1C2B2B', marginBottom: 6 }}>
-                {name}
-                {contact.confidence && (
-                  <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{contact.confidence}%</span>
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>
+                  {name}
+                  {contact.confidence && (
+                    <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{contact.confidence}%</span>
+                  )}
+                </span>
+                <button onClick={() => markContactBad(contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
+                  wrong
+                </button>
               </div>
               <PhoneNumberManager
                 parcelId={parcelId}
+                contactId={contact.id}
                 numbers={cphones}
                 onUpdate={null}
                 onCallRequest={(phoneNumber) => setActiveDial({
@@ -319,15 +374,31 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
                 {visible.map((entry: any, i) =>
                   entry.type === 'company'
-                    ? <div key={entry.name + i}>{renderCompanyBlock(entry.displayName || entry.name, entry.contacts)}</div>
+                    ? (
+                      <div key={entry.name + i} style={{ position: 'relative' }}>
+                        {renderCompanyBlock(entry.displayName || entry.name, entry.contacts)}
+                        <button
+                          onClick={() => { entry.contacts.forEach((c: any) => markContactBad(c.id)) }}
+                          style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                        >
+                          wrong
+                        </button>
+                      </div>
+                    )
                     : (
                       <div key={entry.contact.id} style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 14px', marginBottom: 8 }}>
-                        <div style={{ ...m, fontSize: 11, color: '#1C2B2B', marginBottom: 6 }}>
-                          {entry.contact.first_name} {entry.contact.last_name || ''}
-                          {entry.contact.confidence && <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{entry.contact.confidence}%</span>}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+                          <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>
+                            {entry.contact.first_name} {entry.contact.last_name || ''}
+                            {entry.contact.confidence && <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{entry.contact.confidence}%</span>}
+                          </span>
+                          <button onClick={() => markContactBad(entry.contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
+                            wrong
+                          </button>
                         </div>
                         <PhoneNumberManager
                           parcelId={parcelId}
+                          contactId={entry.contact.id}
                           numbers={(phoneNumbers || []).filter((p: any) => p.contact_id === entry.contact.id)}
                           onUpdate={null}
                           onCallRequest={(phoneNumber) => setActiveDial({
@@ -343,6 +414,40 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 {hidden > 0 && (
                   <button onClick={() => toggleGroup(key)} style={{ ...m, fontSize: 10, color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}>
                     + {hidden} more
+                  </button>
+                )}
+
+                {/* Add contact form */}
+                {addContact?.sectionKey === key ? (
+                  <div style={{ background: '#F7F4EE', border: '1px solid #C8C1B3', padding: '12px 14px', marginTop: 8 }}>
+                    <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 10 }}>ADD CONTACT</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <input placeholder="Company name" value={addContact.businessName} onChange={e => setAddContact(a => a && ({ ...a, businessName: e.target.value }))}
+                        style={{ padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <input placeholder="First name" value={addContact.firstName} onChange={e => setAddContact(a => a && ({ ...a, firstName: e.target.value }))}
+                          style={{ flex: 1, padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                        <input placeholder="Last name" value={addContact.lastName} onChange={e => setAddContact(a => a && ({ ...a, lastName: e.target.value }))}
+                          style={{ flex: 1, padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                      </div>
+                      <input placeholder="Phone (optional)" value={addContact.phone} onChange={e => setAddContact(a => a && ({ ...a, phone: e.target.value }))}
+                        style={{ padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                        <button onClick={saveNewContact} disabled={savingContact}
+                          style={{ padding: '7px 14px', background: '#E8A020', color: '#1C2B2B', border: 'none', ...m, fontSize: 11, fontWeight: 700, cursor: 'pointer', letterSpacing: '1px' }}>
+                          {savingContact ? '...' : 'SAVE'}
+                        </button>
+                        <button onClick={() => setAddContact(null)}
+                          style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#8C8070', cursor: 'pointer' }}>
+                          cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <button onClick={() => setAddContact({ sectionKey: key, firstName: '', lastName: '', businessName: '', phone: '' })}
+                    style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0 0 0' }}>
+                    + ADD CONTACT
                   </button>
                 )}
               </>

@@ -89,8 +89,11 @@ const CONTRACTOR_ENGAGED_STATUSES = new Set(['permit entire', 'approved', 'permi
 function signalWeight(sig: any): number {
   let w = SIGNAL_WEIGHT[sig.signal_type] ?? 30
   if (sig.signal_type === 'violation_fire' && sig.raw_data?.charges?.length) {
-    const code = sig.raw_data.charges[0]?.code
-    if (code && CHARGE_WEIGHT[code]) w = CHARGE_WEIGHT[code]
+    // Use the highest-severity charge in the ticket, not just charges[0]
+    const best = [...sig.raw_data.charges].sort((a: any, b: any) =>
+      (CHARGE_WEIGHT[b.code] ?? 0) - (CHARGE_WEIGHT[a.code] ?? 0)
+    )[0]
+    if (best?.code && CHARGE_WEIGHT[best.code]) w = CHARGE_WEIGHT[best.code]
   }
   if (sig.signal_type === 'violation_ecb') {
     w = sig.raw_data?.ecb_tier === 'A' ? 85 : 65
@@ -220,7 +223,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   function scoredWeight(sig: any): number {
     let base = signalWeight(sig)
-    const decay = ageDecay(sig.signal_date)
+    // Open violations don't decay — still-open = still unresolved = still urgent
+    const isOpenViolation = sig.is_open && (sig.signal_type === 'violation_fire' || sig.signal_type === 'violation_ecb')
+    const decay = isOpenViolation ? 1.0 : ageDecay(sig.signal_date)
     let mult = 1.0
     if (sig.signal_type === 'violation_fire') {
       const total = (sig.raw_data?.charges || []).reduce((s: number, c: any) => s + Number(c.amount || 0), 0)
@@ -283,10 +288,13 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     const openStr = sig.is_open ? 'OPEN' : 'closed'
 
     if (sig.signal_type === 'violation_fire') {
-      const charges = [...(sig.raw_data?.charges || [])].sort((a: any, b: any) => Number(b.amount) - Number(a.amount))
+      const charges = [...(sig.raw_data?.charges || [])].sort((a: any, b: any) =>
+        (CHARGE_WEIGHT[b.code] ?? 0) - (CHARGE_WEIGHT[a.code] ?? 0)
+      )
       const top = charges[0]
       const code = top?.code || ''
-      const amount = top ? Number(top.amount) : 0
+      const totalAmount = (sig.raw_data?.charges || []).reduce((s: number, c: any) => s + Number(c.amount || 0), 0)
+      const amount = totalAmount
       const headline = SIG_HEADLINES[code] || (CHARGE_LABELS[code] ? `Violation — ${CHARGE_LABELS[code]}` : 'FDNY fire safety violation')
       const meaning = SIG_MEANINGS[code] || 'Open FDNY violation — certified contractor needed to cure and close'
       const detail = [amount > 0 ? `$${amount.toLocaleString()} fine` : null, da, openStr].filter(Boolean).join(' · ')

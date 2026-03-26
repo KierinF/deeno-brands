@@ -26,6 +26,7 @@ function fmtDateTime(dateStr: string | null | undefined) {
 
 const SIGNAL_LABELS: Record<string, string> = {
   violation_fire:             'FDNY Violation',
+  violation_ecb:              'ECB Violation',
   permit_new_building:        'New Building Permit',
   permit_change_of_occupancy: 'Change of Occupancy',
   permit_large_renovation:    'Large Renovation',
@@ -40,23 +41,40 @@ const SIGNAL_LABELS: Record<string, string> = {
 }
 
 const CHARGE_LABELS: Record<string, string> = {
+  // Tier A
   BF20: 'Inspection & Testing — failed ITM',
   BF12: 'Fire Protection Systems',
+  BF01: 'Extinguishers & Hoses',
+  // Tier B
   BF35: 'Unnecessary Alarms',
   BF17: 'Certificates of Fitness',
-  BF01: 'Extinguishers & Hoses',
+  BF09: 'Sprinkler System Deficiency',
+  BF08: 'Standpipe Deficiency',
+  BF14: 'Emergency Lighting',
+  BF15: 'Exit Signs',
+  // Tier C
+  BF05: 'Recordkeeping & Logs',
   BF19: 'Affidavits & Documentation',
+  BF06: 'Fire Drill Compliance',
+  BF07: 'Posting & Signage',
+  BF11: 'Fire Guard Requirements',
+  BF30: 'Miscellaneous Fire Code',
 }
 
 const SIGNAL_WEIGHT: Record<string, number> = {
-  violation_fire: 55, vacate_order: 95, fire_incident_direct: 82,
+  violation_fire: 55, violation_ecb: 70, vacate_order: 95, fire_incident_direct: 82,
   complaint_fire: 60, permit_new_building: 72, permit_change_of_occupancy: 65,
   permit_large_renovation: 60, permit_demolition: 50, permit_renovation_fire: 35,
-  permit_fire_system: 28, fire_incident_proximity: 25, license_sla: 20,
+  permit_fire_system: 50, fire_incident_proximity: 25, license_sla: 20,
 }
 
 const CHARGE_WEIGHT: Record<string, number> = {
-  BF20: 95, BF12: 88, BF35: 82, BF17: 78, BF01: 65, BF19: 40,
+  // Tier A — highest urgency
+  BF20: 95, BF12: 88, BF01: 82,
+  // Tier B — moderate urgency
+  BF35: 68, BF17: 65, BF09: 62, BF08: 60, BF14: 58, BF15: 58,
+  // Tier C — low urgency
+  BF05: 32, BF19: 30, BF06: 28, BF07: 28, BF11: 28, BF30: 25,
 }
 
 // Signals that are NOT useful when closed
@@ -74,6 +92,10 @@ function signalWeight(sig: any): number {
     const code = sig.raw_data.charges[0]?.code
     if (code && CHARGE_WEIGHT[code]) w = CHARGE_WEIGHT[code]
   }
+  if (sig.signal_type === 'violation_ecb') {
+    w = sig.raw_data?.ecb_tier === 'A' ? 85 : 65
+  }
+  if (!sig.is_open) w = Math.round(w * 0.4)
   return w
 }
 
@@ -216,20 +238,44 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   type WhyCard = { tag: string; headline: string; detail: string; meaning: string; score: number; color: string }
 
   const SIG_HEADLINES: Record<string, string> = {
+    // Tier A
     BF20: 'Failed ITM inspection',
     BF12: 'Fire protection system deficiency',
+    BF01: 'Extinguisher / hose failure',
+    // Tier B
     BF35: 'Unnecessary alarm responses',
     BF17: 'Certificate of Fitness lapse',
-    BF01: 'Extinguisher / hose failure',
+    BF09: 'Sprinkler system deficiency',
+    BF08: 'Standpipe system deficiency',
+    BF14: 'Emergency lighting failure',
+    BF15: 'Exit sign violation',
+    // Tier C
+    BF05: 'Recordkeeping violation',
     BF19: 'Documentation violation',
+    BF06: 'Fire drill non-compliance',
+    BF07: 'Posting / signage violation',
+    BF11: 'Fire guard violation',
+    BF30: 'Fire code violation',
   }
   const SIG_MEANINGS: Record<string, string> = {
+    // Tier A
     BF20: 'This is exactly what you sell — they need a certified contractor to re-certify and close the violation',
     BF12: 'Documented suppression system deficiency — direct upgrade opportunity',
+    BF01: 'Extinguisher or hose out of compliance — basic service contract renewal',
+    // Tier B
     BF35: 'Alarm generating unnecessary FDNY responses — calibration or replacement needed',
     BF17: 'Certificates of Fitness expired — compliance urgency, low-friction entry point',
-    BF01: 'Extinguisher or hose out of compliance — basic service contract renewal',
+    BF09: 'Sprinkler deficiency on record — inspection and repair opportunity',
+    BF08: 'Standpipe out of compliance — direct service opportunity',
+    BF14: 'Emergency lighting issue — simple fix, opens door to full system conversation',
+    BF15: 'Exit sign non-compliance — straightforward entry point',
+    // Tier C
+    BF05: 'Recordkeeping gap — low technical bar but signals lax maintenance culture',
     BF19: 'Affidavit / documentation gap — fast close, low technical bar',
+    BF06: 'Fire drill non-compliance — follow-up opportunity for broader safety audit',
+    BF07: 'Signage violation — minor but compliance-motivated PM will want it cleared',
+    BF11: 'Fire guard requirement — may indicate suppression gap worth exploring',
+    BF30: 'Fire code violation — review raw data for specifics',
   }
 
   function narrativeForSig(sig: any, score: number): WhyCard | null {
@@ -245,6 +291,19 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       const meaning = SIG_MEANINGS[code] || 'Open FDNY violation — certified contractor needed to cure and close'
       const detail = [amount > 0 ? `$${amount.toLocaleString()} fine` : null, da, openStr].filter(Boolean).join(' · ')
       return { tag: code || 'VIOLATION', headline, detail, meaning, score, color: score >= 70 ? '#C0392B' : '#E8A020' }
+    }
+    if (sig.signal_type === 'violation_ecb') {
+      const tier = sig.raw_data?.ecb_tier || 'B'
+      const desc = sig.raw_data?.violation_description || ''
+      const openStr2 = sig.is_open ? 'OPEN' : 'closed'
+      const headline = tier === 'A'
+        ? 'Sprinkler system not installed (ECB)'
+        : 'Fire protection compliance violation (ECB)'
+      const meaning = tier === 'A'
+        ? 'DOB-issued ECB violation for missing sprinkler — major remediation required, strong sales opportunity'
+        : 'ECB violation for fire protection non-compliance — PM under pressure to resolve before penalty escalates'
+      const detail = [desc ? desc.slice(0, 60) : null, da, openStr2].filter(Boolean).join(' · ')
+      return { tag: `ECB-${tier}`, headline, detail, meaning, score, color: tier === 'A' ? '#C0392B' : '#E8A020' }
     }
     if (sig.signal_type === 'vacate_order') {
       return { tag: 'VACATE', headline: 'Vacate order', detail: [da, openStr].filter(Boolean).join(' · '), meaning: 'Building cleared — cannot re-occupy without full fire compliance sign-off', score, color: '#C0392B' }

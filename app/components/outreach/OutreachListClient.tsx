@@ -154,7 +154,9 @@ export default function OutreachListClient({
         .sort((a, b) =>
           filter === 'incumbents'
             ? (b.latestJob ?? '').localeCompare(a.latestJob ?? '')
-            : b.buildings.length - a.buildings.length || b.topScore - a.topScore
+            : filter === 'managers'
+              ? b.openFines - a.openFines || b.buildings.length - a.buildings.length
+              : b.buildings.length - a.buildings.length || b.topScore - a.topScore
         )
     }
 
@@ -184,7 +186,11 @@ export default function OutreachListClient({
         }
       })
       .filter(g => g.buildings.length > 0)
-      .sort((a, b) => b.buildings.length - a.buildings.length || b.topScore - a.topScore)
+      .sort((a, b) =>
+        filter === 'brokers'
+          ? b.openFines - a.openFines || b.buildings.length - a.buildings.length
+          : b.buildings.length - a.buildings.length || b.topScore - a.topScore
+      )
   }, [filter, initialRows, contacts, rowsByParcel, search])
 
   const filteredRows = useMemo(() => {

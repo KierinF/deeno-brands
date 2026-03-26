@@ -29,7 +29,7 @@ async function getListData(filter: FilterTab) {
   const buildings = await fetchAllRows((start) =>
     supabase
       .from('building_intelligence')
-      .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness, incumbent_name, open_fines_total, total_fines')
+      .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness, incumbent_name, incumbent_last_job, open_fines_total, total_fines')
       .not('building_class', 'like', 'Y%')
       .range(start, start + FETCH_CHUNK - 1) as any
   )

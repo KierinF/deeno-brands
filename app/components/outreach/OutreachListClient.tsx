@@ -28,6 +28,7 @@ type Row = {
   total_fines: number | null
   incumbent_name: string | null
   incumbent_staleness: string | null
+  incumbent_last_job: string | null
   lead: {
     id: string
     status: string | null
@@ -62,6 +63,7 @@ type OrgGroup = {
   topScore: number
   openFines: number
   totalFines: number
+  latestJob: string | null
 }
 
 const PAGE_SIZE = 100
@@ -137,14 +139,23 @@ export default function OutreachListClient({
         .map(([name, rawBuildings]) => {
           const buildings = [...rawBuildings].sort((a, b) =>
             (b.signal_score ?? 0) - (a.signal_score ?? 0))
+          const latestJob = buildings.reduce((best, r) => {
+            const d = r.incumbent_last_job ?? ''
+            return d > (best ?? '') ? d : best
+          }, null as string | null)
           return {
             name,
             buildings,
             topScore: Math.max(...buildings.map(r => r.signal_score ?? 0)),
+            latestJob,
             ...buildingFines(buildings),
           }
         })
-        .sort((a, b) => b.buildings.length - a.buildings.length || b.topScore - a.topScore)
+        .sort((a, b) =>
+          filter === 'incumbents'
+            ? (b.latestJob ?? '').localeCompare(a.latestJob ?? '')
+            : b.buildings.length - a.buildings.length || b.topScore - a.topScore
+        )
     }
 
     // owners / contractors / brokers — grouped from contacts
@@ -168,6 +179,7 @@ export default function OutreachListClient({
           name,
           buildings,
           topScore: buildings.length ? Math.max(...buildings.map(r => r.signal_score ?? 0)) : 0,
+          latestJob: null,
           ...buildingFines(buildings),
         }
       })

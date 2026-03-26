@@ -349,12 +349,18 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     .map((s: any) => ({ sig: s, score: scoredWeight(s) }))
     .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
 
-  // Dedupe: one card per signal_type (except violation_fire — one per charge code), pick top 3 by score
+  // Dedupe: one card per signal_type (except violation_fire — one per highest-tier charge code), pick top 3 by score
   const seen = new Set<string>()
   const whyCardsUnsorted: (WhyCard & { date: string | null })[] = []
   for (const { sig, score } of scoredSigs) {
     const key = sig.signal_type === 'violation_fire'
-      ? `violation_fire:${sig.raw_data?.charges?.[0]?.code || 'generic'}`
+      ? (() => {
+          const charges = sig.raw_data?.charges || []
+          const best = [...charges].sort((a: any, b: any) =>
+            (CHARGE_WEIGHT[b.code] ?? 0) - (CHARGE_WEIGHT[a.code] ?? 0)
+          )[0]
+          return `violation_fire:${best?.code || 'generic'}`
+        })()
       : sig.signal_type
     if (seen.has(key)) continue
     seen.add(key)
@@ -707,36 +713,48 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const renderSignalRow = (sig: any, i: number) => {
     const w = signalWeight(sig)
     const charges = sig.raw_data?.charges || []
-    const charge = charges[0]
+    // Use highest-severity charge for display, not just first
+    const charge = charges.length
+      ? [...charges].sort((a: any, b: any) => (CHARGE_WEIGHT[b.code] ?? 0) - (CHARGE_WEIGHT[a.code] ?? 0))[0]
+      : null
+    const totalFine = charges.reduce((s: number, c: any) => s + Number(c.amount || 0), 0)
     const filingStatus = (sig.raw_data?.filing_status || '').toLowerCase()
     const contractorEngaged = sig.signal_type === 'permit_renovation_fire' && CONTRACTOR_ENGAGED_STATUSES.has(filingStatus)
     const isProximity = sig.signal_type === 'fire_incident_proximity'
+    const isEcb = sig.signal_type === 'violation_ecb'
     const proximityStreet = sig.raw_data?.incident_street
     const proximityType = sig.raw_data?.incident_type?.replace(/^\d+\s*-\s*/, '')
+    const accent = contractorEngaged ? '#C8C1B3' : signalAccent(w)
 
     return (
       <div key={sig.id || i} style={{
         display: 'flex', gap: 10, padding: '10px 12px',
         background: '#FFFFFF', border: '1px solid #C8C1B3',
-        borderLeft: `3px solid ${contractorEngaged ? '#C8C1B3' : signalAccent(w)}`,
+        borderLeft: `3px solid ${accent}`,
         marginBottom: 4,
       }}>
-        <div style={{ ...m, fontSize: 11, fontWeight: 700, color: contractorEngaged ? '#C8C1B3' : signalAccent(w), minWidth: 24, textAlign: 'right', flexShrink: 0, paddingTop: 1 }}>
-          {w}
-        </div>
+        <div style={{ width: 6, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 2 }}>
             <span style={{ ...m, fontSize: 10, color: '#1C2B2B' }}>{SIGNAL_LABELS[sig.signal_type] || sig.signal_type}</span>
             {charge?.code && <span style={{ ...m, fontSize: 9, color: '#E8A020', fontWeight: 700 }}>{charge.code}</span>}
+            {isEcb && <span style={{ ...m, fontSize: 9, color: '#E8A020', fontWeight: 700 }}>ECB-{sig.raw_data?.ecb_tier || 'B'}</span>}
             {contractorEngaged && <span style={{ ...m, fontSize: 8, color: '#8C8070', border: '1px solid #C8C1B3', padding: '1px 4px' }}>CONTRACTOR ON SITE</span>}
           </div>
           {charge && (
             <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
               {CHARGE_LABELS[charge.code] || charge.description}
-              {charge.amount ? ` · $${Number(charge.amount).toLocaleString()} fine` : ''}
+              {totalFine > 0 ? ` · $${totalFine.toLocaleString()} fine` : ''}
             </div>
           )}
-          {!charge && sig.raw_data?.job_type && (
+          {isEcb && (
+            <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
+              {sig.raw_data?.violation_description
+                ? sig.raw_data.violation_description.slice(0, 80).toLowerCase().replace(/^./, (c: string) => c.toUpperCase())
+                : 'Sprinkler / fire protection violation'}
+            </div>
+          )}
+          {!charge && !isEcb && sig.raw_data?.job_type && (
             <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
               {sig.raw_data.job_type}{filingStatus ? ` · ${sig.raw_data.filing_status}` : ''}
             </div>

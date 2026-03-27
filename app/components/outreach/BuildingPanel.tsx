@@ -86,20 +86,42 @@ const DROP_IF_CLOSED = new Set([
 // Permits where "approved/permit entire" means contractor already engaged
 const CONTRACTOR_ENGAGED_STATUSES = new Set(['permit entire', 'approved', 'permit signed off'])
 
+// Age-based decay matching DB scoring formula
+function violationDecay(dateStr: string, isOpen: boolean): number {
+  const days = (Date.now() - new Date(dateStr).getTime()) / 86_400_000
+  if (isOpen) {
+    if (days <  90) return 1.0
+    if (days < 180) return 0.9
+    if (days < 365) return 0.8
+    if (days < 730) return 0.7
+    return 0.6  // floor — never zero for open
+  } else {
+    if (days <  90) return 0.8
+    if (days < 180) return 0.6
+    if (days < 365) return 0.4
+    if (days < 730) return 0.2
+    return 0.0
+  }
+}
+
 function signalWeight(sig: any): number {
-  let w = SIGNAL_WEIGHT[sig.signal_type] ?? 30
+  const decay = violationDecay(sig.signal_date, sig.is_open)
+
   if (sig.signal_type === 'violation_fire' && sig.raw_data?.charges?.length) {
-    // Use the highest-severity charge in the ticket, not just charges[0]
-    const best = [...sig.raw_data.charges].sort((a: any, b: any) =>
-      (CHARGE_WEIGHT[b.code] ?? 0) - (CHARGE_WEIGHT[a.code] ?? 0)
-    )[0]
-    if (best?.code && CHARGE_WEIGHT[best.code]) w = CHARGE_WEIGHT[best.code]
+    const codes: string[] = sig.raw_data.charges.map((c: any) => c.code)
+    const isITM        = codes.includes('BF20')
+    const isSprinkler  = !isITM && codes.some((c: string) => ['BF12','BF01'].includes(c))
+    const isTierB      = !isITM && !isSprinkler && codes.some((c: string) => ['BF35','BF17','BF09','BF08','BF14','BF15'].includes(c))
+    const basePts      = isITM ? (sig.is_open ? 35 : 8) : isSprinkler ? (sig.is_open ? 25 : 6) : isTierB ? (sig.is_open ? 13 : 3) : (sig.is_open ? 3 : 1)
+    // Map to 0-100 display weight: scale by base relative to max (35)
+    return Math.round((basePts / 35) * 100 * decay)
   }
   if (sig.signal_type === 'violation_ecb') {
-    w = sig.raw_data?.ecb_tier === 'A' ? 85 : 65
+    const base = sig.raw_data?.ecb_tier === 'A' ? (sig.is_open ? 22 : 5) : (sig.is_open ? 10 : 3)
+    return Math.round((base / 35) * 100 * decay)
   }
-  if (!sig.is_open) w = Math.round(w * 0.4)
-  return w
+  // Non-violation signals — use existing weight table, no violation decay
+  return SIGNAL_WEIGHT[sig.signal_type] ?? 30
 }
 
 function signalAccent(w: number) {
@@ -250,9 +272,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   function scoredWeight(sig: any): number {
     let base = signalWeight(sig)
-    // Open violations don't decay — still-open = still unresolved = still urgent
-    const isOpenViolation = sig.is_open && (sig.signal_type === 'violation_fire' || sig.signal_type === 'violation_ecb')
-    const decay = isOpenViolation ? 1.0 : ageDecay(sig.signal_date)
+    // Violation decay is already baked into signalWeight; apply ageDecay only to non-violation signals
+    const isViolation = sig.signal_type === 'violation_fire' || sig.signal_type === 'violation_ecb'
+    const decay = isViolation ? 1.0 : ageDecay(sig.signal_date)
     let mult = 1.0
     if (sig.signal_type === 'violation_fire') {
       const total = (sig.raw_data?.charges || []).reduce((s: number, c: any) => s + Number(c.amount || 0), 0)

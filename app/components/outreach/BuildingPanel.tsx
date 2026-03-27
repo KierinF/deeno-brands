@@ -469,7 +469,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   // ── Company block ─────────────────────────────────────────────────────────
 
-  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null) => {
+  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null, permitLabel?: string | null) => {
     const org = findOrgForName(companyName) || fallbackOrg
     const orgPhones = org
       ? (phoneNumbers || []).filter((p: any) =>
@@ -488,6 +488,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
             {conf != null && conf > 0 && (
               <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{conf}%</span>
+            )}
+            {permitLabel && (
+              <span style={{ ...m, fontSize: 8, color: '#8C8070', background: '#F0EDE8', padding: '2px 5px', letterSpacing: '0.8px' }}>{permitLabel}</span>
             )}
             {workDate && (
               <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>work: {workDate}</span>
@@ -582,15 +585,47 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           }
         }
         const companies = Object.entries(byCompany)
-        const allEntries = [
-          ...companies.map(([name, cs]) => ({
-            type: 'company',
-            name, // raw business_name — used as key and for org matching
-            displayName: cs[0]?.ai_corrected_name || name, // corrected for display only
-            contacts: cs,
-          })),
+        let allEntries: any[] = [
+          ...companies.map(([name, cs]) => {
+            const dates = cs.map((c: any) => c.source_date).filter(Boolean).sort().reverse()
+            const latestDate = dates[0] || null
+            const isFire = cs.some((c: any) => c.source === 'nyc_dob_plumbing')
+            const permitLabel = key === 'trade_referral'
+              ? (isFire ? 'FIRE SYSTEM' : cs.some((c: any) => c.source === 'nyc_dob_bis') ? 'PERMIT' : null)
+              : null
+            return {
+              type: 'company',
+              name, // raw business_name — used as key and for org matching
+              displayName: cs[0]?.ai_corrected_name || name, // corrected for display only
+              contacts: cs,
+              latestDate,
+              isFire,
+              permitLabel,
+              isPinned: false,
+            }
+          }),
           ...standalone.map(c => ({ type: 'person', contact: c })),
         ]
+        if (key === 'trade_referral') {
+          // Sort companies by most recent source_date DESC
+          allEntries.sort((a: any, b: any) => {
+            if (a.type !== 'company') return 1
+            if (b.type !== 'company') return -1
+            if (!a.latestDate && !b.latestDate) return 0
+            if (!a.latestDate) return 1
+            if (!b.latestDate) return -1
+            return b.latestDate.localeCompare(a.latestDate)
+          })
+          // Pin most recent fire contractor to top
+          const fireIdx = allEntries.findIndex((e: any) => e.type === 'company' && e.isFire)
+          if (fireIdx >= 0) {
+            allEntries[fireIdx] = { ...allEntries[fireIdx], isPinned: true }
+            if (fireIdx > 0) {
+              const [fireEntry] = allEntries.splice(fireIdx, 1)
+              allEntries.unshift(fireEntry)
+            }
+          }
+        }
         const visible = isExpanded ? allEntries : allEntries.slice(0, COLLAPSE_AT)
         const hidden = allEntries.length - visible.length
 
@@ -617,16 +652,19 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 {visible.map((entry: any, i) =>
                   entry.type === 'company'
                     ? (
-                      <div key={entry.name + i} style={{ position: 'relative' }}>
+                      <div key={entry.name + i} style={{ position: 'relative', ...(entry.isPinned ? { outline: '2px solid #E8A020', outlineOffset: -1, marginBottom: 12 } : {}) }}>
+                        {entry.isPinned && (
+                          <div style={{ background: '#E8A020', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ ...m, fontSize: 8, color: '#1C2B2B', fontWeight: 700, letterSpacing: '1px' }}>MOST RECENT FIRE CONTRACTOR</span>
+                          </div>
+                        )}
                         {renderCompanyBlock(entry.displayName || entry.name, entry.contacts, undefined, undefined,
-                          key === 'trade_referral' ? (() => {
-                            const dates = entry.contacts.map((c: any) => c.source_date).filter(Boolean).sort().reverse()
-                            return dates[0] ? fmtDate(dates[0]) : null
-                          })() : null
+                          key === 'trade_referral' && entry.latestDate ? fmtDate(entry.latestDate) : null,
+                          entry.permitLabel ?? null
                         )}
                         <button
                           onClick={() => { entry.contacts.forEach((c: any) => markContactBad(c.id)) }}
-                          style={{ position: 'absolute', top: 10, right: 10, background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                          style={{ position: 'absolute', top: entry.isPinned ? 34 : 10, right: 10, background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
                         >
                           wrong
                         </button>

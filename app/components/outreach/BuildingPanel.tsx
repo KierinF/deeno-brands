@@ -184,7 +184,22 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   if (loading) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Loading...</div>
   if (!data?.building) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Not found.</div>
 
-  const { building, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs } = data
+  const { building, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles } = data
+
+  // Build org_profiles lookup by normalized name (phone source for enriched contacts)
+  const orgProfilesByNorm: Record<string, any> = {}
+  for (const op of (orgProfiles || [])) {
+    const k = normalizeName(op.canonical_name || '')
+    if (k) orgProfilesByNorm[k] = op
+  }
+  function findOrgProfile(name: string) {
+    if (!name) return null
+    const k = normalizeName(name)
+    if (orgProfilesByNorm[k]) return orgProfilesByNorm[k]
+    const prefix = k.substring(0, 12)
+    if (prefix.length < 6) return null
+    return Object.entries(orgProfilesByNorm).find(([ok]) => ok.startsWith(prefix) || prefix.startsWith(ok.substring(0, 12)))?.[1] ?? null
+  }
 
   // Compute fine totals from all violation_fire signals
   const allViolations = (signals || []).filter((s: any) => s.signal_type === 'violation_fire')
@@ -471,12 +486,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null, permitLabel?: string | null) => {
     const org = findOrgForName(companyName) || fallbackOrg
+    const orgProfile = findOrgProfile(companyName)
     const orgPhones = org
       ? (phoneNumbers || []).filter((p: any) =>
           p.org_id === org.id ||
           (org.org_profile_id && p.org_profile_id === org.org_profile_id)
         )
       : []
+    // Resolved phone: org table → phone_numbers → org_profiles
+    const resolvedPhone = org?.phone || (orgPhones.length === 0 ? orgProfile?.phone : null)
     const noIndividuals = contactList.every((c: any) => !c.first_name)
     const conf = confOverride ?? org?.confidence ?? (contactList.length > 0 ? Math.max(...contactList.map((c: any) => c.confidence ?? 0)) : null)
 
@@ -495,25 +513,25 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             {workDate && (
               <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>work: {workDate}</span>
             )}
-            {org?.phone && (
-              <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{org.phone}</span>
+            {resolvedPhone && (
+              <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{resolvedPhone}</span>
             )}
           </div>
           <PhoneNumberManager
             parcelId={parcelId}
             orgId={org?.id ?? null}
-            numbers={org?.phone && orgPhones.length === 0
-              ? [{ id: `org-${org.id}`, parcel_id: parcelId, number: org.phone, source: 'enriched', status: 'active', org_id: org.id }]
+            numbers={resolvedPhone && orgPhones.length === 0
+              ? [{ id: `profile-${org?.id ?? orgProfile?.id ?? 'x'}`, parcel_id: parcelId, number: resolvedPhone, source: 'enriched', status: 'active', org_id: org?.id }]
               : orgPhones
             }
             onUpdate={null}
             onCallRequest={(phoneNumber) => setActiveDial({
               phoneNumber,
-              contactId: org?.id ?? '',
+              contactId: org?.id ?? orgProfile?.id ?? '',
               contactName: companyName,
             })}
           />
-          {!org?.phone && orgPhones.length === 0 && (
+          {!resolvedPhone && orgPhones.length === 0 && (
             <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No company number — add below</div>
           )}
           {noIndividuals && (

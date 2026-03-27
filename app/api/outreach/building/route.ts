@@ -40,11 +40,22 @@ export async function GET(request: Request) {
     ...(contacts || []).map((c: any) => c.org_profile_id),
   ].filter((id, i, arr) => id && arr.indexOf(id) === i)  // dedupe
 
-  const { data: profilePhones } = orgProfileIds.length > 0
-    ? await supabase.from('phone_numbers').select('*').in('org_profile_id', orgProfileIds)
-    : { data: [] }
+  // Collect all business names to match against org_profiles.canonical_name
+  const businessNames = [
+    ...(contacts || []).map((c: any) => c.business_name),
+    ...(orgs || []).map((o: any) => o.business_name),
+  ].filter((n, i, arr) => n && arr.indexOf(n) === i)
+
+  const [{ data: profilePhones }, { data: orgProfiles }] = await Promise.all([
+    orgProfileIds.length > 0
+      ? supabase.from('phone_numbers').select('*').in('org_profile_id', orgProfileIds)
+      : Promise.resolve({ data: [] }),
+    businessNames.length > 0
+      ? supabase.from('org_profiles').select('id, canonical_name, phone, website, email, office_address').in('canonical_name', businessNames)
+      : Promise.resolve({ data: [] }),
+  ])
 
   const allPhoneNumbers = [...(phoneNumbers || []), ...(profilePhones || [])]
 
-  return NextResponse.json({ building, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs })
+  return NextResponse.json({ building, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles })
 }

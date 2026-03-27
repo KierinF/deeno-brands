@@ -888,13 +888,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             </h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <button
-              onClick={() => setManualDialInput('')}
-              title="Open dialer"
-              style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: '1px solid #E8A020', cursor: 'pointer', padding: '4px 10px' }}
-            >
-              DIAL
-            </button>
             <button onClick={onClose} title="Esc" style={{ ...m, fontSize: 18, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}>×</button>
           </div>
         </div>
@@ -994,7 +987,13 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               </div>
               <div style={{ overflowY: 'auto', padding: '16px 20px 40px 16px' }}>
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>TASKS</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070' }}>TASKS</div>
+                    <button
+                      onClick={() => setManualDialInput('')}
+                      style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: '1px solid #E8A020', cursor: 'pointer', padding: '3px 10px' }}
+                    >DIAL</button>
+                  </div>
                   <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
                     <TaskSection parcelId={parcelId} initialTasks={tasks || []} />
                   </div>

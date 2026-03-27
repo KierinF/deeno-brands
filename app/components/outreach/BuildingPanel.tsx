@@ -207,15 +207,21 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     return Object.entries(orgProfilesByNorm).find(([ok]) => ok.startsWith(prefix) || prefix.startsWith(ok.substring(0, 12)))?.[1] ?? null
   }
 
-  // Compute fine totals from all violation_fire signals
-  const allViolations = (signals || []).filter((s: any) => s.signal_type === 'violation_fire')
-  const openFines = allViolations
+  // Compute fine totals from FDNY + ECB signals
+  const allFdnyViolations = (signals || []).filter((s: any) => s.signal_type === 'violation_fire')
+  const allEcbViolations  = (signals || []).filter((s: any) => s.signal_type === 'violation_ecb')
+  const openFines = allFdnyViolations
     .filter((s: any) => s.is_open)
     .reduce((sum: number, s: any) =>
       sum + (s.raw_data?.charges || []).reduce((cs: number, c: any) => cs + (Number(c.amount) || 0), 0), 0)
-  const totalFines = allViolations
+    + allEcbViolations
+    .filter((s: any) => s.is_open)
+    .reduce((sum: number, s: any) => sum + (Number(s.raw_data?.penalty_imposed) || 0), 0)
+  const totalFines = allFdnyViolations
     .reduce((sum: number, s: any) =>
       sum + (s.raw_data?.charges || []).reduce((cs: number, c: any) => cs + (Number(c.amount) || 0), 0), 0)
+    + allEcbViolations
+    .reduce((sum: number, s: any) => sum + (Number(s.raw_data?.penalty_imposed) || 0), 0)
 
   const signalBrief = [
     building.open_violation_count ? `${building.open_violation_count} violations` : null,
@@ -325,13 +331,14 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       const tier = sig.raw_data?.ecb_tier || 'B'
       const desc = sig.raw_data?.violation_description || ''
       const openStr2 = sig.is_open ? 'OPEN' : 'closed'
+      const penalty = Number(sig.raw_data?.penalty_imposed || 0)
       const headline = tier === 'A'
         ? 'Sprinkler system not installed (ECB)'
         : 'Fire protection compliance violation (ECB)'
       const meaning = tier === 'A'
         ? 'DOB-issued ECB violation for missing sprinkler — major remediation required, strong sales opportunity'
         : 'ECB violation for fire protection non-compliance — PM under pressure to resolve before penalty escalates'
-      const detail = [desc ? desc.slice(0, 60) : null, da, openStr2].filter(Boolean).join(' · ')
+      const detail = [penalty > 0 ? `$${penalty.toLocaleString()} fine` : null, desc ? desc.slice(0, 60) : null, da, openStr2].filter(Boolean).join(' · ')
       return { tag: `ECB-${tier}`, headline, detail, meaning, score, color: tier === 'A' ? '#C0392B' : '#E8A020' }
     }
     if (sig.signal_type === 'vacate_order') {

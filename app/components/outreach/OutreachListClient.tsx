@@ -46,6 +46,7 @@ type ContactRow = {
   last_name: string | null
   confidence: number | null
   source_date: string | null
+  source: string | null
 }
 
 function fmtFines(amount: number | null | undefined): string {
@@ -103,6 +104,7 @@ export default function OutreachListClient({
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set())
+  const [contractorFilter, setContractorFilter] = useState<'all' | 'fire'>('all')
   const tasksSet = new Set(tasksParcelIds)
   const mono = { fontFamily: "'DM Mono', monospace" }
 
@@ -161,19 +163,21 @@ export default function OutreachListClient({
     }
 
     // owners / contractors / brokers — grouped from contacts
-    const groups: Map<string, Set<string>> = new Map()
+    const groups: Map<string, { parcels: Set<string>; latestDate: string | null }> = new Map()
     for (const c of (contacts || [])) {
       const name = (c.business_name || '').trim()
       if (!name) continue
-      // Filter obvious contractor names out of owners tab
       if (filter === 'owners' && CONTRACTOR_KEYWORDS.test(name)) continue
+      if (filter === 'contractors' && contractorFilter === 'fire' && c.source !== 'nyc_dob_plumbing') continue
       if (q && !name.toLowerCase().includes(q) && !(rowsByParcel[c.parcel_id]?.address || '').toLowerCase().includes(q)) continue
-      if (!groups.has(name)) groups.set(name, new Set())
-      groups.get(name)!.add(c.parcel_id)
+      if (!groups.has(name)) groups.set(name, { parcels: new Set(), latestDate: null })
+      const g = groups.get(name)!
+      g.parcels.add(c.parcel_id)
+      if (c.source_date && (!g.latestDate || c.source_date > g.latestDate)) g.latestDate = c.source_date
     }
     return Array.from(groups.entries())
-      .map(([name, parcelSet]) => {
-        const buildings = Array.from(parcelSet)
+      .map(([name, { parcels, latestDate }]) => {
+        const buildings = Array.from(parcels)
           .map(pid => rowsByParcel[pid])
           .filter(Boolean)
           .sort((a, b) => (b.signal_score ?? 0) - (a.signal_score ?? 0))
@@ -181,7 +185,7 @@ export default function OutreachListClient({
           name,
           buildings,
           topScore: buildings.length ? Math.max(...buildings.map(r => r.signal_score ?? 0)) : 0,
-          latestJob: null,
+          latestJob: latestDate,
           ...buildingFines(buildings),
         }
       })
@@ -189,7 +193,9 @@ export default function OutreachListClient({
       .sort((a, b) =>
         filter === 'brokers'
           ? b.openFines - a.openFines || b.buildings.length - a.buildings.length
-          : b.buildings.length - a.buildings.length || b.topScore - a.topScore
+          : filter === 'contractors'
+            ? (b.latestJob ?? '').localeCompare(a.latestJob ?? '') || b.buildings.length - a.buildings.length
+            : b.buildings.length - a.buildings.length || b.topScore - a.topScore
       )
   }, [filter, initialRows, contacts, rowsByParcel, search])
 
@@ -284,6 +290,26 @@ export default function OutreachListClient({
             outline: 'none',
           }}
         />
+        {filter === 'contractors' && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            {(['all', 'fire'] as const).map(opt => (
+              <button
+                key={opt}
+                onClick={() => { setContractorFilter(opt); setPage(0) }}
+                style={{
+                  ...mono, fontSize: 9, letterSpacing: '1.5px',
+                  padding: '4px 10px',
+                  border: '1px solid #C8C1B3',
+                  background: contractorFilter === opt ? '#1C2B2B' : '#FFFFFF',
+                  color: contractorFilter === opt ? '#E8A020' : '#8C8070',
+                  cursor: 'pointer',
+                }}
+              >
+                {opt === 'all' ? 'ALL' : 'FIRE SYSTEM ONLY'}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Split view */}
@@ -418,7 +444,7 @@ export default function OutreachListClient({
                         </div>
                       )
 
-                      if (filter !== 'incumbents') {
+                      if (filter !== 'incumbents' && filter !== 'contractors') {
                         return (
                           <>
                             {colHeader}
@@ -427,6 +453,37 @@ export default function OutreachListClient({
                                 {renderBuildingRow(row, true)}
                               </div>
                             ))}
+                          </>
+                        )
+                      }
+
+                      if (filter === 'contractors') {
+                        const bands = [
+                          { label: '80–100', min: 80, max: 100 },
+                          { label: '50–79', min: 50, max: 79 },
+                          { label: '0–49', min: 0, max: 49 },
+                        ]
+                        return (
+                          <>
+                            {colHeader}
+                            {bands.map(({ label, min, max }) => {
+                              const rows = group.buildings
+                                .filter(r => (r.signal_score ?? 0) >= min && (r.signal_score ?? 0) <= max)
+                                .sort((a, b) => (b.signal_score ?? 0) - (a.signal_score ?? 0))
+                              if (!rows.length) return null
+                              return (
+                                <div key={label}>
+                                  <div style={{ padding: '4px 16px 4px 36px', background: '#EAE7E1', borderBottom: '1px solid #C8C1B3', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <span style={{ ...mono, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070' }}>SCORE {label}</span>
+                                  </div>
+                                  {rows.map((row) => (
+                                    <div key={row.parcel_id} style={{ paddingLeft: 20 }}>
+                                      {renderBuildingRow(row, true)}
+                                    </div>
+                                  ))}
+                                </div>
+                              )
+                            })}
                           </>
                         )
                       }

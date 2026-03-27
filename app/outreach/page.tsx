@@ -59,7 +59,7 @@ async function getListData(filter: FilterTab) {
       contacts = await fetchAllRows((start) =>
         supabase
           .from('contacts')
-          .select('parcel_id, business_name, contact_type, first_name, last_name, confidence, source_date')
+          .select('parcel_id, business_name, contact_type, first_name, last_name, confidence, source_date, source')
           .in('contact_type', ['trade_referral', 'permit_applicant'])
           .neq('is_bad_data', true)
           .not('business_name', 'is', null)

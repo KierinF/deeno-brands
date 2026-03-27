@@ -197,7 +197,7 @@ export default function OutreachListClient({
             ? (b.latestJob ?? '').localeCompare(a.latestJob ?? '') || b.buildings.length - a.buildings.length
             : b.buildings.length - a.buildings.length || b.topScore - a.topScore
       )
-  }, [filter, initialRows, contacts, rowsByParcel, search])
+  }, [filter, initialRows, contacts, rowsByParcel, search, contractorFilter])
 
   const filteredRows = useMemo(() => {
     if (filter !== 'properties') return []

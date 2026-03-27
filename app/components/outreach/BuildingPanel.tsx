@@ -161,6 +161,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const [tab, setTab] = useState<Tab>('main')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['property_manager', 'owner']))
   const [activeDial, setActiveDial] = useState<ActiveDial | null>(null)
+  const [manualDialInput, setManualDialInput] = useState<string | null>(null)
   const [addContact, setAddContact] = useState<AddContactState | null>(null)
   const [savingContact, setSavingContact] = useState(false)
   const [localLeadStatus, setLocalLeadStatus] = useState<string | null>(null)
@@ -174,10 +175,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   useEffect(() => { load() }, [load])
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === 'Escape' && !activeDial) onClose() }
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (manualDialInput !== null) { setManualDialInput(null); return }
+        if (!activeDial) onClose()
+      }
+    }
     window.addEventListener('keydown', h)
     return () => window.removeEventListener('keydown', h)
-  }, [onClose, activeDial])
+  }, [onClose, activeDial, manualDialInput])
 
   const m = { fontFamily: "'DM Mono', monospace" }
 
@@ -835,7 +841,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   }
 
   return (
-    <div style={{ display: 'flex', height: '100%', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100%', overflow: 'hidden', position: 'relative' }}>
 
       {/* Main panel */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
@@ -852,7 +858,16 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               {building.address}
             </h2>
           </div>
-          <button onClick={onClose} title="Esc" style={{ ...m, fontSize: 18, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', lineHeight: 1, flexShrink: 0 }}>×</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <button
+              onClick={() => setManualDialInput('')}
+              title="Open dialer"
+              style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: '1px solid #E8A020', cursor: 'pointer', padding: '4px 10px' }}
+            >
+              DIAL
+            </button>
+            <button onClick={onClose} title="Esc" style={{ ...m, fontSize: 18, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}>×</button>
+          </div>
         </div>
 
         {/* Stage — key forces remount when lead status changes externally (e.g. auto in_progress) */}
@@ -1048,6 +1063,67 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           )}
         </div>
       </div>
+
+      {/* Manual numpad overlay */}
+      {manualDialInput !== null && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 50,
+          background: 'rgba(28, 43, 43, 0.85)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }} onClick={() => setManualDialInput(null)}>
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{ background: '#1C2B2B', border: '1px solid #E8A020', padding: 24, width: 260, display: 'flex', flexDirection: 'column', gap: 12 }}
+          >
+            <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#E8A020', marginBottom: 4 }}>MANUAL DIAL</div>
+
+            {/* Number display */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ flex: 1, background: '#0E1A1A', border: '1px solid #2E3E3E', padding: '8px 12px', ...m, fontSize: 16, color: '#F7F4EE', letterSpacing: '2px', minHeight: 36 }}>
+                {manualDialInput || <span style={{ color: '#2E3E3E' }}>—</span>}
+              </div>
+              <button
+                onClick={() => setManualDialInput(p => p!.slice(0, -1))}
+                style={{ background: 'none', border: 'none', color: '#8C8070', cursor: 'pointer', ...m, fontSize: 16, padding: '4px 6px' }}
+              >⌫</button>
+            </div>
+
+            {/* Keypad */}
+            {[['1','2','3'],['4','5','6'],['7','8','9'],['*','0','#']].map((row, ri) => (
+              <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {row.map(k => (
+                  <button
+                    key={k}
+                    onClick={() => setManualDialInput(p => (p ?? '') + k)}
+                    style={{
+                      background: '#2E3E3E', border: 'none', color: '#F7F4EE',
+                      ...m, fontSize: 16, padding: '12px 0', cursor: 'pointer',
+                    }}
+                  >{k}</button>
+                ))}
+              </div>
+            ))}
+
+            {/* Call button */}
+            <button
+              disabled={!manualDialInput}
+              onClick={() => {
+                if (!manualDialInput) return
+                const digits = manualDialInput.replace(/\D/g, '')
+                const e164 = digits.length === 10 ? `+1${digits}` : digits.length === 11 && digits[0] === '1' ? `+${digits}` : manualDialInput
+                setActiveDial({ phoneNumber: e164, contactId: '', contactName: 'Manual Dial' })
+                setManualDialInput(null)
+              }}
+              style={{
+                background: manualDialInput ? '#E8A020' : '#2E3E3E',
+                border: 'none', color: manualDialInput ? '#1C2B2B' : '#8C8070',
+                ...m, fontSize: 11, fontWeight: 700, letterSpacing: '1.5px',
+                padding: '12px 0', cursor: manualDialInput ? 'pointer' : 'default',
+              }}
+            >CALL</button>
+          </div>
+        </div>
+      )}
 
       {/* Dialer side panel — renders alongside content, not as overlay */}
       {activeDial && (

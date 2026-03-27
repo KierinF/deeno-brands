@@ -41,6 +41,7 @@ openai = OpenAI(api_key=OPENAI_KEY)
 
 CATEGORIES_TEXT = """
   property_manager  — Company hired to run day-to-day building operations (not a broker)
+  facility_manager  — Facilities/operations management company for an institutional or corporate occupant (university, hospital, nonprofit, corp HQ) — use when there is no traditional property manager but a company manages the physical plant
   owner             — Building owner: REIT, LLC, partnership, individual, condo board
   leasing_broker    — Real estate broker marketing the building (NOT the property manager)
   tenant            — A business currently leasing space in the building
@@ -50,7 +51,8 @@ CATEGORIES_TEXT = """
   unknown           — Cannot determine role
 """.strip()
 
-WRITE_CATEGORIES  = {"property_manager", "owner", "leasing_broker", "tenant"}
+# facility_manager maps to property_manager in the DB (same contact_type, flagged via ai_entity_type)
+WRITE_CATEGORIES  = {"property_manager", "facility_manager", "owner", "leasing_broker", "tenant"}
 PM_UPDATE_MIN_CONF = 0.70   # only update pm_name if GPT confidence >= this
 MAX_WORKERS        = 5      # concurrent GPT calls
 GPT_MODEL          = "gpt-4o"
@@ -68,6 +70,7 @@ Run these searches:
 2. "{address} property manager"
 3. "{address} owner"
 4. "{address} management"
+5. "{address} facility management" — especially useful for institutional buildings (universities, hospitals, nonprofits, corp HQ)
 
 For every company or person you find, categorize using ONLY:
 {CATEGORIES_TEXT}
@@ -167,9 +170,12 @@ def write_results(parcel_id: str, result: dict, existing_pm_conf: int, dry_run: 
 
         conf_int = int((entity.get("confidence") or 0) * 100)
 
+        # facility_manager maps to property_manager in the DB (flagged via ai_entity_type)
+        db_contact_type = "property_manager" if entity["category"] == "facility_manager" else entity["category"]
+
         row = {
             "parcel_id":       parcel_id,
-            "contact_type":    entity["category"],
+            "contact_type":    db_contact_type,
             "business_name":   name,
             "first_name":      first,
             "last_name":       last,
@@ -192,7 +198,7 @@ def write_results(parcel_id: str, result: dict, existing_pm_conf: int, dry_run: 
                 print(f"    warn: contact upsert failed for {name}: {e}")
 
     # ── building_intelligence update ──────────────────────────────────────────
-    pm_candidates = [e for e in entities if e.get("category") == "property_manager"]
+    pm_candidates = [e for e in entities if e.get("category") in ("property_manager", "facility_manager")]
     best_pm = (max(pm_candidates, key=lambda e: e.get("confidence", 0))
                if pm_candidates else None)
 

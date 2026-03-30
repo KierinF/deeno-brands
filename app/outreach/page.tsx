@@ -25,32 +25,52 @@ async function fetchAllRows(fetcher: (start: number) => Promise<{ data: any[] | 
 async function getListData(filter: FilterTab) {
   const supabase = await createClient()
 
-  // Fetch all non-govt buildings in sequential 1k chunks (bypasses PostgREST default cap)
-  const buildings = await fetchAllRows((start) =>
+  // Fetch all leads (scored buildings only) — this is the primary data source
+  const leadsData = await fetchAllRows((start) =>
+    supabase
+      .from('leads')
+      .select('parcel_id, id, status, score, pm_name, pm_confidence, incumbent_name, incumbent_staleness, last_called_at, call_count, next_followup_at')
+      .range(start, start + FETCH_CHUNK - 1) as any
+  )
+
+  // Fetch building_intelligence for address + fines data
+  const biData = await fetchAllRows((start) =>
     supabase
       .from('building_intelligence')
-      .select('parcel_id, address, signal_score, pm_name, pm_confidence, open_violation_count, incumbent_staleness, incumbent_name, incumbent_last_job, open_fines_total, total_fines')
+      .select('parcel_id, address, open_violation_count, incumbent_last_job, open_fines_total, total_fines')
       .not('building_class', 'like', 'Y%')
       .range(start, start + FETCH_CHUNK - 1) as any
   )
 
-  // Fetch all leads in sequential 1k chunks
-  const leadsData = await fetchAllRows((start) =>
-    supabase
-      .from('leads')
-      .select('parcel_id, id, status, last_called_at, call_count, next_followup_at')
-      .range(start, start + FETCH_CHUNK - 1) as any
-  )
+  const biMap = Object.fromEntries((biData || []).map((b: any) => [b.parcel_id, b]))
 
-  const leadsMap = Object.fromEntries(leadsData.map((l: any) => [l.parcel_id, l]))
+  // Build rows from leads (leads-first — only scored buildings appear)
+  const rows = (leadsData || []).map((lead: any) => {
+    const bi = biMap[lead.parcel_id] || {}
+    return {
+      parcel_id:            lead.parcel_id,
+      address:              bi.address || lead.parcel_id,
+      signal_score:         lead.score,
+      pm_name:              lead.pm_name,
+      pm_confidence:        lead.pm_confidence,
+      open_violation_count: bi.open_violation_count ?? null,
+      open_fines_total:     bi.open_fines_total ?? null,
+      total_fines:          bi.total_fines ?? null,
+      incumbent_name:       lead.incumbent_name,
+      incumbent_staleness:  lead.incumbent_staleness,
+      incumbent_last_job:   bi.incumbent_last_job ?? null,
+      lead: {
+        id:               lead.id,
+        status:           lead.status,
+        last_called_at:   lead.last_called_at,
+        call_count:       lead.call_count,
+        next_followup_at: lead.next_followup_at,
+      },
+    }
+  })
 
-  const rows = (buildings || []).map((b) => ({
-    ...b,
-    lead: leadsMap[b.parcel_id] || null,
-  }))
-
-  // Sort by signal_score desc
-  rows.sort((a, b) => (b.signal_score ?? -1) - (a.signal_score ?? -1))
+  // Sort by score desc
+  rows.sort((a: any, b: any) => (b.signal_score ?? -1) - (a.signal_score ?? -1))
 
   // For org-centric tabs, fetch relevant contacts
   let contacts: any[] = []

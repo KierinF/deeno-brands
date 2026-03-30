@@ -216,7 +216,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   // Merge building_intelligence with lead fallbacks so non-Manhattan buildings (no bi row) still render
   const building = {
     ..._building,
-    signal_score:       _building?.signal_score       ?? lead?.score              ?? null,
+    signal_score:       lead?.score                   ?? _building?.signal_score  ?? null,
     pm_name:            _building?.pm_name            ?? lead?.pm_name            ?? null,
     pm_confidence:      _building?.pm_confidence      ?? lead?.pm_confidence      ?? null,
     incumbent_name:     _building?.incumbent_name     ?? lead?.incumbent_name     ?? null,

@@ -651,8 +651,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       {CONTACT_GROUPS.map(({ key, label, hint }) => {
         const group = contactsByType[key] || []
         const showPmOrg = key === 'property_manager' && building.pm_name
+        // Show owner orgs from organizations table when no contacts exist for this type
+        const ownerOrgs = key === 'owner' && group.length === 0
+          ? (orgs || []).filter((o: any) => o.org_type === 'owner' && o.business_name)
+          : []
 
-        if (group.length === 0 && !showPmOrg) return null
+        if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0) return null
 
         const isExpanded = expandedGroups.has(key)
         const COLLAPSE_AT = key === 'trade_referral' ? 2 : 99
@@ -721,7 +725,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>{label}</span>
-                <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{allEntries.length + (showPmOrg ? 1 : 0)}</span>
+                <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{allEntries.length + (showPmOrg ? 1 : 0) + ownerOrgs.length}</span>
               </div>
               <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{isExpanded ? '▲' : '▼'}</span>
             </button>
@@ -731,6 +735,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
                 {showPmOrg && group.length === 0 && renderCompanyBlock(building.pm_name, [], undefined, building.pm_confidence)}
+                {ownerOrgs.map((o: any) => renderCompanyBlock(o.business_name, [], o, o.confidence))}
 
                 {visible.map((entry: any, i) =>
                   entry.type === 'company'

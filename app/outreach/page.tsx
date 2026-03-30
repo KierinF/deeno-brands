@@ -44,12 +44,25 @@ async function getListData(filter: FilterTab) {
 
   const biMap = Object.fromEntries((biData || []).map((b: any) => [b.parcel_id, b]))
 
+  // Fetch addresses from properties for all lead parcel_ids (fallback for non-Manhattan buildings
+  // where building_intelligence has no row)
+  const leadParcelIds = (leadsData || []).map((l: any) => l.parcel_id)
+  const propAddressData: any[] = []
+  for (let i = 0; i < leadParcelIds.length; i += 500) {
+    const { data } = await supabase
+      .from('properties')
+      .select('parcel_id, address')
+      .in('parcel_id', leadParcelIds.slice(i, i + 500))
+    if (data) propAddressData.push(...data)
+  }
+  const propMap = Object.fromEntries(propAddressData.map((p: any) => [p.parcel_id, p.address]))
+
   // Build rows from leads (leads-first — only scored buildings appear)
   const rows = (leadsData || []).map((lead: any) => {
     const bi = biMap[lead.parcel_id] || {}
     return {
       parcel_id:            lead.parcel_id,
-      address:              bi.address || lead.parcel_id,
+      address:              bi.address || propMap[lead.parcel_id] || lead.parcel_id,
       signal_score:         lead.score,
       pm_name:              lead.pm_name,
       pm_confidence:        lead.pm_confidence,

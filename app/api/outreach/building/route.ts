@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     { data: lead },
     { data: orgs },
   ] = await Promise.all([
-    supabase.from('building_intelligence').select('*').eq('parcel_id', parcel_id).single(),
+    supabase.from('building_intelligence').select('*').eq('parcel_id', parcel_id).maybeSingle(),
     supabase.from('contacts').select('*').eq('parcel_id', parcel_id).order('confidence', { ascending: false }),
     supabase.from('phone_numbers').select('*').eq('parcel_id', parcel_id).order('added_at', { ascending: false }),
     supabase.from('outreach_log').select('*').eq('parcel_id', parcel_id).order('contacted_at', { ascending: false }).limit(20),
@@ -57,5 +57,16 @@ export async function GET(request: Request) {
 
   const allPhoneNumbers = [...(phoneNumbers || []), ...(profilePhones || [])]
 
-  return NextResponse.json({ building, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles })
+  // If building_intelligence has no row (non-Manhattan), get address from properties table
+  let address = building?.address ?? null
+  if (!address) {
+    const { data: prop } = await supabase
+      .from('properties')
+      .select('address')
+      .eq('parcel_id', parcel_id)
+      .maybeSingle()
+    address = prop?.address ?? parcel_id
+  }
+
+  return NextResponse.json({ building, address, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles })
 }

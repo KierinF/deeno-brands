@@ -183,7 +183,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const [tab, setTab] = useState<Tab>('main')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['property_manager', 'owner']))
   const [activeDial, setActiveDial] = useState<ActiveDial | null>(null)
-  const [manualDialInput, setManualDialInput] = useState<string | null>(null)
   const [addContact, setAddContact] = useState<AddContactState | null>(null)
   const [savingContact, setSavingContact] = useState(false)
   const [localLeadStatus, setLocalLeadStatus] = useState<string | null>(null)
@@ -199,20 +198,28 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (manualDialInput !== null) { setManualDialInput(null); return }
         if (!activeDial) onClose()
       }
     }
     window.addEventListener('keydown', h)
     return () => window.removeEventListener('keydown', h)
-  }, [onClose, activeDial, manualDialInput])
+  }, [onClose, activeDial])
 
   const m = { fontFamily: "'DM Mono', monospace" }
 
   if (loading) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Loading...</div>
-  if (!data?.building) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Not found.</div>
+  if (!data?.lead && !data?.address) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Not found.</div>
 
-  const { building, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles } = data
+  const { building: _building, address: buildingAddress, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles } = data
+  // Merge building_intelligence with lead fallbacks so non-Manhattan buildings (no bi row) still render
+  const building = {
+    ..._building,
+    signal_score:       _building?.signal_score       ?? lead?.score              ?? null,
+    pm_name:            _building?.pm_name            ?? lead?.pm_name            ?? null,
+    pm_confidence:      _building?.pm_confidence      ?? lead?.pm_confidence      ?? null,
+    incumbent_name:     _building?.incumbent_name     ?? lead?.incumbent_name     ?? null,
+    incumbent_staleness:_building?.incumbent_staleness?? lead?.incumbent_staleness?? null,
+  }
 
   // Build org_profiles lookup by normalized name (phone source for enriched contacts)
   const orgProfilesByNorm: Record<string, any> = {}
@@ -251,6 +258,23 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     building.incumbent_name ? `Incumbent: ${building.incumbent_name}` : null,
   ].filter(Boolean).join(' · ')
 
+  // Superseded: open violation_fire with a NEWER closed violation_fire sharing a charge code
+  const supersededIds = new Set<string>()
+  const _fireSignals = (signals || []).filter((s: any) => s.signal_type === 'violation_fire')
+  const _closedFireSigs = _fireSignals.filter((s: any) => !s.is_open)
+  for (const openSig of _fireSignals.filter((s: any) => s.is_open)) {
+    const openCodes = new Set((openSig.raw_data?.charges || []).map((c: any) => c.code))
+    for (const closedSig of _closedFireSigs) {
+      if ((closedSig.signal_date || '') > (openSig.signal_date || '')) {
+        const closedCodes = (closedSig.raw_data?.charges || []).map((c: any) => c.code)
+        if (closedCodes.some((code: string) => openCodes.has(code))) {
+          supersededIds.add(openSig.id)
+          break
+        }
+      }
+    }
+  }
+
   // ── Score-driven "Why we're calling" ─────────────────────────────────────────
   const openViolations = (signals || []).filter((s: any) => s.signal_type === 'violation_fire' && s.is_open)
 
@@ -271,7 +295,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   }
 
   function scoredWeight(sig: any): number {
-    let base = signalWeight(sig)
+    // Superseded open violations score as if closed (stale, already resolved in practice)
+    const effectiveSig = supersededIds.has(sig.id) ? { ...sig, is_open: false } : sig
+    let base = signalWeight(effectiveSig)
     // Violation decay is already baked into signalWeight; apply ageDecay only to non-violation signals
     const isViolation = sig.signal_type === 'violation_fire' || sig.signal_type === 'violation_ecb'
     const decay = isViolation ? 1.0 : ageDecay(sig.signal_date)
@@ -449,7 +475,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const wrongAddrSignals: any[] = []
 
   const openSignals = thisSignals.filter((s: any) => s.is_open)
+    .sort((a: any, b: any) => (b.signal_date || '').localeCompare(a.signal_date || ''))
   const closedSignals = thisSignals.filter((s: any) => !s.is_open)
+    .sort((a: any, b: any) => (b.signal_date || '').localeCompare(a.signal_date || ''))
 
   // Group contacts by type, then sub-group by company (exclude bad data)
   // permit_applicant merges into trade_referral (both shown as CONTRACTORS)
@@ -802,7 +830,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   // ── Signal row ───────────────────────────────────────────────────────────
 
   const renderSignalRow = (sig: any, i: number) => {
-    const w = signalWeight(sig)
+    const isSuperseded = supersededIds.has(sig.id)
+    const w = signalWeight(isSuperseded ? { ...sig, is_open: false } : sig)
     const charges = sig.raw_data?.charges || []
     // Use highest-severity charge for display, not just first
     const charge = charges.length
@@ -815,7 +844,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     const isEcb = sig.signal_type === 'violation_ecb'
     const proximityStreet = sig.raw_data?.incident_street
     const proximityType = sig.raw_data?.incident_type?.replace(/^\d+\s*-\s*/, '')
-    const accent = contractorEngaged ? '#C8C1B3' : signalAccent(w)
+    const accent = contractorEngaged || isSuperseded ? '#C8C1B3' : signalAccent(w)
 
     return (
       <div key={sig.id || i} style={{
@@ -823,6 +852,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         background: '#FFFFFF', border: '1px solid #C8C1B3',
         borderLeft: `3px solid ${accent}`,
         marginBottom: 4,
+        opacity: isSuperseded ? 0.6 : 1,
       }}>
         <div style={{ width: 6, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -831,6 +861,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             {charge?.code && <span style={{ ...m, fontSize: 9, color: '#E8A020', fontWeight: 700 }}>{charge.code}</span>}
             {isEcb && <span style={{ ...m, fontSize: 9, color: '#E8A020', fontWeight: 700 }}>ECB-{sig.raw_data?.ecb_tier || 'B'}</span>}
             {contractorEngaged && <span style={{ ...m, fontSize: 8, color: '#8C8070', border: '1px solid #C8C1B3', padding: '1px 4px' }}>CONTRACTOR ON SITE</span>}
+            {isSuperseded && <span style={{ ...m, fontSize: 8, color: '#8C8070', border: '1px solid #C8C1B3', padding: '1px 4px' }}>SUPERSEDED</span>}
           </div>
           {charge && (
             <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
@@ -884,7 +915,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               </span>
             )}
             <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {building.address}
+              {buildingAddress}
             </h2>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
@@ -987,12 +1018,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               </div>
               <div style={{ overflowY: 'auto', padding: '16px 20px 40px 16px' }}>
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <div style={{ marginBottom: 8 }}>
                     <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070' }}>TASKS</div>
-                    <button
-                      onClick={() => setManualDialInput('')}
-                      style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: '1px solid #E8A020', cursor: 'pointer', padding: '3px 10px' }}
-                    >DIAL</button>
                   </div>
                   <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
                     <TaskSection parcelId={parcelId} initialTasks={tasks || []} />
@@ -1092,67 +1119,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         </div>
       </div>
 
-      {/* Manual numpad overlay */}
-      {manualDialInput !== null && (
-        <div style={{
-          position: 'absolute', inset: 0, zIndex: 50,
-          background: 'rgba(28, 43, 43, 0.85)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }} onClick={() => setManualDialInput(null)}>
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{ background: '#1C2B2B', border: '1px solid #E8A020', padding: 24, width: 260, display: 'flex', flexDirection: 'column', gap: 12 }}
-          >
-            <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#E8A020', marginBottom: 4 }}>MANUAL DIAL</div>
-
-            {/* Number display */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ flex: 1, background: '#0E1A1A', border: '1px solid #2E3E3E', padding: '8px 12px', ...m, fontSize: 16, color: '#F7F4EE', letterSpacing: '2px', minHeight: 36 }}>
-                {manualDialInput || <span style={{ color: '#2E3E3E' }}>—</span>}
-              </div>
-              <button
-                onClick={() => setManualDialInput(p => p!.slice(0, -1))}
-                style={{ background: 'none', border: 'none', color: '#8C8070', cursor: 'pointer', ...m, fontSize: 16, padding: '4px 6px' }}
-              >⌫</button>
-            </div>
-
-            {/* Keypad */}
-            {[['1','2','3'],['4','5','6'],['7','8','9'],['*','0','#']].map((row, ri) => (
-              <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                {row.map(k => (
-                  <button
-                    key={k}
-                    onClick={() => setManualDialInput(p => (p ?? '') + k)}
-                    style={{
-                      background: '#2E3E3E', border: 'none', color: '#F7F4EE',
-                      ...m, fontSize: 16, padding: '12px 0', cursor: 'pointer',
-                    }}
-                  >{k}</button>
-                ))}
-              </div>
-            ))}
-
-            {/* Call button */}
-            <button
-              disabled={!manualDialInput}
-              onClick={() => {
-                if (!manualDialInput) return
-                const digits = manualDialInput.replace(/\D/g, '')
-                const e164 = digits.length === 10 ? `+1${digits}` : digits.length === 11 && digits[0] === '1' ? `+${digits}` : manualDialInput
-                setActiveDial({ phoneNumber: e164, contactId: '', contactName: 'Manual Dial' })
-                setManualDialInput(null)
-              }}
-              style={{
-                background: manualDialInput ? '#E8A020' : '#2E3E3E',
-                border: 'none', color: manualDialInput ? '#1C2B2B' : '#8C8070',
-                ...m, fontSize: 11, fontWeight: 700, letterSpacing: '1.5px',
-                padding: '12px 0', cursor: manualDialInput ? 'pointer' : 'default',
-              }}
-            >CALL</button>
-          </div>
-        </div>
-      )}
-
       {/* Dialer side panel — renders alongside content, not as overlay */}
       {activeDial && (
         <DialerPanel
@@ -1160,7 +1126,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           contactId={activeDial.contactId}
           contactName={activeDial.contactName}
           phoneNumber={activeDial.phoneNumber}
-          buildingAddress={building.address}
+          buildingAddress={buildingAddress}
           signalBrief={signalBrief}
           leadId={lead?.id ?? null}
           onCallStarted={handleCallStarted}

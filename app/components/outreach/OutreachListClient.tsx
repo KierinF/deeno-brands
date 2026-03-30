@@ -4,6 +4,18 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
+const DialerPanel = dynamic(() => import('./DialerPanel'), { ssr: false })
+
+const BOROUGH_MAP: Record<string, string> = {
+  '1': 'Manhattan', '2': 'Bronx', '3': 'Brooklyn', '4': 'Queens', '5': 'Staten Island',
+}
+const ALL_BOROUGHS = ['Manhattan', 'Brooklyn', 'Queens', 'Bronx', 'Staten Island']
+
+function boroughFromParcelId(parcelId: string): string {
+  const digit = parcelId.startsWith('nyc_') ? parcelId[4] : parcelId[0]
+  return BOROUGH_MAP[digit] || ''
+}
+
 function fmtDate(dateStr: string | null | undefined) {
   if (!dateStr) return 'Never'
   try {
@@ -105,6 +117,9 @@ export default function OutreachListClient({
   const [page, setPage] = useState(0)
   const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set())
   const [contractorFilter, setContractorFilter] = useState<'all' | 'fire'>('all')
+  const [boroughFilter, setBoroughFilter] = useState<Set<string>>(new Set(ALL_BOROUGHS))
+  const [dialInput, setDialInput] = useState<string | null>(null)
+  const [activeDial, setActiveDial] = useState<{ phoneNumber: string } | null>(null)
   const tasksSet = new Set(tasksParcelIds)
   const mono = { fontFamily: "'DM Mono', monospace" }
 
@@ -129,6 +144,7 @@ export default function OutreachListClient({
     if (filter === 'managers' || filter === 'incumbents') {
       const groups: Map<string, Row[]> = new Map()
       for (const row of initialRows) {
+        if (!boroughFilter.has(boroughFromParcelId(row.parcel_id))) continue
         const name = filter === 'incumbents'
           ? (row.incumbent_name || null)
           : (row.pm_name || '(Unknown PM)')
@@ -165,6 +181,7 @@ export default function OutreachListClient({
     // owners / contractors / brokers — grouped from contacts
     const groups: Map<string, { parcels: Set<string>; latestDate: string | null }> = new Map()
     for (const c of (contacts || [])) {
+      if (!boroughFilter.has(boroughFromParcelId(c.parcel_id))) continue
       const name = (c.business_name || '').trim()
       if (!name) continue
       if (filter === 'owners' && CONTRACTOR_KEYWORDS.test(name)) continue
@@ -202,12 +219,14 @@ export default function OutreachListClient({
   const filteredRows = useMemo(() => {
     if (filter !== 'properties') return []
     const q = search.trim().toLowerCase()
-    if (!q) return initialRows
-    return initialRows.filter(r =>
-      (r.address || '').toLowerCase().includes(q) ||
-      (r.pm_name || '').toLowerCase().includes(q)
-    )
-  }, [filter, initialRows, search])
+    return initialRows.filter(r => {
+      const borough = boroughFromParcelId(r.parcel_id)
+      if (!boroughFilter.has(borough)) return false
+      if (!q) return true
+      return (r.address || '').toLowerCase().includes(q) ||
+             (r.pm_name || '').toLowerCase().includes(q)
+    })
+  }, [filter, initialRows, search, boroughFilter])
 
   const total = filter === 'properties' ? filteredRows.length : orgGroups.length
   const offset = page * PAGE_SIZE
@@ -215,7 +234,7 @@ export default function OutreachListClient({
   const pageGroups = orgGroups.slice(offset, offset + PAGE_SIZE)
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F7F4EE', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ height: '100vh', background: '#F7F4EE', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
       {/* Header */}
       <header style={{
@@ -249,7 +268,7 @@ export default function OutreachListClient({
       </header>
 
       {/* Filter tabs */}
-      <div style={{ background: '#1C2B2B', padding: '0 24px', display: 'flex', gap: 0, borderBottom: '1px solid #2E3E3E', flexShrink: 0 }}>
+      <div style={{ background: '#1C2B2B', padding: '0 24px', display: 'flex', gap: 0, borderBottom: '1px solid #2E3E3E', flexShrink: 0, alignItems: 'center' }}>
         {TABS.map((tab) => (
           <Link
             key={tab.key}
@@ -270,6 +289,20 @@ export default function OutreachListClient({
             {tab.label}
           </Link>
         ))}
+        <div style={{ flex: 1 }} />
+        <button
+          onClick={() => { setDialInput(''); setActiveDial(null) }}
+          style={{
+            ...mono, fontSize: 9, letterSpacing: '1.5px',
+            color: (dialInput !== null || activeDial) ? '#1C2B2B' : '#E8A020',
+            background: (dialInput !== null || activeDial) ? '#E8A020' : 'none',
+            border: '1px solid #E8A020',
+            cursor: 'pointer', padding: '5px 12px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          DIAL
+        </button>
       </div>
 
       {/* Search bar */}
@@ -290,6 +323,35 @@ export default function OutreachListClient({
             outline: 'none',
           }}
         />
+        {/* Borough filter */}
+        <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+          {ALL_BOROUGHS.map(b => {
+            const active = boroughFilter.has(b)
+            return (
+              <button
+                key={b}
+                onClick={() => {
+                  setBoroughFilter(prev => {
+                    const next = new Set(prev)
+                    next.has(b) ? next.delete(b) : next.add(b)
+                    return next
+                  })
+                  setPage(0)
+                }}
+                style={{
+                  ...mono, fontSize: 9, letterSpacing: '1px',
+                  padding: '3px 8px',
+                  border: '1px solid #C8C1B3',
+                  background: active ? '#1C2B2B' : '#FFFFFF',
+                  color: active ? '#E8A020' : '#8C8070',
+                  cursor: 'pointer',
+                }}
+              >
+                {b.toUpperCase()}
+              </button>
+            )
+          })}
+        </div>
         {filter === 'contractors' && (
           <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
             {(['all', 'fire'] as const).map(opt => (
@@ -573,6 +635,89 @@ export default function OutreachListClient({
           </div>
         )}
       </div>
+
+      {/* Global dialer panel — slides in from right when DIAL clicked */}
+      {(dialInput !== null || activeDial) && (
+        <div style={{
+          position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 200,
+          display: 'flex', flexDirection: 'column',
+        }}>
+          {activeDial ? (
+            <DialerPanel
+              parcelId={selectedId || ''}
+              contactId=""
+              contactName="Manual Dial"
+              phoneNumber={activeDial.phoneNumber}
+              buildingAddress={selectedId ? (initialRows.find(r => r.parcel_id === selectedId)?.address || '') : ''}
+              signalBrief=""
+              leadId={null}
+              onClose={() => { setActiveDial(null); setDialInput(null) }}
+            />
+          ) : (
+            <div style={{
+              width: 280, height: '100%',
+              background: '#1C2B2B', borderLeft: '2px solid #E8A020',
+              display: 'flex', flexDirection: 'column',
+            }}>
+              {/* Header */}
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid #2E3E3E', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
+                <span style={{ ...mono, fontSize: 10, letterSpacing: '2px', color: '#8C8070' }}>DIALER</span>
+                <button onClick={() => setDialInput(null)} style={{ background: 'none', border: 'none', color: '#8C8070', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>×</button>
+              </div>
+
+              {/* Number display */}
+              <div style={{ padding: '16px 20px', borderBottom: '1px solid #2E3E3E', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ flex: 1, background: '#0E1A1A', border: '1px solid #2E3E3E', padding: '8px 12px', ...mono, fontSize: 18, color: '#F7F4EE', letterSpacing: '2px', minHeight: 40 }}>
+                  {dialInput || <span style={{ color: '#2E3E3E' }}>—</span>}
+                </div>
+                <button
+                  onClick={() => setDialInput(p => (p ?? '').slice(0, -1))}
+                  style={{ background: 'none', border: 'none', color: '#8C8070', cursor: 'pointer', ...mono, fontSize: 18, padding: '4px 6px' }}
+                >⌫</button>
+              </div>
+
+              {/* Keypad */}
+              <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {[['1','2','3'],['4','5','6'],['7','8','9'],['*','0','#']].map((row, ri) => (
+                  <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                    {row.map(k => (
+                      <button
+                        key={k}
+                        onClick={() => setDialInput(p => (p ?? '') + k)}
+                        style={{
+                          background: '#2E3E3E', border: 'none', color: '#F7F4EE',
+                          ...mono, fontSize: 18, padding: '14px 0', cursor: 'pointer',
+                        }}
+                      >{k}</button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Call button */}
+              <div style={{ padding: '0 20px' }}>
+                <button
+                  disabled={!dialInput}
+                  onClick={() => {
+                    if (!dialInput) return
+                    const digits = dialInput.replace(/\D/g, '')
+                    const e164 = digits.length === 10 ? `+1${digits}` : digits.length === 11 && digits[0] === '1' ? `+${digits}` : dialInput
+                    setActiveDial({ phoneNumber: e164 })
+                    setDialInput(null)
+                  }}
+                  style={{
+                    width: '100%',
+                    background: dialInput ? '#E8A020' : '#2E3E3E',
+                    border: 'none', color: dialInput ? '#1C2B2B' : '#8C8070',
+                    ...mono, fontSize: 11, fontWeight: 700, letterSpacing: '1.5px',
+                    padding: '14px 0', cursor: dialInput ? 'pointer' : 'default',
+                  }}
+                >CALL</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 
@@ -627,11 +772,12 @@ export default function OutreachListClient({
           }}>
             {row.address}
           </div>
-          {row.pm_name && !selectedId && filter === 'properties' && (
-            <div style={{ ...mono, fontSize: 10, color: '#8C8070', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {row.pm_name}{row.pm_confidence ? ` ${row.pm_confidence}%` : ''}
-            </div>
-          )}
+          <div style={{ ...mono, fontSize: 9, color: '#8C8070', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {boroughFromParcelId(row.parcel_id)}
+            {row.pm_name && !selectedId && filter === 'properties'
+              ? ` · ${row.pm_name}${row.pm_confidence ? ` ${row.pm_confidence}%` : ''}`
+              : ''}
+          </div>
         </div>
 
         {selectedId ? (

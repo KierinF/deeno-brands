@@ -57,6 +57,30 @@ async function getListData(filter: FilterTab) {
   }
   const propMap = Object.fromEntries(propAddressData.map((p: any) => [p.parcel_id, p.address]))
 
+  // For parcels with no building_intelligence row, compute violation stats from signals
+  const outerParcelIds = leadParcelIds.filter((id: string) => !biMap[id])
+  const violationSigData: any[] = []
+  for (let i = 0; i < outerParcelIds.length; i += 500) {
+    const { data } = await supabase
+      .from('signals')
+      .select('parcel_id, signal_type, is_open, raw_data')
+      .in('parcel_id', outerParcelIds.slice(i, i + 500))
+      .in('signal_type', ['violation_fire', 'violation_ecb'])
+    if (data) violationSigData.push(...data)
+  }
+  const sigViolMap: Record<string, { open_violation_count: number; open_fines_total: number; total_fines: number }> = {}
+  for (const sig of violationSigData) {
+    if (!sigViolMap[sig.parcel_id]) sigViolMap[sig.parcel_id] = { open_violation_count: 0, open_fines_total: 0, total_fines: 0 }
+    const charges: any[] = sig.raw_data?.charges || []
+    const chargeTotal = charges.reduce((sum: number, c: any) => sum + (parseFloat(c.amount) || 0), 0)
+    const balanceDue = parseFloat(sig.raw_data?.balance_due) || 0
+    sigViolMap[sig.parcel_id].total_fines += chargeTotal
+    if (sig.is_open) {
+      sigViolMap[sig.parcel_id].open_violation_count++
+      sigViolMap[sig.parcel_id].open_fines_total += balanceDue
+    }
+  }
+
   // Build rows from leads (leads-first — only scored buildings appear)
   const rows = (leadsData || []).map((lead: any) => {
     const bi = biMap[lead.parcel_id] || {}
@@ -66,9 +90,9 @@ async function getListData(filter: FilterTab) {
       signal_score:         lead.score,
       pm_name:              lead.pm_name,
       pm_confidence:        lead.pm_confidence,
-      open_violation_count: bi.open_violation_count ?? null,
-      open_fines_total:     bi.open_fines_total ?? null,
-      total_fines:          bi.total_fines ?? null,
+      open_violation_count: bi.open_violation_count ?? sigViolMap[lead.parcel_id]?.open_violation_count ?? null,
+      open_fines_total:     bi.open_fines_total     ?? sigViolMap[lead.parcel_id]?.open_fines_total     ?? null,
+      total_fines:          bi.total_fines           ?? sigViolMap[lead.parcel_id]?.total_fines           ?? null,
       incumbent_name:       lead.incumbent_name,
       incumbent_staleness:  lead.incumbent_staleness,
       incumbent_last_job:   bi.incumbent_last_job ?? null,

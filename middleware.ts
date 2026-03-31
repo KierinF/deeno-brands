@@ -23,34 +23,27 @@ export async function middleware(request: NextRequest) {
     }
   )
 
+  // Use getSession() (cookie-only, no network call) for middleware auth checks.
+  // getUser() (network call to Supabase auth server) happens in server components instead.
   const {
-    data: { user },
-  } = await supabase.auth.getUser()
+    data: { session },
+  } = await supabase.auth.getSession()
 
   const pathname = request.nextUrl.pathname
 
   // Protect /dashboard — clients only
-  if (!user && pathname.startsWith('/dashboard')) {
+  if (!session && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/client-login', request.url))
   }
 
   // Protect /outreach — auth check only; role check happens in the page server component
-  if (pathname.startsWith('/outreach') && !user) {
+  if (pathname.startsWith('/outreach') && !session) {
     return NextResponse.redirect(new URL('/client-login', request.url))
   }
 
   // Already logged in — redirect away from login
-  if (user && pathname === '/client-login') {
-    const { data: roleRow } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-    const role = roleRow?.role
-    if (role === 'internal' || role === 'admin') {
-      return NextResponse.redirect(new URL('/outreach', request.url))
-    }
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  if (session && pathname === '/client-login') {
+    return NextResponse.redirect(new URL('/outreach', request.url))
   }
 
   return supabaseResponse

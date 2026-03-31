@@ -634,12 +634,11 @@ export default function OutreachListClient({
             />
           </div>
         )}
-      </div>
 
-      {/* Global dialer panel — slides in from right when DIAL clicked */}
-      {(dialInput !== null || activeDial) && (
+        {/* Global dialer panel — inline flex sibling, pushes content left */}
+        {(dialInput !== null || activeDial) && (
         <div style={{
-          position: 'fixed', right: 0, top: 0, bottom: 0, zIndex: 200,
+          flexShrink: 0,
           display: 'flex', flexDirection: 'column',
         }}>
           {activeDial ? (
@@ -717,7 +716,8 @@ export default function OutreachListClient({
             </div>
           )}
         </div>
-      )}
+        )}
+      </div>
     </div>
   )
 

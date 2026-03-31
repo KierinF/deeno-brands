@@ -1,52 +1,21 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
-
-  // Use getSession() (cookie-only, no network call) for middleware auth checks.
-  // getUser() (network call to Supabase auth server) happens in server components instead.
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
+// Middleware is kept minimal — no Supabase calls — to avoid Edge timeout.
+// Auth and role checks are handled entirely in server components/pages.
+// We do a lightweight cookie-presence check to redirect obviously unauthenticated
+// requests away from protected routes without any network calls.
+export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
-  // Protect /dashboard — clients only
-  if (!session && pathname.startsWith('/dashboard')) {
+  // Check for Supabase auth cookie (sb-*-auth-token) without validating it —
+  // server components do the real validation via getUser().
+  const hasAuthCookie = request.cookies.getAll().some(c => c.name.includes('-auth-token') && c.value)
+
+  if (!hasAuthCookie && (pathname.startsWith('/dashboard') || pathname.startsWith('/outreach'))) {
     return NextResponse.redirect(new URL('/client-login', request.url))
   }
 
-  // Protect /outreach — auth check only; role check happens in the page server component
-  if (pathname.startsWith('/outreach') && !session) {
-    return NextResponse.redirect(new URL('/client-login', request.url))
-  }
-
-  // Already logged in — redirect away from login
-  if (session && pathname === '/client-login') {
-    return NextResponse.redirect(new URL('/outreach', request.url))
-  }
-
-  return supabaseResponse
+  return NextResponse.next()
 }
 
 export const config = {

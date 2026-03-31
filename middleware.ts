@@ -34,20 +34,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/client-login', request.url))
   }
 
-  // Protect /outreach — internal/admin only
-  if (pathname.startsWith('/outreach')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/client-login', request.url))
-    }
-    const { data: roleRow } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single()
-    const role = roleRow?.role
-    if (role !== 'internal' && role !== 'admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
+  // Protect /outreach — auth check only; role check happens in the page server component
+  if (pathname.startsWith('/outreach') && !user) {
+    return NextResponse.redirect(new URL('/client-login', request.url))
   }
 
   // Already logged in — redirect away from login

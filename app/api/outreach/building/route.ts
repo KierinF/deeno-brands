@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       ? supabase.from('phone_numbers').select('*').in('org_profile_id', orgProfileIds)
       : Promise.resolve({ data: [] }),
     businessNames.length > 0
-      ? supabase.from('org_profiles').select('id, canonical_name, phone, website, email, office_address, common_contractors').in('canonical_name', businessNames)
+      ? supabase.from('org_profiles').select('id, canonical_name, phone, website, email, office_address, common_contractors, principals').in('canonical_name', businessNames)
       : Promise.resolve({ data: [] }),
   ])
 

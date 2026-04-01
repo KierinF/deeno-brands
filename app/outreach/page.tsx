@@ -57,8 +57,11 @@ async function getListData(filter: FilterTab) {
   }
   const propMap = Object.fromEntries(propAddressData.map((p: any) => [p.parcel_id, p.address]))
 
-  // For parcels with no building_intelligence row, compute violation stats from signals
-  const outerParcelIds = leadParcelIds.filter((id: string) => !biMap[id])
+  // For parcels with no BI row, or BI row with no fines populated (outer boroughs), compute from signals
+  const outerParcelIds = leadParcelIds.filter((id: string) => {
+    const bi = biMap[id]
+    return !bi || (!bi.open_fines_total && !bi.total_fines)
+  })
   const violationSigData: any[] = []
   for (let i = 0; i < outerParcelIds.length; i += 500) {
     const { data } = await supabase
@@ -89,9 +92,9 @@ async function getListData(filter: FilterTab) {
       signal_score:         lead.score,
       pm_name:              lead.pm_name,
       pm_confidence:        lead.pm_confidence,
-      open_violation_count: bi.open_violation_count ?? sigViolMap[lead.parcel_id]?.open_violation_count ?? null,
-      open_fines_total:     bi.open_fines_total     ?? sigViolMap[lead.parcel_id]?.open_fines_total     ?? null,
-      total_fines:          bi.total_fines           ?? sigViolMap[lead.parcel_id]?.total_fines           ?? null,
+      open_violation_count: bi.open_violation_count || sigViolMap[lead.parcel_id]?.open_violation_count || null,
+      open_fines_total:     bi.open_fines_total     || sigViolMap[lead.parcel_id]?.open_fines_total     || null,
+      total_fines:          bi.total_fines           || sigViolMap[lead.parcel_id]?.total_fines           || null,
       incumbent_name:       lead.incumbent_name,
       incumbent_staleness:  lead.incumbent_staleness,
       incumbent_last_job:   bi.incumbent_last_job ?? null,

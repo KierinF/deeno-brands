@@ -73,11 +73,10 @@ async function getListData(filter: FilterTab) {
     if (!sigViolMap[sig.parcel_id]) sigViolMap[sig.parcel_id] = { open_violation_count: 0, open_fines_total: 0, total_fines: 0 }
     const charges: any[] = sig.raw_data?.charges || []
     const chargeTotal = charges.reduce((sum: number, c: any) => sum + (parseFloat(c.amount) || 0), 0)
-    const balanceDue = parseFloat(sig.raw_data?.balance_due) || 0
     sigViolMap[sig.parcel_id].total_fines += chargeTotal
     if (sig.is_open) {
       sigViolMap[sig.parcel_id].open_violation_count++
-      sigViolMap[sig.parcel_id].open_fines_total += balanceDue
+      sigViolMap[sig.parcel_id].open_fines_total += chargeTotal
     }
   }
 
@@ -90,9 +89,9 @@ async function getListData(filter: FilterTab) {
       signal_score:         lead.score,
       pm_name:              lead.pm_name,
       pm_confidence:        lead.pm_confidence,
-      open_violation_count: bi.open_violation_count || sigViolMap[lead.parcel_id]?.open_violation_count || null,
-      open_fines_total:     bi.open_fines_total     || sigViolMap[lead.parcel_id]?.open_fines_total     || null,
-      total_fines:          bi.total_fines           || sigViolMap[lead.parcel_id]?.total_fines           || null,
+      open_violation_count: bi.open_violation_count ?? sigViolMap[lead.parcel_id]?.open_violation_count ?? null,
+      open_fines_total:     bi.open_fines_total     ?? sigViolMap[lead.parcel_id]?.open_fines_total     ?? null,
+      total_fines:          bi.total_fines           ?? sigViolMap[lead.parcel_id]?.total_fines           ?? null,
       incumbent_name:       lead.incumbent_name,
       incumbent_staleness:  lead.incumbent_staleness,
       incumbent_last_job:   bi.incumbent_last_job ?? null,

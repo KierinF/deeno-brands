@@ -175,7 +175,7 @@ type AddContactState = {
   phone: string
 }
 
-type Tab = 'main' | 'signals'
+type Tab = 'main' | 'signals' | 'portfolio'
 
 export default function BuildingPanel({ parcelId, onClose }: { parcelId: string; onClose: () => void }) {
   const [data, setData] = useState<any>(null)
@@ -212,7 +212,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   if (loading) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Loading...</div>
   if (!data?.lead && !data?.address) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Not found.</div>
 
-  const { building: _building, address: buildingAddress, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles } = data
+  const { building: _building, address: buildingAddress, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles, permitOrgs } = data
   // Merge building_intelligence with lead fallbacks so non-Manhattan buildings (no bi row) still render
   const building = {
     ..._building,
@@ -223,7 +223,57 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     incumbent_staleness:_building?.incumbent_staleness?? lead?.incumbent_staleness?? null,
   }
 
-  // Build org_profiles lookup by normalized name (phone source for enriched contacts)
+  // ── Contractor trade grouping ─────────────────────────────────────────────
+  const FIRE_TRADES = new Set(['fire_suppression', 'sprinkler'])
+  const TRADE_LABEL: Record<string, string> = {
+    gc: 'GC', plumbing: 'PLUMBING', electrical: 'ELECTRICAL',
+    fire_suppression: 'FIRE SUPPRESSION', sprinkler: 'SPRINKLER',
+    hvac: 'HVAC', boiler: 'BOILER', other_trade: 'OTHER TRADE', demolition: 'DEMOLITION',
+  }
+  // Fire trades first (incumbents to displace), then referral trades
+  const TRADE_ORDER = ['fire_suppression', 'sprinkler', 'gc', 'plumbing', 'electrical', 'hvac', 'boiler', 'other_trade', 'demolition']
+
+  type ContractorEntry = { name: string; phone: string; dates: string[] }
+  const contractorsByTrade: Record<string, ContractorEntry[]> = {}
+  for (const org of (permitOrgs || [])) {
+    if (!org.trade_type || !org.business_name) continue
+    if (!contractorsByTrade[org.trade_type]) contractorsByTrade[org.trade_type] = []
+    const existing = contractorsByTrade[org.trade_type].find((c: ContractorEntry) => c.name === org.business_name)
+    if (existing) {
+      if (org.source_date && !existing.dates.includes(org.source_date)) existing.dates.push(org.source_date)
+      if (!existing.phone && org.phone) existing.phone = org.phone
+    } else {
+      contractorsByTrade[org.trade_type].push({ name: org.business_name, phone: org.phone || '', dates: org.source_date ? [org.source_date] : [] })
+    }
+  }
+  // Sort dates desc within each contractor, sort contractors by most recent date, cap at 3 per trade
+  for (const tt of Object.keys(contractorsByTrade)) {
+    contractorsByTrade[tt] = contractorsByTrade[tt]
+      .map((c: ContractorEntry) => ({ ...c, dates: [...c.dates].sort().reverse() }))
+      .sort((a: ContractorEntry, b: ContractorEntry) => (b.dates[0] || '').localeCompare(a.dates[0] || ''))
+      .slice(0, 3)
+  }
+  const contractorTradeKeys = TRADE_ORDER.filter(tt => contractorsByTrade[tt]?.length > 0)
+  const totalContractors = contractorTradeKeys.reduce((s, tt) => s + contractorsByTrade[tt].length, 0)
+
+  // PM common contractors from org_profile
+  const pmOrgProfile = (() => {
+    if (!building.pm_name) return null
+    const k = normalizeName(building.pm_name)
+    if (!k) return null
+    const exact = (orgProfiles || []).find((op: any) => normalizeName(op.canonical_name || '') === k)
+    if (exact) return exact
+    const prefix = k.substring(0, 12)
+    if (prefix.length < 6) return null
+    return (orgProfiles || []).find((op: any) => {
+      const ok = normalizeName(op.canonical_name || '')
+      return ok.startsWith(prefix) || prefix.startsWith(ok.substring(0, 12))
+    }) ?? null
+  })()
+  const pmCommonContractors: Record<string, { name: string; parcel_count: number; phone: string }[]> = pmOrgProfile?.common_contractors || {}
+  const pmContractorTradeKeys = TRADE_ORDER.filter(tt => pmCommonContractors[tt]?.length > 0)
+
+  // ── Build org_profiles lookup by normalized name (phone source for enriched contacts)
   const orgProfilesByNorm: Record<string, any> = {}
   for (const op of (orgProfiles || [])) {
     const k = normalizeName(op.canonical_name || '')
@@ -649,6 +699,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   function renderContacts() { return (
     <div>
       {CONTACT_GROUPS.map(({ key, label, hint }) => {
+        // CONTRACTORS rendered separately below using permitOrgs with trade grouping
+        if (key === 'trade_referral') return null
+
         const group = contactsByType[key] || []
         const showPmOrg = key === 'property_manager' && building.pm_name
         // Show owner orgs from organizations table when no contacts exist for this type
@@ -735,6 +788,31 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
                 {showPmOrg && group.length === 0 && renderCompanyBlock(building.pm_name, [], undefined, building.pm_confidence)}
+                {showPmOrg && pmContractorTradeKeys.length > 0 && (
+                  <div style={{ marginBottom: 10 }}>
+                    <button onClick={() => toggleGroup('pm_contractors')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <span style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '0.8px' }}>
+                        {expandedGroups.has('pm_contractors') ? '▲' : '▼'} COMMON CONTRACTORS ACROSS PORTFOLIO
+                      </span>
+                    </button>
+                    {expandedGroups.has('pm_contractors') && (
+                      <div style={{ borderLeft: '2px solid #F0EDE8', paddingLeft: 10, marginTop: 4 }}>
+                        {pmContractorTradeKeys.map(tt => (
+                          <div key={tt} style={{ marginBottom: 8 }}>
+                            <div style={{ ...m, fontSize: 8, letterSpacing: '1px', color: FIRE_TRADES.has(tt) ? '#E8A020' : '#8C8070', fontWeight: 700, marginBottom: 4 }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</div>
+                            {pmCommonContractors[tt].map((c: any) => (
+                              <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                                <span style={{ ...m, fontSize: 10, color: '#1C2B2B' }}>{c.name}</span>
+                                <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{c.parcel_count} bldgs</span>
+                                {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 {ownerOrgs.map((o: any) => renderCompanyBlock(o.business_name, [], o, o.confidence))}
 
                 {visible.map((entry: any, i) =>
@@ -831,6 +909,65 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       {contacts?.length === 0 && !building.pm_name && (
         <div style={{ ...m, fontSize: 12, color: '#8C8070' }}>No contacts found.</div>
       )}
+
+      {/* ── CONTRACTORS section — from permitOrgs, grouped by trade ── */}
+      {totalContractors > 0 && (() => {
+        const isExpanded = expandedGroups.has('trade_referral')
+        return (
+          <div style={{ marginBottom: 16 }}>
+            <button onClick={() => toggleGroup('trade_referral')} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', background: 'none', border: 'none', cursor: 'pointer',
+              padding: '0 0 6px 0', borderBottom: '2px solid #1C2B2B', marginBottom: 8,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>CONTRACTORS</span>
+                <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{totalContractors}</span>
+              </div>
+              <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{isExpanded ? '▲' : '▼'}</span>
+            </button>
+            {isExpanded && (
+              <>
+                <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>
+                  Fire trades = incumbent to displace. All others = referral sources who know the PM.
+                </div>
+                {contractorTradeKeys.map(tt => {
+                  const contractors = contractorsByTrade[tt]
+                  const isFire = FIRE_TRADES.has(tt)
+                  return (
+                    <div key={tt} style={{ marginBottom: 14 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                        <span style={{ ...m, fontSize: 8, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
+                          color: isFire ? '#1C2B2B' : '#8C8070',
+                          background: isFire ? '#E8A020' : '#F0EDE8',
+                        }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
+                        {isFire && <span style={{ ...m, fontSize: 8, color: '#E8A020', letterSpacing: '0.8px' }}>FIRE INCUMBENT</span>}
+                      </div>
+                      {contractors.map((c: ContractorEntry) => (
+                        <div key={c.name} style={{
+                          background: '#FFFFFF', border: `1px solid ${isFire ? '#E8A020' : '#C8C1B3'}`,
+                          padding: '8px 12px', marginBottom: 6,
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: c.phone ? 2 : 0 }}>
+                            <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
+                            {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                          </div>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
+                            {c.dates.slice(0, 3).map((d: string, i: number) => (
+                              <span key={i} style={{ ...m, fontSize: 8, color: '#C8C1B3' }}>{fmtDate(d)}</span>
+                            ))}
+                            {c.dates.length > 3 && <span style={{ ...m, fontSize: 8, color: '#C8C1B3' }}>+{c.dates.length - 3} more</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })}
+              </>
+            )}
+          </div>
+        )
+      })()}
     </div>
   )}
 
@@ -999,7 +1136,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
         {/* Tabs */}
         <div style={{ display: 'flex', background: '#F7F4EE', borderBottom: '1px solid #C8C1B3', flexShrink: 0 }}>
-          {(['main', 'signals'] as Tab[]).map((key) => (
+          {([['main', 'OUTREACH'], ['signals', 'SIGNALS'], ['portfolio', 'PORTFOLIO']] as [Tab, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)} style={{
               flex: 1, padding: '10px 0',
               ...m, fontSize: 10, letterSpacing: '1.5px',
@@ -1008,7 +1145,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               borderBottom: tab === key ? '2px solid #1C2B2B' : '2px solid transparent',
               cursor: 'pointer', fontWeight: tab === key ? 700 : 400,
             }}>
-              {key === 'main' ? 'OUTREACH' : 'SIGNALS'}
+              {label}
             </button>
           ))}
         </div>
@@ -1069,24 +1206,35 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           {/* SIGNALS tab */}
           {tab === 'signals' && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 40px' }}>
-              {/* Incumbent */}
-              {building.incumbent_name && (
-                <div style={{ marginBottom: 20 }}>
-                  <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>INCUMBENT</div>
-                  <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '12px 14px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-                      <span style={{ ...m, fontSize: 12, color: '#1C2B2B' }}>{building.incumbent_name}</span>
-                      {building.incumbent_staleness && (
-                        <span style={{ ...m, fontSize: 8, padding: '2px 6px', color: building.incumbent_staleness.includes('stale') ? '#E8A020' : '#8C8070', border: `1px solid ${building.incumbent_staleness.includes('stale') ? '#E8A020' : '#8C8070'}` }}>
-                          {building.incumbent_staleness.replace('_', ' ').toUpperCase()}
-                        </span>
-                      )}
+              {/* Fire incumbent — prefer new incumbents jsonb, fall back to scalar */}
+              {(() => {
+                const fi = building.incumbents?.fire_suppression || building.incumbents?.sprinkler
+                const name = fi?.name || building.incumbent_name
+                const staleness = fi?.staleness || building.incumbent_staleness
+                const lastJob = fi?.last_job || building.incumbent_last_job
+                const nJobs = fi?.n_jobs || building.incumbent_n_jobs
+                const phone = fi?.phone || null
+                if (!name) return null
+                const isStale = staleness && staleness.includes('stale')
+                return (
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>FIRE INCUMBENT</div>
+                    <div style={{ background: '#FFFFFF', border: '1px solid #E8A020', padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
+                        <span style={{ ...m, fontSize: 12, color: '#1C2B2B', fontWeight: 700 }}>{name}</span>
+                        {staleness && (
+                          <span style={{ ...m, fontSize: 8, padding: '2px 6px', color: isStale ? '#E8A020' : '#8C8070', border: `1px solid ${isStale ? '#E8A020' : '#8C8070'}` }}>
+                            {staleness.replace(/_/g, ' ').toUpperCase()}
+                          </span>
+                        )}
+                        {phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{phone}</span>}
+                      </div>
+                      {lastJob && <div style={{ ...m, fontSize: 10, color: '#8C8070' }}>Last job: {fmtDate(lastJob)}{nJobs ? ` · ${nJobs} jobs on record` : ''}</div>}
+                      <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>This is who you're displacing.</div>
                     </div>
-                    {building.incumbent_last_job && <div style={{ ...m, fontSize: 10, color: '#8C8070' }}>Last job: {fmtDate(building.incumbent_last_job)}{building.incumbent_n_jobs ? ` · ${building.incumbent_n_jobs} jobs on record` : ''}</div>}
-                    <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>This is who you're displacing.</div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
 
               {openSignals.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
@@ -1123,6 +1271,86 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                     <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>signals matched to this parcel but different street address</span>
                   </div>
                   {wrongAddrSignals.map(renderSignalRow)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* PORTFOLIO tab */}
+          {tab === 'portfolio' && (
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 40px' }}>
+              {building.pm_name && (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 4 }}>
+                    {building.pm_name}
+                  </div>
+                  <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 12 }}>
+                    Common contractors across this PM's portfolio — call these to reach the PM or understand their vendor relationships.
+                  </div>
+                  {pmContractorTradeKeys.length === 0 && (
+                    <div style={{ ...m, fontSize: 11, color: '#8C8070' }}>No portfolio contractor data yet for this PM.</div>
+                  )}
+                  {pmContractorTradeKeys.map(tt => {
+                    const isFire = FIRE_TRADES.has(tt)
+                    return (
+                      <div key={tt} style={{ marginBottom: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                          <span style={{ ...m, fontSize: 8, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
+                            color: isFire ? '#1C2B2B' : '#8C8070',
+                            background: isFire ? '#E8A020' : '#F0EDE8',
+                          }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
+                        </div>
+                        {pmCommonContractors[tt].map((c: any) => (
+                          <div key={c.name} style={{ background: '#FFFFFF', border: `1px solid ${isFire ? '#E8A020' : '#C8C1B3'}`, padding: '8px 12px', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
+                              <span style={{ ...m, fontSize: 9, color: '#C8C1B3', background: '#F7F4EE', padding: '1px 5px' }}>{c.parcel_count} buildings</span>
+                              {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+              {!building.pm_name && (
+                <div style={{ ...m, fontSize: 11, color: '#8C8070' }}>No PM identified for this building.</div>
+              )}
+
+              {/* Per-building contractors for this property */}
+              {contractorTradeKeys.length > 0 && (
+                <div>
+                  <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #C8C1B3', marginBottom: 12 }}>
+                    CONTRACTORS AT THIS BUILDING
+                  </div>
+                  {contractorTradeKeys.map(tt => {
+                    const contractors = contractorsByTrade[tt]
+                    const isFire = FIRE_TRADES.has(tt)
+                    return (
+                      <div key={tt} style={{ marginBottom: 14 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                          <span style={{ ...m, fontSize: 8, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
+                            color: isFire ? '#1C2B2B' : '#8C8070',
+                            background: isFire ? '#E8A020' : '#F0EDE8',
+                          }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
+                        </div>
+                        {contractors.map((c: ContractorEntry) => (
+                          <div key={c.name} style={{ background: '#FFFFFF', border: `1px solid ${isFire ? '#E8A020' : '#C8C1B3'}`, padding: '8px 12px', marginBottom: 6 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
+                              <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
+                              {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                            </div>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                              {c.dates.slice(0, 3).map((d: string, i: number) => (
+                                <span key={i} style={{ ...m, fontSize: 8, color: '#C8C1B3' }}>{fmtDate(d)}</span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>

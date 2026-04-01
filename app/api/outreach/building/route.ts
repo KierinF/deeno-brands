@@ -20,6 +20,7 @@ export async function GET(request: Request) {
     { data: signals },
     { data: lead },
     { data: orgs },
+    { data: permitOrgs },
   ] = await Promise.all([
     supabase.from('building_intelligence').select('*').eq('parcel_id', parcel_id).maybeSingle(),
     supabase.from('contacts').select('*').eq('parcel_id', parcel_id).order('confidence', { ascending: false }),
@@ -30,8 +31,10 @@ export async function GET(request: Request) {
     // Fetch up to 150 signals — order open first, then by date, so violations aren't buried by proximity fires
     supabase.from('signals').select('id, signal_type, signal_date, is_open, source, raw_data').eq('parcel_id', parcel_id).order('is_open', { ascending: false }).order('signal_date', { ascending: false }).limit(150),
     supabase.from('leads').select('*').eq('parcel_id', parcel_id).maybeSingle(),
-    // Organizations: PM, owner, incumbent orgs with phone numbers
+    // Organizations: PM, owner orgs with phone numbers
     supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),
+    // Permit applicant orgs with trade_type — source for CONTRACTORS section
+    supabase.from('organizations').select('id, business_name, trade_type, phone, source_date, source').eq('parcel_id', parcel_id).eq('org_type', 'permit_applicant').not('trade_type', 'is', null).order('source_date', { ascending: false }).limit(300),
   ])
 
   // Collect org_profile_ids from both organizations and contacts (web_enriched contacts link directly)
@@ -41,9 +44,11 @@ export async function GET(request: Request) {
   ].filter((id, i, arr) => id && arr.indexOf(id) === i)  // dedupe
 
   // Collect all business names to match against org_profiles.canonical_name
+  // Include pm_name so PM's org_profile (with common_contractors) is always fetched
   const businessNames = [
     ...(contacts || []).map((c: any) => c.business_name),
     ...(orgs || []).map((o: any) => o.business_name),
+    building?.pm_name,
   ].filter((n, i, arr) => n && arr.indexOf(n) === i)
 
   const [{ data: profilePhones }, { data: orgProfiles }] = await Promise.all([
@@ -51,7 +56,7 @@ export async function GET(request: Request) {
       ? supabase.from('phone_numbers').select('*').in('org_profile_id', orgProfileIds)
       : Promise.resolve({ data: [] }),
     businessNames.length > 0
-      ? supabase.from('org_profiles').select('id, canonical_name, phone, website, email, office_address').in('canonical_name', businessNames)
+      ? supabase.from('org_profiles').select('id, canonical_name, phone, website, email, office_address, common_contractors').in('canonical_name', businessNames)
       : Promise.resolve({ data: [] }),
   ])
 
@@ -68,5 +73,5 @@ export async function GET(request: Request) {
     address = prop?.address ?? parcel_id
   }
 
-  return NextResponse.json({ building, address, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles })
+  return NextResponse.json({ building, address, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles, permitOrgs })
 }

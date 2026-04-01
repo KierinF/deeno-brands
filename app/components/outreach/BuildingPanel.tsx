@@ -631,6 +631,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             {resolvedPhone && (
               <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{resolvedPhone}</span>
             )}
+            {orgProfile?.website && (
+              <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>
+                {orgProfile.website.replace(/^https?:\/\//, '')}
+              </span>
+            )}
           </div>
           <PhoneNumberManager
             parcelId={parcelId}
@@ -649,10 +654,23 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           {!resolvedPhone && orgPhones.length === 0 && (
             <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No company number — add below</div>
           )}
-          {noIndividuals && (
+          {noIndividuals && contactList.length === 0 && !(orgProfile?.principals?.length > 0) && (
             <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No individual contacts on record</div>
           )}
         </div>
+
+        {/* Org profile principals */}
+        {orgProfile?.principals?.length > 0 && contactList.length === 0 && (
+          (orgProfile.principals as any[]).map((p: any, i: number) => (
+            <div key={i} style={{ padding: '8px 14px 8px 24px', borderBottom: '1px solid #F0EDE8' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{p.name}</span>
+                {p.title && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{p.title}</span>}
+                {p.phone && <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{p.phone}</span>}
+              </div>
+            </div>
+          ))
+        )}
 
         {/* Individual contacts */}
         {contactList.filter((c: any) => c.first_name || !c.business_name).map((contact: any) => {
@@ -1023,6 +1041,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           {!charge && !isEcb && sig.raw_data?.job_type && (
             <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
               {sig.raw_data.job_type}{filingStatus ? ` · ${sig.raw_data.filing_status}` : ''}
+            </div>
+          )}
+          {sig.raw_data?.owner_contact && (
+            <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
+              Filed by: {sig.raw_data.owner_contact}
             </div>
           )}
           <div style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>

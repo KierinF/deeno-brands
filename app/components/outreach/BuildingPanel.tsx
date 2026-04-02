@@ -182,7 +182,7 @@ type AddContactState = {
   phone: string
 }
 
-type Tab = 'main' | 'signals' | 'portfolio'
+type Tab = 'main' | 'signals'
 
 export default function BuildingPanel({ parcelId, onClose }: { parcelId: string; onClose: () => void }) {
   const [data, setData] = useState<any>(null)
@@ -1484,7 +1484,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
         {/* Tabs */}
         <div style={{ display: 'flex', background: '#F7F4EE', borderBottom: '1px solid #C8C1B3', flexShrink: 0 }}>
-          {([['main', 'OUTREACH'], ['signals', 'SIGNALS'], ['portfolio', 'PORTFOLIO']] as [Tab, string][]).map(([key, label]) => (
+          {([['main', 'OUTREACH'], ['signals', 'SIGNALS']] as [Tab, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)} style={{
               flex: 1, padding: '10px 0',
               ...m, fontSize: 12, letterSpacing: '1.5px',
@@ -1624,85 +1624,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             </div>
           )}
 
-          {/* PORTFOLIO tab */}
-          {tab === 'portfolio' && (
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 40px' }}>
-              {building.pm_name && (
-                <div style={{ marginBottom: 20 }}>
-                  <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 4 }}>
-                    {building.pm_name}
-                  </div>
-                  <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 12 }}>
-                    Common contractors across this PM's portfolio — call these to reach the PM or understand their vendor relationships.
-                  </div>
-                  {pmContractorTradeKeys.length === 0 && (
-                    <div style={{ ...m, fontSize: 13, color: '#8C8070' }}>No portfolio contractor data yet for this PM.</div>
-                  )}
-                  {pmContractorTradeKeys.map(tt => {
-                    const isFire = FIRE_TRADES.has(tt)
-                    return (
-                      <div key={tt} style={{ marginBottom: 16 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                          <span style={{ ...m, fontSize: 10, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
-                            color: isFire ? '#1C2B2B' : '#8C8070',
-                            background: isFire ? '#E8A020' : '#F0EDE8',
-                          }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
-                        </div>
-                        {pmCommonContractors[tt].map((c: any) => (
-                          <div key={c.name} style={{ background: '#FFFFFF', border: `1px solid ${isFire ? '#E8A020' : '#C8C1B3'}`, padding: '8px 12px', marginBottom: 6 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                              <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
-                              <span style={{ ...m, fontSize: 11, color: '#C8C1B3', background: '#F7F4EE', padding: '1px 5px' }}>{c.parcel_count} buildings</span>
-                              {c.phone && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{c.phone}</span>}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-              {!building.pm_name && (
-                <div style={{ ...m, fontSize: 13, color: '#8C8070' }}>No PM identified for this building.</div>
-              )}
-
-              {/* Per-building contractors for this property */}
-              {contractorTradeKeys.length > 0 && (
-                <div>
-                  <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #C8C1B3', marginBottom: 12 }}>
-                    CONTRACTORS AT THIS BUILDING
-                  </div>
-                  {contractorTradeKeys.map(tt => {
-                    const contractors = contractorsByTrade[tt]
-                    const isFire = FIRE_TRADES.has(tt)
-                    return (
-                      <div key={tt} style={{ marginBottom: 14 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                          <span style={{ ...m, fontSize: 10, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
-                            color: isFire ? '#1C2B2B' : '#8C8070',
-                            background: isFire ? '#E8A020' : '#F0EDE8',
-                          }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
-                        </div>
-                        {contractors.map((c: ContractorEntry) => (
-                          <div key={c.name} style={{ background: '#FFFFFF', border: `1px solid ${isFire ? '#E8A020' : '#C8C1B3'}`, padding: '8px 12px', marginBottom: 6 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
-                              <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
-                              {c.phone && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{c.phone}</span>}
-                            </div>
-                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                              {c.dates.slice(0, 3).map((d: string, i: number) => (
-                                <span key={i} style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>{fmtDate(d)}</span>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 

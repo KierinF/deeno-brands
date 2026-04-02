@@ -667,7 +667,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   // ── Company block ─────────────────────────────────────────────────────────
 
-  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null, permitLabel?: string | null, isT2Inferred?: boolean) => {
+  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null, permitLabel?: string | null, isT2Inferred?: boolean, webConf?: number | null) => {
     const org = findOrgForName(companyName) || fallbackOrg
     const orgProfile = findOrgProfile(companyName)
     const orgPhones = org
@@ -699,6 +699,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
                 {conf != null && conf > 0 && (
                   <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{conf}%</span>
+                )}
+                {webConf != null && (
+                  <span style={{ ...m, fontSize: 10, color: '#2A7A4B', background: '#D4EEE0', border: '1px solid #A8D5B5', padding: '2px 7px', letterSpacing: '0.5px', fontWeight: 700 }}>🌐 WEB · {Math.round(webConf * 100)}%</span>
                 )}
                 {isT2Inferred && (
                   <span style={{ ...m, fontSize: 10, color: '#5C8070', background: '#EAF4EE', padding: '1px 5px', letterSpacing: '0.5px' }}>inferred</span>
@@ -880,12 +883,40 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
         const group = contactsByType[key] || []
         const showPmOrg = key === 'property_manager' && building.pm_name
-        // Show owner orgs from organizations table when no contacts exist for this type
-        const ownerOrgs = key === 'owner' && group.length === 0
+
+        // Detect if PM name came from Clay web enrichment
+        const pmWebConf: number | null = (() => {
+          if (key !== 'property_manager' || !building.web_enrichment_raw?.pm || !building.pm_name) return null
+          const na = normalizeName(building.web_enrichment_raw.pm)
+          const nb = normalizeName(building.pm_name)
+          const match = na.length > 3 && nb.length > 3 && (na === nb || na.startsWith(nb.substring(0, 10)) || nb.startsWith(na.substring(0, 10)))
+          return match ? (building.web_enrichment_raw.pm_confidence ?? null) : null
+        })()
+
+        // Owner orgs from organizations table (all, regardless of contact count)
+        const ownerOrgs = key === 'owner'
           ? (orgs || []).filter((o: any) => o.org_type === 'owner' && o.business_name)
           : []
 
-        if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0) return null
+        // Clay owner — show if not already in ownerOrgs or contacts group
+        const clayOwner: string | null = key === 'owner' && building.web_enrichment_raw?.owner
+          ? building.web_enrichment_raw.owner : null
+        const clayOwnerAlreadyShown = !clayOwner || [
+          ...ownerOrgs.map((o: any) => normalizeName(o.business_name || '')),
+          ...group.map((c: any) => normalizeName(c.business_name || '')),
+        ].some(n => n.length > 3 && normalizeName(clayOwner).length > 3 && (n === normalizeName(clayOwner) || n.startsWith(normalizeName(clayOwner).substring(0, 10))))
+        const showClayOwner = !!(clayOwner && !clayOwnerAlreadyShown)
+
+        // Clay broker — show if not already in leasing_broker contacts
+        const clayBroker: string | null = key === 'leasing_broker' && building.web_enrichment_raw?.broker
+          ? building.web_enrichment_raw.broker : null
+        const clayBrokerAlreadyShown = !clayBroker || group.some((c: any) => {
+          const n = normalizeName(c.business_name || (`${c.first_name || ''} ${c.last_name || ''}`).trim())
+          return n.length > 3 && normalizeName(clayBroker).length > 3 && n === normalizeName(clayBroker)
+        })
+        const showClayBroker = !!(clayBroker && !clayBrokerAlreadyShown)
+
+        if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0 && !showClayOwner && !showClayBroker) return null
 
         const isExpanded = expandedGroups.has(key)
         const COLLAPSE_AT = key === 'trade_referral' ? 2 : 99
@@ -999,7 +1030,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               <>
                 <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
-                {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, undefined, building.pm_confidence, null, null, t2Persons.length > 0)}
+                {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, undefined, building.pm_confidence, null, null, t2Persons.length > 0, pmWebConf)}
                 {showPmOrg && pmContractorTradeKeys.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
                     <button onClick={() => toggleGroup('pm_contractors')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1026,6 +1057,26 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   </div>
                 )}
                 {ownerOrgs.map((o: any) => renderCompanyBlock(o.business_name, [], o, o.confidence))}
+                {showClayOwner && renderCompanyBlock(
+                  clayOwner!,
+                  [],
+                  undefined,
+                  building.web_enrichment_raw?.owner_confidence != null ? Math.round(building.web_enrichment_raw.owner_confidence * 100) : null,
+                  null,
+                  null,
+                  false,
+                  building.web_enrichment_raw?.owner_confidence ?? null
+                )}
+                {showClayBroker && renderCompanyBlock(
+                  clayBroker!,
+                  [],
+                  undefined,
+                  building.web_enrichment_raw?.broker_confidence != null ? Math.round(building.web_enrichment_raw.broker_confidence * 100) : null,
+                  null,
+                  null,
+                  false,
+                  building.web_enrichment_raw?.broker_confidence ?? null
+                )}
 
                 {visible.map((entry: any, i) => {
                   const eKey = entryKey(entry)
@@ -1345,50 +1396,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                     {building.building_website.replace(/^https?:\/\//, '').replace(/\/$/, '').substring(0, 32)}
                   </a>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Clay web enrichment strip */}
-          {building.web_enrichment_raw && (building.web_enrichment_raw.pm || building.web_enrichment_raw.owner || building.web_enrichment_raw.broker) && (
-            <div style={{ background: '#F0F7F2', border: '1px solid #A8D5B5', padding: '10px 14px', marginBottom: 10, borderRadius: 2 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <span style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#2A7A4B', fontWeight: 700 }}>🌐 WEB ENRICHED</span>
-                {building.web_enriched_at && (
-                  <span style={{ ...m, fontSize: 11, color: '#5A9070' }}>via Clay · {new Date(building.web_enriched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                )}
-              </div>
-              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
-                {building.web_enrichment_raw.pm && (
-                  <div>
-                    <div style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#5A9070', marginBottom: 2 }}>PM</div>
-                    <div style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{building.web_enrichment_raw.pm}</div>
-                    {building.web_enrichment_raw.pm_confidence != null && (
-                      <div style={{ ...m, fontSize: 11, color: '#2A7A4B' }}>{Math.round(building.web_enrichment_raw.pm_confidence * 100)}% conf{building.web_enrichment_raw.pm_source ? ` · ${building.web_enrichment_raw.pm_source}` : ''}</div>
-                    )}
-                  </div>
-                )}
-                {building.web_enrichment_raw.owner && (
-                  <div>
-                    <div style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#5A9070', marginBottom: 2 }}>OWNER</div>
-                    <div style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{building.web_enrichment_raw.owner}</div>
-                    {building.web_enrichment_raw.owner_confidence != null && (
-                      <div style={{ ...m, fontSize: 11, color: '#2A7A4B' }}>{Math.round(building.web_enrichment_raw.owner_confidence * 100)}% conf{building.web_enrichment_raw.owner_source ? ` · ${building.web_enrichment_raw.owner_source}` : ''}</div>
-                    )}
-                  </div>
-                )}
-                {building.web_enrichment_raw.broker && (
-                  <div>
-                    <div style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#5A9070', marginBottom: 2 }}>BROKER</div>
-                    <div style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{building.web_enrichment_raw.broker}</div>
-                    {building.web_enrichment_raw.broker_confidence != null && (
-                      <div style={{ ...m, fontSize: 11, color: '#2A7A4B' }}>{Math.round(building.web_enrichment_raw.broker_confidence * 100)}% conf</div>
-                    )}
-                  </div>
-                )}
-              </div>
-              {building.web_enrichment_raw.confidence_label && (
-                <div style={{ ...m, fontSize: 11, color: '#5A9070', marginTop: 6 }}>Overall: {building.web_enrichment_raw.confidence_label}</div>
               )}
             </div>
           )}

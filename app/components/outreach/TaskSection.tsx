@@ -25,6 +25,8 @@ export default function TaskSection({ parcelId, initialTasks }: Props) {
   const [newDue, setNewDue] = useState('')
   const [newNotes, setNewNotes] = useState('')
   const [saving, setSaving] = useState(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [deleteInput, setDeleteInput] = useState('')
   const supabase = createClient()
 
   async function addTask() {
@@ -56,9 +58,14 @@ export default function TaskSection({ parcelId, initialTasks }: Props) {
     setTasks((prev) => prev.filter((t) => t.id !== id))
   }
 
-  async function deleteTask(id: string) {
+  async function doDeleteTask(id: string) {
     await supabase.from('tasks').delete().eq('id', id)
     setTasks((prev) => prev.filter((t) => t.id !== id))
+  }
+
+  function deleteTask(id: string) {
+    setPendingDeleteId(id)
+    setDeleteInput('')
   }
 
   const open = tasks.filter((t) => !t.completed_at)
@@ -270,6 +277,35 @@ export default function TaskSection({ parcelId, initialTasks }: Props) {
             >
               cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {pendingDeleteId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setPendingDeleteId(null)}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '20px 24px', minWidth: 300 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 700, color: '#1C2B2B', marginBottom: 10 }}>Delete task?</div>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#8C8070', marginBottom: 10 }}>Type <strong>delete</strong> to confirm</div>
+            <input
+              autoFocus
+              value={deleteInput}
+              onChange={e => setDeleteInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && deleteInput === 'delete') { doDeleteTask(pendingDeleteId); setPendingDeleteId(null) } if (e.key === 'Escape') setPendingDeleteId(null) }}
+              placeholder="delete"
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, border: '1px solid #C8C1B3', padding: '6px 8px', width: '100%', outline: 'none', marginBottom: 12, boxSizing: 'border-box' as const }}
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { doDeleteTask(pendingDeleteId); setPendingDeleteId(null) }} disabled={deleteInput !== 'delete'}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, background: deleteInput === 'delete' ? '#C0392B' : '#E8E4DC', color: deleteInput === 'delete' ? '#FFFFFF' : '#C8C1B3', border: 'none', padding: '6px 16px', cursor: deleteInput === 'delete' ? 'pointer' : 'default', fontWeight: 700 }}>
+                DELETE
+              </button>
+              <button onClick={() => setPendingDeleteId(null)}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, background: 'none', border: '1px solid #C8C1B3', padding: '6px 16px', cursor: 'pointer', color: '#8C8070' }}>
+                cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

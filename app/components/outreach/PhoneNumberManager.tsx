@@ -49,13 +49,20 @@ export default function PhoneNumberManager({
   const [newNumber, setNewNumber] = useState('')
   const [newSource, setNewSource] = useState('manual')
   const [adding, setAdding] = useState(false)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+  const [deleteInput, setDeleteInput] = useState('')
   const supabase = createClient()
 
-  async function deleteNumber(id: string) {
-    // Don't delete synthetic org phone entries (id starts with 'org-')
+  async function doDeleteNumber(id: string) {
     if (id.startsWith('org-')) return
     await supabase.from('phone_numbers').delete().eq('id', id)
     setNumbers((prev) => prev.filter((n) => n.id !== id))
+  }
+
+  function deleteNumber(id: string) {
+    if (id.startsWith('org-')) return
+    setPendingDeleteId(id)
+    setDeleteInput('')
   }
 
   async function markStale(id: string) {
@@ -183,6 +190,35 @@ export default function PhoneNumberManager({
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {pendingDeleteId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setPendingDeleteId(null)}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '20px 24px', minWidth: 300 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 13, fontWeight: 700, color: '#1C2B2B', marginBottom: 10 }}>Delete phone number?</div>
+            <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, color: '#8C8070', marginBottom: 10 }}>Type <strong>delete</strong> to confirm</div>
+            <input
+              autoFocus
+              value={deleteInput}
+              onChange={e => setDeleteInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && deleteInput === 'delete') { doDeleteNumber(pendingDeleteId); setPendingDeleteId(null) } if (e.key === 'Escape') setPendingDeleteId(null) }}
+              placeholder="delete"
+              style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, border: '1px solid #C8C1B3', padding: '6px 8px', width: '100%', outline: 'none', marginBottom: 12, boxSizing: 'border-box' as const }}
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { doDeleteNumber(pendingDeleteId); setPendingDeleteId(null) }} disabled={deleteInput !== 'delete'}
+                style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, background: deleteInput === 'delete' ? '#C0392B' : '#E8E4DC', color: deleteInput === 'delete' ? '#FFFFFF' : '#C8C1B3', border: 'none', padding: '6px 16px', cursor: deleteInput === 'delete' ? 'pointer' : 'default', fontWeight: 700 }}>
+                DELETE
+              </button>
+              <button onClick={() => setPendingDeleteId(null)}
+                style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 12, background: 'none', border: '1px solid #C8C1B3', padding: '6px 16px', cursor: 'pointer', color: '#8C8070' }}>
+                cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

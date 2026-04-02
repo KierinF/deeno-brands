@@ -23,6 +23,8 @@ type Props = {
 export default function TaskRow({ task, isLast }: Props) {
   const [completed, setCompleted] = useState(false)
   const [deleted, setDeleted] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+  const [deleteInput, setDeleteInput] = useState('')
   const supabase = createClient()
 
   async function completeTask() {
@@ -33,7 +35,7 @@ export default function TaskRow({ task, isLast }: Props) {
     setCompleted(true)
   }
 
-  async function deleteTask() {
+  async function doDeleteTask() {
     await supabase.from('tasks').delete().eq('id', task.id)
     setDeleted(true)
   }
@@ -117,7 +119,7 @@ export default function TaskRow({ task, isLast }: Props) {
         )}
       </div>
       <button
-        onClick={deleteTask}
+        onClick={() => { setConfirming(true); setDeleteInput('') }}
         title="Delete"
         style={{
           background: 'none',
@@ -131,6 +133,35 @@ export default function TaskRow({ task, isLast }: Props) {
       >
         ×
       </button>
+
+      {confirming && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setConfirming(false)}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '20px 24px', minWidth: 300 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: 700, color: '#1C2B2B', marginBottom: 10 }}>Delete task?</div>
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, color: '#8C8070', marginBottom: 10 }}>Type <strong>delete</strong> to confirm</div>
+            <input
+              autoFocus
+              value={deleteInput}
+              onChange={e => setDeleteInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && deleteInput === 'delete') { doDeleteTask(); setConfirming(false) } if (e.key === 'Escape') setConfirming(false) }}
+              placeholder="delete"
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, border: '1px solid #C8C1B3', padding: '6px 8px', width: '100%', outline: 'none', marginBottom: 12, boxSizing: 'border-box' as const }}
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => { doDeleteTask(); setConfirming(false) }} disabled={deleteInput !== 'delete'}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, background: deleteInput === 'delete' ? '#C0392B' : '#E8E4DC', color: deleteInput === 'delete' ? '#FFFFFF' : '#C8C1B3', border: 'none', padding: '6px 16px', cursor: deleteInput === 'delete' ? 'pointer' : 'default', fontWeight: 700 }}>
+                DELETE
+              </button>
+              <button onClick={() => setConfirming(false)}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: 12, background: 'none', border: '1px solid #C8C1B3', padding: '6px 16px', cursor: 'pointer', color: '#8C8070' }}>
+                cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -156,6 +156,22 @@ function normalizeName(s: string): string {
     .substring(0, 20)
 }
 
+// Single source of truth for "do these two names refer to the same entity?"
+// Rules: exact match OR prefix match where the shorter is ≥80% the length of the longer
+// (guards against "622 THIRD AVE. CO." matching "622 THIRD AVENUE COMPANY")
+function entityNamesMatch(a: string | null | undefined, b: string | null | undefined): boolean {
+  if (!a || !b) return false
+  const na = normalizeName(a)
+  const nb = normalizeName(b)
+  if (na.length <= 3 || nb.length <= 3) return false
+  if (na === nb) return true
+  const shorter = na.length <= nb.length ? na : nb
+  const longer  = na.length <= nb.length ? nb : na
+  const similarLength = shorter.length >= longer.length * 0.8
+  const prefixLen = Math.max(10, Math.floor(shorter.length * 0.9))
+  return similarLength && longer.startsWith(shorter.substring(0, prefixLen))
+}
+
 // ── Contact group config ──────────────────────────────────────────────────────
 
 const CONTACT_GROUPS = [
@@ -199,6 +215,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const [editingOrgId, setEditingOrgId] = useState<string | null>(null)
   const [editWebsiteValue, setEditWebsiteValue] = useState('')
   const [classifying, setClassifying] = useState(false)
+  const [pendingDelete, setPendingDelete] = useState<{ action: () => void, label: string, blocked?: string } | null>(null)
+  const [deleteInput, setDeleteInput] = useState('')
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -523,11 +541,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   else if ((openSigTypes.has('permit_new_building') || openSigTypes.has('permit_large_renovation')) && hasOpenViol)
     comboNote = '+20% urgency — active construction cannot get CO/TCO until violations are cleared'
 
-  // Competitive angle
-  const incumbentNote = (building.incumbent_staleness === 'very_stale' || building.incumbent_staleness === 'stale') && building.incumbent_name
-    ? `Incumbent: ${building.incumbent_name} — last job ${building.incumbent_staleness === 'very_stale' ? 'very stale' : 'stale'}, no active relationship to displace`
-    : null
-
   // Filter signals: drop closed permits, keep closed violations + fire incidents
   // All signals are already filtered by parcel_id (BBL), so all belong to this building
   const thisSignals = (signals || [])
@@ -592,16 +605,30 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     load()
   }
 
-  async function deleteContact(contactId: string) {
+  async function doDeleteContact(contactId: string) {
     const supabase = (await import('@/lib/supabase/client')).createClient()
     await supabase.from('contacts').delete().eq('id', contactId)
     load()
   }
 
-  async function deleteOrg(orgId: string) {
+  function deleteContact(contactId: string, label: string) {
+    setPendingDelete({ label, action: () => doDeleteContact(contactId) })
+    setDeleteInput('')
+  }
+
+  async function doDeleteOrg(orgId: string) {
     const supabase = (await import('@/lib/supabase/client')).createClient()
     await supabase.from('organizations').delete().eq('id', orgId)
     load()
+  }
+
+  function deleteOrg(orgId: string, orgName: string, contactsData: any[]) {
+    const linkedContacts = (contactsData || []).filter((c: any) => c.organization_id === orgId)
+    const blocked = linkedContacts.length > 0
+      ? `This org has ${linkedContacts.length} linked contact${linkedContacts.length > 1 ? 's' : ''}. Move or delete them first.`
+      : undefined
+    setPendingDelete({ label: `Delete org "${orgName}"`, action: () => doDeleteOrg(orgId), blocked })
+    setDeleteInput('')
   }
 
   async function reassignContact(contactId: string, orgName: string | null) {
@@ -755,7 +782,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
             {/* Delete org button */}
             {org?.id && (
-              <button onClick={() => deleteOrg(org.id)}
+              <button onClick={() => deleteOrg(org.id, companyName, contacts || [])}
                 style={{ ...m, fontSize: 11, color: '#C0392B', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, marginTop: 2 }}>
                 delete org
               </button>
@@ -824,7 +851,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                     style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#5C8070', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                     {isReassigning ? 'cancel' : 'move'}
                   </button>
-                  <button onClick={() => deleteContact(contact.id)}
+                  <button onClick={() => deleteContact(contact.id, `Delete contact "${name}"`)}
                     style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                     delete
                   </button>
@@ -887,11 +914,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         // Clay PM: detect if Clay found a different PM than the gov record
         const clayPmRaw: string | null = building.web_enrichment_raw?.pm || null
         const clayPmConf: number | null = building.web_enrichment_raw?.pm_confidence ?? null
-        const _govPmNorm = normalizeName(building.pm_name || '')
-        const _clayPmNorm = normalizeName(clayPmRaw || '')
-        const pmNamesMatch = _clayPmNorm.length > 3 && _govPmNorm.length > 3 && (
-          _clayPmNorm === _govPmNorm || _clayPmNorm.startsWith(_govPmNorm.substring(0, 10)) || _govPmNorm.startsWith(_clayPmNorm.substring(0, 10))
-        )
+        const pmNamesMatch = entityNamesMatch(building.pm_name, clayPmRaw)
         // WEB badge for gov PM when Clay confirms the same PM
         const govPmWebConf: number | null = (key === 'property_manager' && pmNamesMatch) ? clayPmConf : null
         // Show Clay PM as its own block when it's a different company
@@ -901,17 +924,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         const getClayWebConf = (name: string): number | null => {
           const web = building.web_enrichment_raw
           if (!web || !name) return null
-          const nb = normalizeName(name)
-          if (nb.length <= 3) return null
-          const check = (raw: string | null | undefined, conf: number | null | undefined): number | null => {
-            if (!raw) return null
-            const na = normalizeName(raw)
-            if (na.length <= 3) return null
-            return (na === nb || na.startsWith(nb.substring(0, 10)) || nb.startsWith(na.substring(0, 10))) ? (conf ?? null) : null
-          }
-          if (key === 'property_manager') return check(web.pm, web.pm_confidence)
-          if (key === 'owner') return check(web.owner, web.owner_confidence)
-          if (key === 'leasing_broker') return check(web.broker, web.broker_confidence)
+          if (key === 'property_manager' && entityNamesMatch(name, web.pm)) return web.pm_confidence ?? null
+          if (key === 'owner' && entityNamesMatch(name, web.owner)) return web.owner_confidence ?? null
+          if (key === 'leasing_broker' && entityNamesMatch(name, web.broker)) return web.broker_confidence ?? null
           return null
         }
 
@@ -924,19 +939,17 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         const clayOwner: string | null = key === 'owner' && building.web_enrichment_raw?.owner
           ? building.web_enrichment_raw.owner : null
         const clayOwnerAlreadyShown = !clayOwner || [
-          ...ownerOrgs.map((o: any) => normalizeName(o.business_name || '')),
-          ...group.map((c: any) => normalizeName(c.business_name || '')),
-        ].some(n => { const cn = normalizeName(clayOwner); return n.length > 3 && cn.length > 3 && (n === cn || n.startsWith(cn.substring(0, 10))); })
+          ...ownerOrgs.map((o: any) => o.business_name),
+          ...group.map((c: any) => c.business_name),
+        ].some((n: any) => entityNamesMatch(n, clayOwner))
         const showClayOwner = !!(clayOwner && !clayOwnerAlreadyShown)
 
         // Clay broker — show if not already in leasing_broker contacts
         const clayBroker: string | null = key === 'leasing_broker' && building.web_enrichment_raw?.broker
           ? building.web_enrichment_raw.broker : null
-        const clayBrokerAlreadyShown = !clayBroker || group.some((c: any) => {
-          const n = normalizeName(c.business_name || (`${c.first_name || ''} ${c.last_name || ''}`).trim())
-          const cb = normalizeName(clayBroker)
-          return n.length > 3 && cb.length > 3 && n === cb
-        })
+        const clayBrokerAlreadyShown = !clayBroker || group.some((c: any) =>
+          entityNamesMatch(c.business_name || (`${c.first_name || ''} ${c.last_name || ''}`).trim(), clayBroker)
+        )
         const showClayBroker = !!(clayBroker && !clayBrokerAlreadyShown)
 
         if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0 && !showClayOwner && !showClayBroker && !showClayPm) return null
@@ -1149,10 +1162,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                           key === 'trade_referral' && entry.latestDate ? fmtDate(entry.latestDate) : null,
                           entry.permitLabel ?? null, false, getClayWebConf(entry.name)
                         )}
-                        <button
-                          onClick={() => { entry.contacts.forEach((c: any) => markContactBad(c.id)) }}
-                          style={{ position: 'absolute', top: entry.isPinned ? 34 : 10, right: 36, background: 'none', border: 'none', ...m, fontSize: 11, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
-                        >wrong</button>
                       </div>
                       {reorderBtns}
                     </div>
@@ -1169,9 +1178,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                           {entry.contact.source === 'clay_web' && (
                             <span style={{ ...m, fontSize: 10, color: '#2A7A4B', background: '#D4EEE0', border: '1px solid #A8D5B5', padding: '2px 7px', letterSpacing: '0.5px', fontWeight: 700 }}>🌐 WEB</span>
                           )}
-                          <button onClick={() => markContactBad(entry.contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
-                            wrong
-                          </button>
                         </div>
                         <PhoneNumberManager
                           parcelId={parcelId}
@@ -1419,7 +1425,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '8px 20px', flexShrink: 0 }}>
           {/* Inline stats line */}
           {(building.building_sqft || totalFines > 0 || building.building_website) && (
-            <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: whyCards.length > 0 || comboNote || incumbentNote ? 6 : 0, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
+            <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: whyCards.length > 0 || comboNote ? 6 : 0, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
               {building.building_sqft && (
                 <span style={{ color: '#1C2B2B' }}>{Math.round(building.building_sqft / 1000)}k sqft{building.floors ? ` · ${building.floors} fl` : ''}</span>
               )}
@@ -1461,19 +1467,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             </div>
           )}
 
-          {/* Combo + competitive — single compact line */}
-          {(comboNote || incumbentNote) && (
-            <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-              {comboNote && (
-                <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>
-                  <span style={{ color: '#C0392B', fontWeight: 700 }}>COMBO </span>{comboNote}
-                </span>
-              )}
-              {incumbentNote && (
-                <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>
-                  <span style={{ fontWeight: 700 }}>COMPETITIVE </span>{incumbentNote}
-                </span>
-              )}
+          {/* Combo note — single compact line */}
+          {comboNote && (
+            <div style={{ marginTop: 6 }}>
+              <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>
+                <span style={{ color: '#C0392B', fontWeight: 700 }}>COMBO </span>{comboNote}
+              </span>
             </div>
           )}
 
@@ -1666,6 +1665,50 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               }}
               style={{ marginTop: 4, background: manualDialInput ? '#E8A020' : '#2E3E3E', border: 'none', color: manualDialInput ? '#1C2B2B' : '#8C8070', ...m, fontSize: 13, fontWeight: 700, letterSpacing: '1.5px', padding: '13px 0', cursor: manualDialInput ? 'pointer' : 'default' }}
             >CALL</button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {pendingDelete && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setPendingDelete(null)}>
+          <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '20px 24px', minWidth: 320, maxWidth: 400 }}
+            onClick={e => e.stopPropagation()}>
+            <div style={{ ...m, fontSize: 13, fontWeight: 700, color: '#1C2B2B', marginBottom: 12 }}>{pendingDelete.label}</div>
+            {pendingDelete.blocked ? (
+              <>
+                <div style={{ ...m, fontSize: 12, color: '#C0392B', marginBottom: 16 }}>{pendingDelete.blocked}</div>
+                <button onClick={() => setPendingDelete(null)}
+                  style={{ ...m, fontSize: 12, background: '#F0EDE8', border: '1px solid #C8C1B3', padding: '6px 16px', cursor: 'pointer', color: '#1C2B2B' }}>
+                  OK
+                </button>
+              </>
+            ) : (
+              <>
+                <div style={{ ...m, fontSize: 12, color: '#8C8070', marginBottom: 10 }}>Type <strong>delete</strong> to confirm</div>
+                <input
+                  autoFocus
+                  value={deleteInput}
+                  onChange={e => setDeleteInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && deleteInput === 'delete') { pendingDelete.action(); setPendingDelete(null) } if (e.key === 'Escape') setPendingDelete(null) }}
+                  placeholder="delete"
+                  style={{ ...m, fontSize: 12, border: '1px solid #C8C1B3', padding: '6px 8px', width: '100%', outline: 'none', marginBottom: 12, boxSizing: 'border-box' as const }}
+                />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => { pendingDelete.action(); setPendingDelete(null) }}
+                    disabled={deleteInput !== 'delete'}
+                    style={{ ...m, fontSize: 12, background: deleteInput === 'delete' ? '#C0392B' : '#E8E4DC', color: deleteInput === 'delete' ? '#FFFFFF' : '#C8C1B3', border: 'none', padding: '6px 16px', cursor: deleteInput === 'delete' ? 'pointer' : 'default', fontWeight: 700 }}>
+                    DELETE
+                  </button>
+                  <button onClick={() => setPendingDelete(null)}
+                    style={{ ...m, fontSize: 12, background: 'none', border: '1px solid #C8C1B3', padding: '6px 16px', cursor: 'pointer', color: '#8C8070' }}>
+                    cancel
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}

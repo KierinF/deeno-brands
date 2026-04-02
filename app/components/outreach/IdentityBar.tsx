@@ -33,14 +33,21 @@ function normalizeName(s: string | null | undefined): string {
     .toLowerCase()
     .replace(/\b(llc|lp|llp|inc|corp|corporation|ltd|limited|co|company|pllc|trust|assoc|associates?)\b\.?/gi, '')
     .replace(/[^a-z0-9]/g, '')
-    .substring(0, 16)
+    .substring(0, 20)
 }
 
+// Same logic as entityNamesMatch in BuildingPanel — single source of truth for name agreement
 function namesMatch(a: string | null | undefined, b: string | null | undefined): boolean {
   if (!a || !b) return false
   const na = normalizeName(a)
   const nb = normalizeName(b)
-  return na.length > 3 && nb.length > 3 && na === nb
+  if (na.length <= 3 || nb.length <= 3) return false
+  if (na === nb) return true
+  const shorter = na.length <= nb.length ? na : nb
+  const longer  = na.length <= nb.length ? nb : na
+  const similarLength = shorter.length >= longer.length * 0.8
+  const prefixLen = Math.max(10, Math.floor(shorter.length * 0.9))
+  return similarLength && longer.startsWith(shorter.substring(0, prefixLen))
 }
 
 // Compact version — lives in the dark green header, stacked label+name format

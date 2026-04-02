@@ -537,6 +537,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const contactsByType: Record<string, any[]> = {}
   for (const c of (contacts || [])) {
     if (c.is_bad_data) continue
+    // Hide AI-classified entities from PM/owner groups — they're company name fragments, not people
+    if (c.ai_entity_type === 'entity' && (c.contact_type === 'property_manager' || c.contact_type === 'owner')) continue
     let t = (c.contact_type || 'other').toLowerCase()
     if (t === 'permit_applicant') t = 'trade_referral'
     if (!contactsByType[t]) contactsByType[t] = []

@@ -133,6 +133,12 @@ function signalAccent(w: number) {
 }
 
 // Score badge colors: red / yellow / blue / gray
+function boroughFromParcelId(parcelId: string): string | null {
+  const m = parcelId.match(/^nyc_(\d)/)
+  if (!m) return null
+  return ({ '1': 'Manhattan', '2': 'Bronx', '3': 'Brooklyn', '4': 'Queens', '5': 'Staten Island' } as Record<string, string>)[m[1]] ?? null
+}
+
 function scoreBadgeStyle(score: number | null) {
   if (!score || score === 0) return { background: '#C8C1B3', color: '#8C8070' }
   if (score >= 70) return { background: '#C0392B', color: '#FFFFFF' }
@@ -188,6 +194,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const [addContact, setAddContact] = useState<AddContactState | null>(null)
   const [savingContact, setSavingContact] = useState(false)
   const [localLeadStatus, setLocalLeadStatus] = useState<string | null>(null)
+  const [contactOrder, setContactOrder] = useState<Record<string, string[]>>({})
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -565,6 +572,16 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n
   })
 
+  function moveEntry(groupKey: string, currentKeys: string[], targetKey: string, direction: 'up' | 'down') {
+    const idx = currentKeys.indexOf(targetKey)
+    if (idx < 0) return
+    const next = [...currentKeys]
+    if (direction === 'up' && idx > 0) { [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]] }
+    else if (direction === 'down' && idx < next.length - 1) { [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]] }
+    else return
+    setContactOrder(prev => ({ ...prev, [groupKey]: next }))
+  }
+
   async function markContactBad(contactId: string) {
     const supabase = (await import('@/lib/supabase/client')).createClient()
     await supabase.from('contacts').update({ is_bad_data: true }).eq('id', contactId)
@@ -792,7 +809,35 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               allEntries.unshift(fireEntry)
             }
           }
+        } else {
+          // Priority stacking: entries with a phone number float to top
+          const entryHasPhone = (e: any): boolean => {
+            if (e.type === 'company') {
+              const org = findOrgForName(e.name)
+              if (org?.phone) return true
+              return (phoneNumbers || []).some((p: any) => p.org_id === org?.id)
+            }
+            return (phoneNumbers || []).some((p: any) => p.contact_id === e.contact?.id)
+          }
+          allEntries.sort((a: any, b: any) => {
+            const ap = entryHasPhone(a) ? 0 : 1
+            const bp = entryHasPhone(b) ? 0 : 1
+            return ap - bp
+          })
         }
+
+        // Apply manual ordering if user has reordered
+        const entryKey = (e: any) => e.type === 'company' ? `co:${e.name}` : `pe:${e.contact?.id}`
+        const storedOrder = contactOrder[key]
+        if (storedOrder && storedOrder.length > 0) {
+          const keyMap = new Map(allEntries.map(e => [entryKey(e), e]))
+          const ordered = storedOrder.map((k: string) => keyMap.get(k)).filter(Boolean) as any[]
+          const seen = new Set(storedOrder)
+          const extra = allEntries.filter(e => !seen.has(entryKey(e)))
+          allEntries = [...ordered, ...extra]
+        }
+        const orderedKeys = allEntries.map(entryKey)
+
         const visible = isExpanded ? allEntries : allEntries.slice(0, COLLAPSE_AT)
         const hidden = allEntries.length - visible.length
 
@@ -842,10 +887,22 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 )}
                 {ownerOrgs.map((o: any) => renderCompanyBlock(o.business_name, [], o, o.confidence))}
 
-                {visible.map((entry: any, i) =>
-                  entry.type === 'company'
-                    ? (
-                      <div key={entry.name + i} style={{ position: 'relative', ...(entry.isPinned ? { outline: '2px solid #E8A020', outlineOffset: -1, marginBottom: 12 } : {}) }}>
+                {visible.map((entry: any, i) => {
+                  const eKey = entryKey(entry)
+                  const eIdx = orderedKeys.indexOf(eKey)
+                  const canUp = eIdx > 0
+                  const canDown = eIdx < orderedKeys.length - 1
+                  const reorderBtns = (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
+                      <button onClick={() => moveEntry(key, orderedKeys, eKey, 'up')} disabled={!canUp}
+                        style={{ background: 'none', border: 'none', cursor: canUp ? 'pointer' : 'default', padding: '1px 4px', ...m, fontSize: 9, color: canUp ? '#8C8070' : '#E8E4DC', lineHeight: 1 }}>▲</button>
+                      <button onClick={() => moveEntry(key, orderedKeys, eKey, 'down')} disabled={!canDown}
+                        style={{ background: 'none', border: 'none', cursor: canDown ? 'pointer' : 'default', padding: '1px 4px', ...m, fontSize: 9, color: canDown ? '#8C8070' : '#E8E4DC', lineHeight: 1 }}>▼</button>
+                    </div>
+                  )
+                  if (entry.type === 'company') return (
+                    <div key={eKey} style={{ position: 'relative', display: 'flex', alignItems: 'flex-start', gap: 4, marginBottom: entry.isPinned ? 12 : 0, ...(entry.isPinned ? { outline: '2px solid #E8A020', outlineOffset: -1 } : {}) }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         {entry.isPinned && (
                           <div style={{ background: '#E8A020', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
                             <span style={{ ...m, fontSize: 8, color: '#1C2B2B', fontWeight: 700, letterSpacing: '1px' }}>MOST RECENT FIRE CONTRACTOR</span>
@@ -857,19 +914,24 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                         )}
                         <button
                           onClick={() => { entry.contacts.forEach((c: any) => markContactBad(c.id)) }}
-                          style={{ position: 'absolute', top: entry.isPinned ? 34 : 10, right: 10, background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
-                        >
-                          wrong
-                        </button>
+                          style={{ position: 'absolute', top: entry.isPinned ? 34 : 10, right: 36, background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                        >wrong</button>
                       </div>
-                    )
-                    : (
-                      <div key={entry.contact.id} style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 14px', marginBottom: 8 }}>
+                      {reorderBtns}
+                    </div>
+                  )
+                  return (
+                    <div key={eKey} style={{ display: 'flex', alignItems: 'flex-start', gap: 4, marginBottom: 8 }}>
+                      <div style={{ flex: 1, background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                           <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>
                             {entry.contact.first_name} {entry.contact.last_name || ''}
                             {entry.contact.confidence && <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{entry.contact.confidence}%</span>}
                           </span>
+                          {entry.contact.title && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{entry.contact.title}</span>}
+                          {entry.contact.source === 'clay_web' && (
+                            <span style={{ ...m, fontSize: 8, color: '#2A7A4B', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>🌐 web</span>
+                          )}
                           <button onClick={() => markContactBad(entry.contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
                             wrong
                           </button>
@@ -886,8 +948,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                           })}
                         />
                       </div>
-                    )
-                )}
+                      {reorderBtns}
+                    </div>
+                  )
+                })}
 
                 {hidden > 0 && (
                   <button onClick={() => toggleGroup(key)} style={{ ...m, fontSize: 10, color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}>
@@ -1083,18 +1147,28 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* Header */}
-        <div style={{ background: '#1C2B2B', padding: '0 20px', height: 52, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2E3E3E', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+        <div style={{ background: '#1C2B2B', padding: '0 16px 0 20px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2E3E3E', flexShrink: 0, gap: 12 }}>
+          {/* Left: score + address + borough */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>
             {displayScore != null && (
               <span style={{ ...m, fontSize: 11, fontWeight: 700, padding: '3px 8px', flexShrink: 0, ...scoreStyle }}>
                 {displayScore}
               </span>
             )}
-            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {buildingAddress}
-            </h2>
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {buildingAddress}
+              </h2>
+              {boroughFromParcelId(parcelId) && (
+                <div style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '1px', marginTop: 1 }}>
+                  {boroughFromParcelId(parcelId)}
+                </div>
+              )}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {/* Right: compact identity + close */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+            <IdentityBar building={building} compact />
             <button onClick={onClose} title="Esc" style={{ ...m, fontSize: 18, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}>×</button>
           </div>
         </div>
@@ -1103,9 +1177,6 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         <div style={{ flexShrink: 0 }}>
           <StagePipeline key={localLeadStatus ?? lead?.status ?? 'new'} parcelId={parcelId} initialStage={localLeadStatus ?? lead?.status ?? 'new'} leadId={lead?.id ?? null} />
         </div>
-
-        {/* Identity Bar — PM / Owner / Broker verification */}
-        <IdentityBar building={building} />
 
         {/* Why we're calling bar */}
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '10px 20px', flexShrink: 0 }}>

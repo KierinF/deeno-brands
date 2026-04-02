@@ -195,6 +195,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const [savingContact, setSavingContact] = useState(false)
   const [localLeadStatus, setLocalLeadStatus] = useState<string | null>(null)
   const [contactOrder, setContactOrder] = useState<Record<string, string[]>>({})
+  const [reassigningContact, setReassigningContact] = useState<string | null>(null)
+  const [editingOrgId, setEditingOrgId] = useState<string | null>(null)
+  const [editWebsiteValue, setEditWebsiteValue] = useState('')
+  const [classifying, setClassifying] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -588,6 +592,50 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     load()
   }
 
+  async function deleteContact(contactId: string) {
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    await supabase.from('contacts').delete().eq('id', contactId)
+    load()
+  }
+
+  async function deleteOrg(orgId: string) {
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    await supabase.from('organizations').delete().eq('id', orgId)
+    load()
+  }
+
+  async function reassignContact(contactId: string, orgName: string | null) {
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    await supabase.from('contacts').update({
+      business_name: orgName || null,
+      assignment_source: 'manual',
+    }).eq('id', contactId)
+    setReassigningContact(null)
+    load()
+  }
+
+  async function saveOrgWebsite(orgId: string, website: string) {
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    await supabase.from('organizations').update({ website: website.trim() || null }).eq('id', orgId)
+    setEditingOrgId(null)
+    setEditWebsiteValue('')
+    load()
+  }
+
+  async function classifyContacts() {
+    setClassifying(true)
+    try {
+      await fetch('/api/classify-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ parcel_id: parcelId }),
+      })
+      load()
+    } finally {
+      setClassifying(false)
+    }
+  }
+
   async function saveNewContact() {
     if (!addContact) return
     setSavingContact(true)
@@ -619,7 +667,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   // ── Company block ─────────────────────────────────────────────────────────
 
-  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null, permitLabel?: string | null) => {
+  const renderCompanyBlock = (companyName: string, contactList: any[], fallbackOrg?: any, confOverride?: number | null, workDate?: string | null, permitLabel?: string | null, isT2Inferred?: boolean) => {
     const org = findOrgForName(companyName) || fallbackOrg
     const orgProfile = findOrgProfile(companyName)
     const orgPhones = org
@@ -628,35 +676,89 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           (org.org_profile_id && p.org_profile_id === org.org_profile_id)
         )
       : []
-    // Resolved phone: org table → phone_numbers → org_profiles
     const resolvedPhone = org?.phone || (orgPhones.length === 0 ? orgProfile?.phone : null)
     const noIndividuals = contactList.every((c: any) => !c.first_name)
     const conf = confOverride ?? org?.confidence ?? (contactList.length > 0 ? Math.max(...contactList.map((c: any) => c.confidence ?? 0)) : null)
+    const website = org?.website || orgProfile?.website || null
+    const isEditing = editingOrgId === org?.id
+
+    // All orgs for this building — used in reassign dropdown
+    const allOrgNames = [
+      building.pm_name,
+      building.owner_name,
+      ...(orgs || []).map((o: any) => o.business_name),
+    ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i)
 
     return (
       <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', marginBottom: 10 }}>
         {/* Company header */}
-        <div style={{ padding: '10px 14px', borderBottom: contactList.length > 0 ? '1px solid #E8EDE8' : 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-            <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
-            {conf != null && conf > 0 && (
-              <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{conf}%</span>
-            )}
-            {permitLabel && (
-              <span style={{ ...m, fontSize: 8, color: '#8C8070', background: '#F0EDE8', padding: '2px 5px', letterSpacing: '0.8px' }}>{permitLabel}</span>
-            )}
-            {workDate && (
-              <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>work: {workDate}</span>
-            )}
-            {resolvedPhone && (
-              <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{resolvedPhone}</span>
-            )}
-            {orgProfile?.website && (
-              <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>
-                {orgProfile.website.replace(/^https?:\/\//, '')}
-              </span>
+        <div style={{ padding: '10px 14px', borderBottom: (contactList.length > 0 || orgProfile?.principals?.length > 0) ? '1px solid #E8EDE8' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
+                {conf != null && conf > 0 && (
+                  <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{conf}%</span>
+                )}
+                {isT2Inferred && (
+                  <span style={{ ...m, fontSize: 8, color: '#5C8070', background: '#EAF4EE', padding: '1px 5px', letterSpacing: '0.5px' }}>inferred</span>
+                )}
+                {permitLabel && (
+                  <span style={{ ...m, fontSize: 8, color: '#8C8070', background: '#F0EDE8', padding: '2px 5px', letterSpacing: '0.8px' }}>{permitLabel}</span>
+                )}
+                {workDate && (
+                  <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>work: {workDate}</span>
+                )}
+              </div>
+
+              {/* Website row */}
+              {isEditing ? (
+                <div style={{ display: 'flex', gap: 6, marginBottom: 6, alignItems: 'center' }}>
+                  <input
+                    value={editWebsiteValue}
+                    onChange={e => setEditWebsiteValue(e.target.value)}
+                    placeholder="https://example.com"
+                    style={{ flex: 1, padding: '4px 6px', border: '1px solid #C8C1B3', ...m, fontSize: 10, outline: 'none' }}
+                  />
+                  <button onClick={() => saveOrgWebsite(org!.id, editWebsiteValue)}
+                    style={{ ...m, fontSize: 9, color: '#1C2B2B', background: '#E8A020', border: 'none', padding: '4px 8px', cursor: 'pointer', fontWeight: 700 }}>
+                    SAVE
+                  </button>
+                  <button onClick={() => setEditingOrgId(null)}
+                    style={{ ...m, fontSize: 9, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    cancel
+                  </button>
+                </div>
+              ) : website ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noopener noreferrer"
+                    style={{ ...m, fontSize: 9, color: '#2A7A4B', textDecoration: 'underline' }}>
+                    {website.replace(/^https?:\/\//, '')}
+                  </a>
+                  {org?.id && (
+                    <button onClick={() => { setEditingOrgId(org.id); setEditWebsiteValue(website) }}
+                      style={{ ...m, fontSize: 9, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      edit
+                    </button>
+                  )}
+                </div>
+              ) : org?.id ? (
+                <button onClick={() => { setEditingOrgId(org.id); setEditWebsiteValue('') }}
+                  style={{ ...m, fontSize: 9, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px 0', textDecoration: 'underline' }}>
+                  + add website
+                </button>
+              ) : null}
+            </div>
+
+            {/* Delete org button */}
+            {org?.id && (
+              <button onClick={() => deleteOrg(org.id)}
+                style={{ ...m, fontSize: 9, color: '#C0392B', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, marginTop: 2 }}>
+                delete org
+              </button>
             )}
           </div>
+
           <PhoneNumberManager
             parcelId={parcelId}
             orgId={org?.id ?? null}
@@ -672,7 +774,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             })}
           />
           {!resolvedPhone && orgPhones.length === 0 && (
-            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No company number — add below</div>
+            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No company number</div>
           )}
           {noIndividuals && contactList.length === 0 && !(orgProfile?.principals?.length > 0) && (
             <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No individual contacts on record</div>
@@ -698,6 +800,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           const name = contact.first_name
             ? `${contact.first_name} ${contact.last_name || ''}`.trim()
             : contact.business_name || 'Unknown'
+          const isReassigning = reassigningContact === contact.id
           return (
             <div key={contact.id} style={{ padding: '8px 14px 8px 24px', borderBottom: '1px solid #F0EDE8' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
@@ -710,12 +813,40 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 {contact.source === 'clay_web' && (
                   <span style={{ ...m, fontSize: 8, color: '#2A7A4B', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>🌐 web</span>
                 )}
-                <button onClick={() => markContactBad(contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
-                  wrong
-                </button>
+                {isT2Inferred && (
+                  <span style={{ ...m, fontSize: 8, color: '#5C8070', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>inferred</span>
+                )}
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  <button onClick={() => setReassigningContact(isReassigning ? null : contact.id)}
+                    style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#5C8070', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                    {isReassigning ? 'cancel' : 'move'}
+                  </button>
+                  <button onClick={() => deleteContact(contact.id)}
+                    style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                    delete
+                  </button>
+                </div>
               </div>
               {contact.title && (
                 <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 4 }}>{contact.title}</div>
+              )}
+              {/* Reassign inline picker */}
+              {isReassigning && (
+                <div style={{ background: '#F7F4EE', border: '1px solid #C8C1B3', padding: '8px 10px', marginBottom: 8 }}>
+                  <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 6 }}>MOVE TO:</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {allOrgNames.map((orgN: string) => (
+                      <button key={orgN} onClick={() => reassignContact(contact.id, orgN)}
+                        style={{ ...m, fontSize: 10, color: '#1C2B2B', background: 'none', border: '1px solid #C8C1B3', padding: '4px 8px', cursor: 'pointer', textAlign: 'left' }}>
+                        {orgN}
+                      </button>
+                    ))}
+                    <button onClick={() => reassignContact(contact.id, null)}
+                      style={{ ...m, fontSize: 10, color: '#8C8070', background: 'none', border: '1px dashed #C8C1B3', padding: '4px 8px', cursor: 'pointer', textAlign: 'left' }}>
+                      Unassign (independent)
+                    </button>
+                  </div>
+                </div>
               )}
               <PhoneNumberManager
                 parcelId={parcelId}
@@ -740,8 +871,26 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   // Defining inline components inside render creates a new type each render,
   // causing React to remount children and lose PhoneNumberManager state on every setActiveDial call.
 
-  function renderContacts() { return (
+  function renderContacts() {
+    const unclassifiedCount = (contacts || []).filter((c: any) =>
+      !c.is_bad_data && c.ai_entity_type == null &&
+      (c.contact_type === 'property_manager' || c.contact_type === 'owner')
+    ).length
+
+    return (
     <div>
+      {/* Classification banner */}
+      {unclassifiedCount > 0 && (
+        <div style={{ background: '#FFF8EC', border: '1px solid #E8A020', padding: '8px 12px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span style={{ ...m, fontSize: 10, color: '#8C6010' }}>
+            {unclassifiedCount} contact{unclassifiedCount !== 1 ? 's' : ''} need person/entity classification
+          </span>
+          <button onClick={classifyContacts} disabled={classifying}
+            style={{ ...m, fontSize: 10, fontWeight: 700, color: '#1C2B2B', background: '#E8A020', border: 'none', padding: '4px 10px', cursor: classifying ? 'wait' : 'pointer', letterSpacing: '1px' }}>
+            {classifying ? 'CLASSIFYING…' : 'CLASSIFY'}
+          </button>
+        </div>
+      )}
       {CONTACT_GROUPS.map(({ key, label, hint }) => {
         // CONTRACTORS rendered separately below using permitOrgs with trade grouping
         if (key === 'trade_referral') return null
@@ -768,6 +917,14 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             standalone.push(c)
           }
         }
+
+        // T2 inference: person contacts without a company → attach to PM or owner org
+        const inferredOrg = key === 'property_manager' ? building.pm_name
+          : key === 'owner' ? building.owner_name : null
+        const t2Persons = inferredOrg
+          ? standalone.filter((c: any) => c.ai_entity_type === 'person' || c.ai_entity_type === null)
+          : []
+        const trueStandalone = standalone.filter((c: any) => !t2Persons.includes(c))
         const companies = Object.entries(byCompany)
         let allEntries: any[] = [
           ...companies.map(([name, cs]) => {
@@ -788,7 +945,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               isPinned: false,
             }
           }),
-          ...standalone.map(c => ({ type: 'person', contact: c })),
+          ...trueStandalone.map(c => ({ type: 'person', contact: c })),
         ]
         if (key === 'trade_referral') {
           // Sort companies by most recent source_date DESC
@@ -859,7 +1016,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               <>
                 <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
-                {showPmOrg && group.length === 0 && renderCompanyBlock(building.pm_name, [], undefined, building.pm_confidence)}
+                {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, undefined, building.pm_confidence, null, null, t2Persons.length > 0)}
                 {showPmOrg && pmContractorTradeKeys.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
                     <button onClick={() => toggleGroup('pm_contractors')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1181,8 +1338,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         {/* Why we're calling bar */}
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '10px 20px', flexShrink: 0 }}>
           {/* Size + Fines mini row */}
-          {(building.building_sqft || totalFines > 0) && (
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', marginBottom: whyCards.length > 0 || comboNote || incumbentNote ? 10 : 0 }}>
+          {(building.building_sqft || totalFines > 0 || building.building_website) && (
+            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: whyCards.length > 0 || comboNote || incumbentNote ? 10 : 0 }}>
               {building.building_sqft && (
                 <div>
                   <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>SIZE</div>
@@ -1195,6 +1352,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   <div style={{ ...m, fontSize: 11, color: openFines > 0 ? '#E8A020' : '#1C2B2B' }}>
                     ${openFines.toLocaleString()}<span style={{ color: '#8C8070' }}> / ${totalFines.toLocaleString()} total</span>
                   </div>
+                </div>
+              )}
+              {building.building_website && (
+                <div>
+                  <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>WEBSITE</div>
+                  <a href={building.building_website} target="_blank" rel="noopener noreferrer"
+                    style={{ ...m, fontSize: 11, color: '#2A7A4B', textDecoration: 'underline' }}>
+                    {building.building_website.replace(/^https?:\/\//, '').replace(/\/$/, '').substring(0, 32)}
+                  </a>
                 </div>
               )}
             </div>

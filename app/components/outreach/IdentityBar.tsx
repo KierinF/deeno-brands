@@ -43,7 +43,7 @@ function namesMatch(a: string | null | undefined, b: string | null | undefined):
   return na.length > 3 && nb.length > 3 && na === nb
 }
 
-// Compact version — lives in the dark green header
+// Compact version — lives in the dark green header, stacked label+name format
 function CompactIdentityBar({ building }: { building: IdentityBarProps['building'] }) {
   const web = building.web_enrichment_raw
 
@@ -56,29 +56,23 @@ function CompactIdentityBar({ building }: { building: IdentityBarProps['building
   if (slots.length === 0) return null
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-      {slots.map((s, i) => {
+    <div style={{ display: 'flex', gap: 16 }}>
+      {slots.map((s) => {
         const agree = namesMatch(s.stitched, s.web)
         const hasBoth = !!(s.stitched && s.web)
         const conflict = hasBoth && !agree
         const name = s.stitched || s.web || ''
-        // Truncate long names
-        const displayName = name.length > 22 ? name.substring(0, 20) + '…' : name
+        const displayName = name.length > 24 ? name.substring(0, 22) + '…' : name
 
         return (
-          <div key={s.label} style={{
-            display: 'flex', flexDirection: 'column', gap: 1,
-            paddingLeft: i > 0 ? 12 : 0,
-            borderLeft: i > 0 ? '1px solid #2E3E3E' : 'none',
-            marginLeft: i > 0 ? 12 : 0,
-          }}>
+          <div key={s.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ ...m, fontSize: 7, letterSpacing: '1.5px', color: '#5C7070' }}>{s.label}</span>
               {agree && <span style={{ fontSize: 8, color: '#2A7A4B' }}>✓</span>}
               {conflict && <span style={{ fontSize: 8, color: '#E8A020' }}>⚠</span>}
             </div>
-            <span style={{ ...m, fontSize: 10, color: '#C8C1B3', whiteSpace: 'nowrap' }}>
-              {displayName}
+            <span style={{ ...m, fontSize: 10, fontWeight: 700, color: '#C8C1B3', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
+              {displayName.toUpperCase()}
             </span>
           </div>
         )

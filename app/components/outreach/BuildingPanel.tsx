@@ -884,27 +884,49 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         const group = contactsByType[key] || []
         const showPmOrg = key === 'property_manager' && building.pm_name
 
-        // Detect if PM name came from Clay web enrichment
-        const pmWebConf: number | null = (() => {
-          if (key !== 'property_manager' || !building.web_enrichment_raw?.pm || !building.pm_name) return null
-          const na = normalizeName(building.web_enrichment_raw.pm)
-          const nb = normalizeName(building.pm_name)
-          const match = na.length > 3 && nb.length > 3 && (na === nb || na.startsWith(nb.substring(0, 10)) || nb.startsWith(na.substring(0, 10)))
-          return match ? (building.web_enrichment_raw.pm_confidence ?? null) : null
-        })()
+        // Clay PM: detect if Clay found a different PM than the gov record
+        const clayPmRaw: string | null = building.web_enrichment_raw?.pm || null
+        const clayPmConf: number | null = building.web_enrichment_raw?.pm_confidence ?? null
+        const _govPmNorm = normalizeName(building.pm_name || '')
+        const _clayPmNorm = normalizeName(clayPmRaw || '')
+        const pmNamesMatch = _clayPmNorm.length > 3 && _govPmNorm.length > 3 && (
+          _clayPmNorm === _govPmNorm || _clayPmNorm.startsWith(_govPmNorm.substring(0, 10)) || _govPmNorm.startsWith(_clayPmNorm.substring(0, 10))
+        )
+        // WEB badge for gov PM when Clay confirms the same PM
+        const govPmWebConf: number | null = (key === 'property_manager' && pmNamesMatch) ? clayPmConf : null
+        // Show Clay PM as its own block when it's a different company
+        const showClayPm = key === 'property_manager' && !!(clayPmRaw && !pmNamesMatch)
 
-        // Owner orgs from organizations table (all, regardless of contact count)
+        // Helper: get Clay web conf for a company name in context of this section
+        const getClayWebConf = (name: string): number | null => {
+          const web = building.web_enrichment_raw
+          if (!web || !name) return null
+          const nb = normalizeName(name)
+          if (nb.length <= 3) return null
+          const check = (raw: string | null | undefined, conf: number | null | undefined): number | null => {
+            if (!raw) return null
+            const na = normalizeName(raw)
+            if (na.length <= 3) return null
+            return (na === nb || na.startsWith(nb.substring(0, 10)) || nb.startsWith(na.substring(0, 10))) ? (conf ?? null) : null
+          }
+          if (key === 'property_manager') return check(web.pm, web.pm_confidence)
+          if (key === 'owner') return check(web.owner, web.owner_confidence)
+          if (key === 'leasing_broker') return check(web.broker, web.broker_confidence)
+          return null
+        }
+
+        // Owner orgs from organizations table
         const ownerOrgs = key === 'owner'
           ? (orgs || []).filter((o: any) => o.org_type === 'owner' && o.business_name)
           : []
 
-        // Clay owner — show if not already in ownerOrgs or contacts group
+        // Clay owner — show if not already represented
         const clayOwner: string | null = key === 'owner' && building.web_enrichment_raw?.owner
           ? building.web_enrichment_raw.owner : null
         const clayOwnerAlreadyShown = !clayOwner || [
           ...ownerOrgs.map((o: any) => normalizeName(o.business_name || '')),
           ...group.map((c: any) => normalizeName(c.business_name || '')),
-        ].some(n => n.length > 3 && normalizeName(clayOwner).length > 3 && (n === normalizeName(clayOwner) || n.startsWith(normalizeName(clayOwner).substring(0, 10))))
+        ].some(n => { const cn = normalizeName(clayOwner); return n.length > 3 && cn.length > 3 && (n === cn || n.startsWith(cn.substring(0, 10))); })
         const showClayOwner = !!(clayOwner && !clayOwnerAlreadyShown)
 
         // Clay broker — show if not already in leasing_broker contacts
@@ -912,11 +934,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           ? building.web_enrichment_raw.broker : null
         const clayBrokerAlreadyShown = !clayBroker || group.some((c: any) => {
           const n = normalizeName(c.business_name || (`${c.first_name || ''} ${c.last_name || ''}`).trim())
-          return n.length > 3 && normalizeName(clayBroker).length > 3 && n === normalizeName(clayBroker)
+          const cb = normalizeName(clayBroker)
+          return n.length > 3 && cb.length > 3 && n === cb
         })
         const showClayBroker = !!(clayBroker && !clayBrokerAlreadyShown)
 
-        if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0 && !showClayOwner && !showClayBroker) return null
+        if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0 && !showClayOwner && !showClayBroker && !showClayPm) return null
 
         const isExpanded = expandedGroups.has(key)
         const COLLAPSE_AT = key === 'trade_referral' ? 2 : 99
@@ -935,10 +958,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         // T2 inference: person contacts without a company → attach to PM or owner org
         const inferredOrg = key === 'property_manager' ? building.pm_name
           : key === 'owner' ? building.owner_name : null
-        const t2Persons = inferredOrg
+        const allT2Candidates = inferredOrg
           ? standalone.filter((c: any) => c.ai_entity_type === 'person' || c.ai_entity_type === null)
           : []
-        const trueStandalone = standalone.filter((c: any) => !t2Persons.includes(c))
+        // When Clay PM differs from gov PM, route clay_web contacts to Clay PM block
+        const clayT2Persons = showClayPm ? allT2Candidates.filter((c: any) => c.source === 'clay_web') : []
+        const t2Persons = showClayPm
+          ? allT2Candidates.filter((c: any) => c.source !== 'clay_web')
+          : allT2Candidates
+        const trueStandalone = standalone.filter((c: any) => !allT2Candidates.includes(c))
         const companies = Object.entries(byCompany)
         let allEntries: any[] = [
           ...companies.map(([name, cs]) => {
@@ -961,6 +989,20 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           }),
           ...trueStandalone.map(c => ({ type: 'person', contact: c })),
         ]
+
+        // For owner section: merge ownerOrgs into allEntries for unified confidence-based sorting
+        if (key === 'owner') {
+          for (const o of ownerOrgs) {
+            if (!allEntries.some((e: any) => e.type === 'company' && normalizeName(e.name) === normalizeName(o.business_name))) {
+              allEntries.push({
+                type: 'company', name: o.business_name, displayName: o.business_name,
+                contacts: [], fallbackOrg: o, confOverride: o.confidence,
+                latestDate: null, isFire: false, permitLabel: null, isPinned: false,
+              })
+            }
+          }
+        }
+
         if (key === 'trade_referral') {
           // Sort companies by most recent source_date DESC
           allEntries.sort((a: any, b: any) => {
@@ -981,19 +1023,27 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             }
           }
         } else {
-          // Priority stacking: entries with a phone number float to top
+          // Sort by confidence DESC, phone presence as tiebreaker
+          const entryConf = (e: any): number => {
+            if (e.type === 'company') {
+              const orgConf = (findOrgForName(e.name) || e.fallbackOrg)?.confidence ?? null
+              const contactConf = e.contacts.length > 0 ? Math.max(...e.contacts.map((c: any) => c.confidence ?? 0)) : null
+              return e.confOverride ?? orgConf ?? contactConf ?? 0
+            }
+            return e.contact?.confidence ?? 0
+          }
           const entryHasPhone = (e: any): boolean => {
             if (e.type === 'company') {
-              const org = findOrgForName(e.name)
+              const org = findOrgForName(e.name) || e.fallbackOrg
               if (org?.phone) return true
               return (phoneNumbers || []).some((p: any) => p.org_id === org?.id)
             }
             return (phoneNumbers || []).some((p: any) => p.contact_id === e.contact?.id)
           }
           allEntries.sort((a: any, b: any) => {
-            const ap = entryHasPhone(a) ? 0 : 1
-            const bp = entryHasPhone(b) ? 0 : 1
-            return ap - bp
+            const confDiff = entryConf(b) - entryConf(a)
+            if (confDiff !== 0) return confDiff
+            return (entryHasPhone(b) ? 1 : 0) - (entryHasPhone(a) ? 1 : 0)
           })
         }
 
@@ -1021,7 +1071,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>{label}</span>
-                <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{allEntries.length + (showPmOrg ? 1 : 0) + ownerOrgs.length}</span>
+                <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{allEntries.length + (showPmOrg ? 1 : 0) + (showClayPm ? 1 : 0)}</span>
               </div>
               <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{isExpanded ? '▲' : '▼'}</span>
             </button>
@@ -1030,7 +1080,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               <>
                 <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
-                {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, undefined, building.pm_confidence, null, null, t2Persons.length > 0, pmWebConf)}
+                {showClayPm && renderCompanyBlock(clayPmRaw!, clayT2Persons, undefined, clayPmConf != null ? Math.round(clayPmConf * 100) : null, null, null, false, clayPmConf)}
+                {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, undefined, building.pm_confidence, null, null, t2Persons.length > 0, govPmWebConf)}
                 {showPmOrg && pmContractorTradeKeys.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
                     <button onClick={() => toggleGroup('pm_contractors')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -1056,15 +1107,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                     )}
                   </div>
                 )}
-                {ownerOrgs.map((o: any) => renderCompanyBlock(o.business_name, [], o, o.confidence))}
                 {showClayOwner && renderCompanyBlock(
                   clayOwner!,
                   [],
                   undefined,
                   building.web_enrichment_raw?.owner_confidence != null ? Math.round(building.web_enrichment_raw.owner_confidence * 100) : null,
-                  null,
-                  null,
-                  false,
+                  null, null, false,
                   building.web_enrichment_raw?.owner_confidence ?? null
                 )}
                 {showClayBroker && renderCompanyBlock(
@@ -1072,9 +1120,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   [],
                   undefined,
                   building.web_enrichment_raw?.broker_confidence != null ? Math.round(building.web_enrichment_raw.broker_confidence * 100) : null,
-                  null,
-                  null,
-                  false,
+                  null, null, false,
                   building.web_enrichment_raw?.broker_confidence ?? null
                 )}
 
@@ -1099,9 +1145,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                             <span style={{ ...m, fontSize: 10, color: '#1C2B2B', fontWeight: 700, letterSpacing: '1px' }}>MOST RECENT FIRE CONTRACTOR</span>
                           </div>
                         )}
-                        {renderCompanyBlock(entry.displayName || entry.name, entry.contacts, undefined, undefined,
+                        {renderCompanyBlock(entry.displayName || entry.name, entry.contacts, entry.fallbackOrg, entry.confOverride ?? undefined,
                           key === 'trade_referral' && entry.latestDate ? fmtDate(entry.latestDate) : null,
-                          entry.permitLabel ?? null
+                          entry.permitLabel ?? null, false, getClayWebConf(entry.name)
                         )}
                         <button
                           onClick={() => { entry.contacts.forEach((c: any) => markContactBad(c.id)) }}

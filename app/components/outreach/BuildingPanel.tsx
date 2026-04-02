@@ -7,6 +7,7 @@ import PhoneNumberManager from './PhoneNumberManager'
 import BuildingNotes from './BuildingNotes'
 import TaskSection from './TaskSection'
 import TranscriptViewer from './TranscriptViewer'
+import IdentityBar from './IdentityBar'
 
 const DialerPanel = dynamic(() => import('./DialerPanel'), { ssr: false })
 
@@ -680,17 +681,23 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             : contact.business_name || 'Unknown'
           return (
             <div key={contact.id} style={{ padding: '8px 14px 8px 24px', borderBottom: '1px solid #F0EDE8' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
                 <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>
                   {name}
                   {contact.confidence && (
                     <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{contact.confidence}%</span>
                   )}
                 </span>
+                {contact.source === 'clay_web' && (
+                  <span style={{ ...m, fontSize: 8, color: '#2A7A4B', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>🌐 web</span>
+                )}
                 <button onClick={() => markContactBad(contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
                   wrong
                 </button>
               </div>
+              {contact.title && (
+                <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 4 }}>{contact.title}</div>
+              )}
               <PhoneNumberManager
                 parcelId={parcelId}
                 contactId={contact.id}
@@ -1094,6 +1101,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         <div style={{ flexShrink: 0 }}>
           <StagePipeline key={localLeadStatus ?? lead?.status ?? 'new'} parcelId={parcelId} initialStage={localLeadStatus ?? lead?.status ?? 'new'} leadId={lead?.id ?? null} />
         </div>
+
+        {/* Identity Bar — PM / Owner / Broker verification */}
+        <IdentityBar building={building} />
 
         {/* Why we're calling bar */}
         <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '10px 20px', flexShrink: 0 }}>

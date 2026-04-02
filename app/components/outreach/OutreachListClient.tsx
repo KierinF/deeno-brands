@@ -233,6 +233,75 @@ export default function OutreachListClient({
   const pageRows = filteredRows.slice(offset, offset + PAGE_SIZE)
   const pageGroups = orgGroups.slice(offset, offset + PAGE_SIZE)
 
+  const searchFilters = (
+    <div style={{ background: '#F7F4EE', borderBottom: '1px solid #C8C1B3', padding: '8px 16px', flexShrink: 0 }}>
+      <input
+        type="text"
+        placeholder={filter === 'properties' ? 'Search address or PM...' : `Search ${filter}...`}
+        value={search}
+        onChange={e => { setSearch(e.target.value); setPage(0) }}
+        style={{
+          width: '100%', boxSizing: 'border-box',
+          padding: '7px 12px',
+          border: '1px solid #C8C1B3',
+          background: '#FFFFFF',
+          fontFamily: "'DM Mono', monospace",
+          fontSize: 11,
+          color: '#1C2B2B',
+          outline: 'none',
+        }}
+      />
+      <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+        {ALL_BOROUGHS.map(b => {
+          const active = boroughFilter.has(b)
+          return (
+            <button
+              key={b}
+              onClick={() => {
+                setBoroughFilter(prev => {
+                  const next = new Set(prev)
+                  next.has(b) ? next.delete(b) : next.add(b)
+                  return next
+                })
+                setPage(0)
+              }}
+              style={{
+                ...mono, fontSize: 9, letterSpacing: '1px',
+                padding: '3px 8px',
+                border: '1px solid #C8C1B3',
+                background: active ? '#1C2B2B' : '#FFFFFF',
+                color: active ? '#E8A020' : '#8C8070',
+                cursor: 'pointer',
+              }}
+            >
+              {b.toUpperCase()}
+            </button>
+          )
+        })}
+      </div>
+      {filter === 'contractors' && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+          {(['all', 'fire'] as const).map(opt => (
+            <button
+              key={opt}
+              onClick={() => { setContractorFilter(opt); setPage(0) }}
+              style={{
+                ...mono, fontSize: 9, letterSpacing: '1.5px',
+                padding: '4px 10px',
+                border: '1px solid #C8C1B3',
+                background: contractorFilter === opt ? '#1C2B2B' : '#FFFFFF',
+                color: contractorFilter === opt ? '#E8A020' : '#8C8070',
+                cursor: 'pointer',
+              }}
+            >
+              {opt === 'all' ? 'ALL' : 'FIRE SYSTEM ONLY'}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <div style={{ height: '100vh', background: '#F7F4EE', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
@@ -305,86 +374,24 @@ export default function OutreachListClient({
         </button>
       </div>
 
-      {/* Search bar */}
-      <div style={{ background: '#F7F4EE', borderBottom: '1px solid #C8C1B3', padding: '8px 16px', flexShrink: 0 }}>
-        <input
-          type="text"
-          placeholder={filter === 'properties' ? 'Search address or PM...' : `Search ${filter}...`}
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(0) }}
-          style={{
-            width: '100%', boxSizing: 'border-box',
-            padding: '7px 12px',
-            border: '1px solid #C8C1B3',
-            background: '#FFFFFF',
-            fontFamily: "'DM Mono', monospace",
-            fontSize: 11,
-            color: '#1C2B2B',
-            outline: 'none',
-          }}
-        />
-        {/* Borough filter */}
-        <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-          {ALL_BOROUGHS.map(b => {
-            const active = boroughFilter.has(b)
-            return (
-              <button
-                key={b}
-                onClick={() => {
-                  setBoroughFilter(prev => {
-                    const next = new Set(prev)
-                    next.has(b) ? next.delete(b) : next.add(b)
-                    return next
-                  })
-                  setPage(0)
-                }}
-                style={{
-                  ...mono, fontSize: 9, letterSpacing: '1px',
-                  padding: '3px 8px',
-                  border: '1px solid #C8C1B3',
-                  background: active ? '#1C2B2B' : '#FFFFFF',
-                  color: active ? '#E8A020' : '#8C8070',
-                  cursor: 'pointer',
-                }}
-              >
-                {b.toUpperCase()}
-              </button>
-            )
-          })}
-        </div>
-        {filter === 'contractors' && (
-          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-            {(['all', 'fire'] as const).map(opt => (
-              <button
-                key={opt}
-                onClick={() => { setContractorFilter(opt); setPage(0) }}
-                style={{
-                  ...mono, fontSize: 9, letterSpacing: '1.5px',
-                  padding: '4px 10px',
-                  border: '1px solid #C8C1B3',
-                  background: contractorFilter === opt ? '#1C2B2B' : '#FFFFFF',
-                  color: contractorFilter === opt ? '#E8A020' : '#8C8070',
-                  cursor: 'pointer',
-                }}
-              >
-                {opt === 'all' ? 'ALL' : 'FIRE SYSTEM ONLY'}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
+      {/* Search bar — full width when no panel open */}
+      {!selectedId && searchFilters}
 
       {/* Split view */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
 
-        {/* LIST */}
+        {/* LEFT COLUMN: search (when panel open) + scrollable list */}
         <div style={{
           width: selectedId ? 360 : '100%',
           flexShrink: 0,
-          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
           borderRight: selectedId ? '1px solid #C8C1B3' : 'none',
           transition: 'width 0.2s ease',
+          overflow: 'hidden',
         }}>
+          {selectedId && searchFilters}
+          <div style={{ flex: 1, overflowY: 'auto' }}>
 
           {filter === 'properties' ? (
             <>
@@ -622,7 +629,8 @@ export default function OutreachListClient({
               </button>
             )}
           </div>
-        </div>
+          </div>{/* end inner scroll div */}
+        </div>{/* end left column */}
 
         {/* PANEL */}
         {selectedId && (

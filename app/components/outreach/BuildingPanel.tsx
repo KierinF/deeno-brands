@@ -221,8 +221,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   const m = { fontFamily: "'DM Mono', monospace" }
 
-  if (loading) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Loading...</div>
-  if (!data?.lead && !data?.address) return <div style={{ ...m, fontSize: 12, color: '#8C8070', padding: 32 }}>Not found.</div>
+  if (loading) return <div style={{ ...m, fontSize: 14, color: '#8C8070', padding: 32 }}>Loading...</div>
+  if (!data?.lead && !data?.address) return <div style={{ ...m, fontSize: 14, color: '#8C8070', padding: 32 }}>Not found.</div>
 
   const { building: _building, address: buildingAddress, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles, permitOrgs } = data
   // Merge building_intelligence with lead fallbacks so non-Manhattan buildings (no bi row) still render
@@ -696,18 +696,18 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
+                <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{companyName}</span>
                 {conf != null && conf > 0 && (
-                  <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{conf}%</span>
+                  <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{conf}%</span>
                 )}
                 {isT2Inferred && (
-                  <span style={{ ...m, fontSize: 8, color: '#5C8070', background: '#EAF4EE', padding: '1px 5px', letterSpacing: '0.5px' }}>inferred</span>
+                  <span style={{ ...m, fontSize: 10, color: '#5C8070', background: '#EAF4EE', padding: '1px 5px', letterSpacing: '0.5px' }}>inferred</span>
                 )}
                 {permitLabel && (
-                  <span style={{ ...m, fontSize: 8, color: '#8C8070', background: '#F0EDE8', padding: '2px 5px', letterSpacing: '0.8px' }}>{permitLabel}</span>
+                  <span style={{ ...m, fontSize: 10, color: '#8C8070', background: '#F0EDE8', padding: '2px 5px', letterSpacing: '0.8px' }}>{permitLabel}</span>
                 )}
                 {workDate && (
-                  <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>work: {workDate}</span>
+                  <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>work: {workDate}</span>
                 )}
               </div>
 
@@ -718,33 +718,33 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                     value={editWebsiteValue}
                     onChange={e => setEditWebsiteValue(e.target.value)}
                     placeholder="https://example.com"
-                    style={{ flex: 1, padding: '4px 6px', border: '1px solid #C8C1B3', ...m, fontSize: 10, outline: 'none' }}
+                    style={{ flex: 1, padding: '4px 6px', border: '1px solid #C8C1B3', ...m, fontSize: 12, outline: 'none' }}
                   />
                   <button onClick={() => saveOrgWebsite(org!.id, editWebsiteValue)}
-                    style={{ ...m, fontSize: 9, color: '#1C2B2B', background: '#E8A020', border: 'none', padding: '4px 8px', cursor: 'pointer', fontWeight: 700 }}>
+                    style={{ ...m, fontSize: 11, color: '#1C2B2B', background: '#E8A020', border: 'none', padding: '4px 8px', cursor: 'pointer', fontWeight: 700 }}>
                     SAVE
                   </button>
                   <button onClick={() => setEditingOrgId(null)}
-                    style={{ ...m, fontSize: 9, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer' }}>
+                    style={{ ...m, fontSize: 11, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer' }}>
                     cancel
                   </button>
                 </div>
               ) : website ? (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                   <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noopener noreferrer"
-                    style={{ ...m, fontSize: 9, color: '#2A7A4B', textDecoration: 'underline' }}>
+                    style={{ ...m, fontSize: 11, color: '#2A7A4B', textDecoration: 'underline' }}>
                     {website.replace(/^https?:\/\//, '')}
                   </a>
                   {org?.id && (
                     <button onClick={() => { setEditingOrgId(org.id); setEditWebsiteValue(website) }}
-                      style={{ ...m, fontSize: 9, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                      style={{ ...m, fontSize: 11, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                       edit
                     </button>
                   )}
                 </div>
               ) : org?.id ? (
                 <button onClick={() => { setEditingOrgId(org.id); setEditWebsiteValue('') }}
-                  style={{ ...m, fontSize: 9, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px 0', textDecoration: 'underline' }}>
+                  style={{ ...m, fontSize: 11, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: '0 0 4px 0', textDecoration: 'underline' }}>
                   + add website
                 </button>
               ) : null}
@@ -753,7 +753,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             {/* Delete org button */}
             {org?.id && (
               <button onClick={() => deleteOrg(org.id)}
-                style={{ ...m, fontSize: 9, color: '#C0392B', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, marginTop: 2 }}>
+                style={{ ...m, fontSize: 11, color: '#C0392B', background: 'none', border: 'none', cursor: 'pointer', padding: 0, flexShrink: 0, marginTop: 2 }}>
                 delete org
               </button>
             )}
@@ -774,10 +774,10 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             })}
           />
           {!resolvedPhone && orgPhones.length === 0 && (
-            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No company number</div>
+            <div style={{ ...m, fontSize: 11, color: '#8C8070', marginTop: 4 }}>No company number</div>
           )}
           {noIndividuals && contactList.length === 0 && !(orgProfile?.principals?.length > 0) && (
-            <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>No individual contacts on record</div>
+            <div style={{ ...m, fontSize: 11, color: '#8C8070', marginTop: 4 }}>No individual contacts on record</div>
           )}
         </div>
 
@@ -786,9 +786,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           (orgProfile.principals as any[]).map((p: any, i: number) => (
             <div key={i} style={{ padding: '8px 14px 8px 24px', borderBottom: '1px solid #F0EDE8' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{p.name}</span>
-                {p.title && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{p.title}</span>}
-                {p.phone && <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{p.phone}</span>}
+                <span style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{p.name}</span>
+                {p.title && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{p.title}</span>}
+                {p.phone && <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{p.phone}</span>}
               </div>
             </div>
           ))
@@ -804,45 +804,45 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           return (
             <div key={contact.id} style={{ padding: '8px 14px 8px 24px', borderBottom: '1px solid #F0EDE8' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>
+                <span style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>
                   {name}
                   {contact.confidence && (
-                    <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{contact.confidence}%</span>
+                    <span style={{ ...m, fontSize: 11, color: '#C8C1B3', marginLeft: 8 }}>{contact.confidence}%</span>
                   )}
                 </span>
                 {contact.source === 'clay_web' && (
-                  <span style={{ ...m, fontSize: 8, color: '#2A7A4B', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>🌐 web</span>
+                  <span style={{ ...m, fontSize: 10, color: '#2A7A4B', background: '#D4EEE0', border: '1px solid #A8D5B5', padding: '2px 7px', letterSpacing: '0.5px', fontWeight: 700 }}>🌐 WEB</span>
                 )}
                 {isT2Inferred && (
-                  <span style={{ ...m, fontSize: 8, color: '#5C8070', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>inferred</span>
+                  <span style={{ ...m, fontSize: 10, color: '#5C8070', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>inferred</span>
                 )}
                 <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
                   <button onClick={() => setReassigningContact(isReassigning ? null : contact.id)}
-                    style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#5C8070', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                    style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#5C8070', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                     {isReassigning ? 'cancel' : 'move'}
                   </button>
                   <button onClick={() => deleteContact(contact.id)}
-                    style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                    style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
                     delete
                   </button>
                 </div>
               </div>
               {contact.title && (
-                <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 4 }}>{contact.title}</div>
+                <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 4 }}>{contact.title}</div>
               )}
               {/* Reassign inline picker */}
               {isReassigning && (
                 <div style={{ background: '#F7F4EE', border: '1px solid #C8C1B3', padding: '8px 10px', marginBottom: 8 }}>
-                  <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 6 }}>MOVE TO:</div>
+                  <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 6 }}>MOVE TO:</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {allOrgNames.map((orgN: string) => (
                       <button key={orgN} onClick={() => reassignContact(contact.id, orgN)}
-                        style={{ ...m, fontSize: 10, color: '#1C2B2B', background: 'none', border: '1px solid #C8C1B3', padding: '4px 8px', cursor: 'pointer', textAlign: 'left' }}>
+                        style={{ ...m, fontSize: 12, color: '#1C2B2B', background: 'none', border: '1px solid #C8C1B3', padding: '4px 8px', cursor: 'pointer', textAlign: 'left' }}>
                         {orgN}
                       </button>
                     ))}
                     <button onClick={() => reassignContact(contact.id, null)}
-                      style={{ ...m, fontSize: 10, color: '#8C8070', background: 'none', border: '1px dashed #C8C1B3', padding: '4px 8px', cursor: 'pointer', textAlign: 'left' }}>
+                      style={{ ...m, fontSize: 12, color: '#8C8070', background: 'none', border: '1px dashed #C8C1B3', padding: '4px 8px', cursor: 'pointer', textAlign: 'left' }}>
                       Unassign (independent)
                     </button>
                   </div>
@@ -872,25 +872,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   // causing React to remount children and lose PhoneNumberManager state on every setActiveDial call.
 
   function renderContacts() {
-    const unclassifiedCount = (contacts || []).filter((c: any) =>
-      !c.is_bad_data && c.ai_entity_type == null &&
-      (c.contact_type === 'property_manager' || c.contact_type === 'owner')
-    ).length
-
     return (
     <div>
-      {/* Classification banner */}
-      {unclassifiedCount > 0 && (
-        <div style={{ background: '#FFF8EC', border: '1px solid #E8A020', padding: '8px 12px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span style={{ ...m, fontSize: 10, color: '#8C6010' }}>
-            {unclassifiedCount} contact{unclassifiedCount !== 1 ? 's' : ''} need person/entity classification
-          </span>
-          <button onClick={classifyContacts} disabled={classifying}
-            style={{ ...m, fontSize: 10, fontWeight: 700, color: '#1C2B2B', background: '#E8A020', border: 'none', padding: '4px 10px', cursor: classifying ? 'wait' : 'pointer', letterSpacing: '1px' }}>
-            {classifying ? 'CLASSIFYING…' : 'CLASSIFY'}
-          </button>
-        </div>
-      )}
       {CONTACT_GROUPS.map(({ key, label, hint }) => {
         // CONTRACTORS rendered separately below using permitOrgs with trade grouping
         if (key === 'trade_referral') return null
@@ -1006,21 +989,21 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               padding: '0 0 6px 0', borderBottom: '2px solid #1C2B2B', marginBottom: 8,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>{label}</span>
-                <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{allEntries.length + (showPmOrg ? 1 : 0) + ownerOrgs.length}</span>
+                <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>{label}</span>
+                <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{allEntries.length + (showPmOrg ? 1 : 0) + ownerOrgs.length}</span>
               </div>
-              <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{isExpanded ? '▲' : '▼'}</span>
+              <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{isExpanded ? '▲' : '▼'}</span>
             </button>
 
             {isExpanded && (
               <>
-                <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
+                <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
                 {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, undefined, building.pm_confidence, null, null, t2Persons.length > 0)}
                 {showPmOrg && pmContractorTradeKeys.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
                     <button onClick={() => toggleGroup('pm_contractors')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <span style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '0.8px' }}>
+                      <span style={{ ...m, fontSize: 11, color: '#8C8070', letterSpacing: '0.8px' }}>
                         {expandedGroups.has('pm_contractors') ? '▲' : '▼'} COMMON CONTRACTORS ACROSS PORTFOLIO
                       </span>
                     </button>
@@ -1028,12 +1011,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                       <div style={{ borderLeft: '2px solid #F0EDE8', paddingLeft: 10, marginTop: 4 }}>
                         {pmContractorTradeKeys.map(tt => (
                           <div key={tt} style={{ marginBottom: 8 }}>
-                            <div style={{ ...m, fontSize: 8, letterSpacing: '1px', color: FIRE_TRADES.has(tt) ? '#E8A020' : '#8C8070', fontWeight: 700, marginBottom: 4 }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</div>
+                            <div style={{ ...m, fontSize: 10, letterSpacing: '1px', color: FIRE_TRADES.has(tt) ? '#E8A020' : '#8C8070', fontWeight: 700, marginBottom: 4 }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</div>
                             {pmCommonContractors[tt].map((c: any) => (
                               <div key={c.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
-                                <span style={{ ...m, fontSize: 10, color: '#1C2B2B' }}>{c.name}</span>
-                                <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{c.parcel_count} bldgs</span>
-                                {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                                <span style={{ ...m, fontSize: 12, color: '#1C2B2B' }}>{c.name}</span>
+                                <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{c.parcel_count} bldgs</span>
+                                {c.phone && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{c.phone}</span>}
                               </div>
                             ))}
                           </div>
@@ -1052,9 +1035,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   const reorderBtns = (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 1, flexShrink: 0 }}>
                       <button onClick={() => moveEntry(key, orderedKeys, eKey, 'up')} disabled={!canUp}
-                        style={{ background: 'none', border: 'none', cursor: canUp ? 'pointer' : 'default', padding: '1px 4px', ...m, fontSize: 9, color: canUp ? '#8C8070' : '#E8E4DC', lineHeight: 1 }}>▲</button>
+                        style={{ background: 'none', border: 'none', cursor: canUp ? 'pointer' : 'default', padding: '1px 4px', ...m, fontSize: 11, color: canUp ? '#8C8070' : '#E8E4DC', lineHeight: 1 }}>▲</button>
                       <button onClick={() => moveEntry(key, orderedKeys, eKey, 'down')} disabled={!canDown}
-                        style={{ background: 'none', border: 'none', cursor: canDown ? 'pointer' : 'default', padding: '1px 4px', ...m, fontSize: 9, color: canDown ? '#8C8070' : '#E8E4DC', lineHeight: 1 }}>▼</button>
+                        style={{ background: 'none', border: 'none', cursor: canDown ? 'pointer' : 'default', padding: '1px 4px', ...m, fontSize: 11, color: canDown ? '#8C8070' : '#E8E4DC', lineHeight: 1 }}>▼</button>
                     </div>
                   )
                   if (entry.type === 'company') return (
@@ -1062,7 +1045,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                       <div style={{ flex: 1, minWidth: 0 }}>
                         {entry.isPinned && (
                           <div style={{ background: '#E8A020', padding: '3px 10px', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ ...m, fontSize: 8, color: '#1C2B2B', fontWeight: 700, letterSpacing: '1px' }}>MOST RECENT FIRE CONTRACTOR</span>
+                            <span style={{ ...m, fontSize: 10, color: '#1C2B2B', fontWeight: 700, letterSpacing: '1px' }}>MOST RECENT FIRE CONTRACTOR</span>
                           </div>
                         )}
                         {renderCompanyBlock(entry.displayName || entry.name, entry.contacts, undefined, undefined,
@@ -1071,7 +1054,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                         )}
                         <button
                           onClick={() => { entry.contacts.forEach((c: any) => markContactBad(c.id)) }}
-                          style={{ position: 'absolute', top: entry.isPinned ? 34 : 10, right: 36, background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                          style={{ position: 'absolute', top: entry.isPinned ? 34 : 10, right: 36, background: 'none', border: 'none', ...m, fontSize: 11, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
                         >wrong</button>
                       </div>
                       {reorderBtns}
@@ -1081,15 +1064,15 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                     <div key={eKey} style={{ display: 'flex', alignItems: 'flex-start', gap: 4, marginBottom: 8 }}>
                       <div style={{ flex: 1, background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                          <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>
+                          <span style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>
                             {entry.contact.first_name} {entry.contact.last_name || ''}
-                            {entry.contact.confidence && <span style={{ ...m, fontSize: 9, color: '#C8C1B3', marginLeft: 8 }}>{entry.contact.confidence}%</span>}
+                            {entry.contact.confidence && <span style={{ ...m, fontSize: 11, color: '#C8C1B3', marginLeft: 8 }}>{entry.contact.confidence}%</span>}
                           </span>
-                          {entry.contact.title && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{entry.contact.title}</span>}
+                          {entry.contact.title && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{entry.contact.title}</span>}
                           {entry.contact.source === 'clay_web' && (
-                            <span style={{ ...m, fontSize: 8, color: '#2A7A4B', background: '#EAF4EE', borderRadius: 3, padding: '1px 5px' }}>🌐 web</span>
+                            <span style={{ ...m, fontSize: 10, color: '#2A7A4B', background: '#D4EEE0', border: '1px solid #A8D5B5', padding: '2px 7px', letterSpacing: '0.5px', fontWeight: 700 }}>🌐 WEB</span>
                           )}
-                          <button onClick={() => markContactBad(entry.contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
+                          <button onClick={() => markContactBad(entry.contact.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline', marginLeft: 'auto' }}>
                             wrong
                           </button>
                         </div>
@@ -1111,7 +1094,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 })}
 
                 {hidden > 0 && (
-                  <button onClick={() => toggleGroup(key)} style={{ ...m, fontSize: 10, color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}>
+                  <button onClick={() => toggleGroup(key)} style={{ ...m, fontSize: 12, color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0' }}>
                     + {hidden} more
                   </button>
                 )}
@@ -1119,25 +1102,25 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 {/* Add contact form */}
                 {addContact?.sectionKey === key ? (
                   <div style={{ background: '#F7F4EE', border: '1px solid #C8C1B3', padding: '12px 14px', marginTop: 8 }}>
-                    <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 10 }}>ADD CONTACT</div>
+                    <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 10 }}>ADD CONTACT</div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                       <input placeholder="Company name" value={addContact.businessName} onChange={e => setAddContact(a => a && ({ ...a, businessName: e.target.value }))}
-                        style={{ padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                        style={{ padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 13, outline: 'none', background: '#FFF' }} />
                       <div style={{ display: 'flex', gap: 6 }}>
                         <input placeholder="First name" value={addContact.firstName} onChange={e => setAddContact(a => a && ({ ...a, firstName: e.target.value }))}
-                          style={{ flex: 1, padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                          style={{ flex: 1, padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 13, outline: 'none', background: '#FFF' }} />
                         <input placeholder="Last name" value={addContact.lastName} onChange={e => setAddContact(a => a && ({ ...a, lastName: e.target.value }))}
-                          style={{ flex: 1, padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                          style={{ flex: 1, padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 13, outline: 'none', background: '#FFF' }} />
                       </div>
                       <input placeholder="Phone (optional)" value={addContact.phone} onChange={e => setAddContact(a => a && ({ ...a, phone: e.target.value }))}
-                        style={{ padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 11, outline: 'none', background: '#FFF' }} />
+                        style={{ padding: '6px 8px', border: '1px solid #C8C1B3', ...m, fontSize: 13, outline: 'none', background: '#FFF' }} />
                       <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                         <button onClick={saveNewContact} disabled={savingContact}
-                          style={{ padding: '7px 14px', background: '#E8A020', color: '#1C2B2B', border: 'none', ...m, fontSize: 11, fontWeight: 700, cursor: 'pointer', letterSpacing: '1px' }}>
+                          style={{ padding: '7px 14px', background: '#E8A020', color: '#1C2B2B', border: 'none', ...m, fontSize: 13, fontWeight: 700, cursor: 'pointer', letterSpacing: '1px' }}>
                           {savingContact ? '...' : 'SAVE'}
                         </button>
                         <button onClick={() => setAddContact(null)}
-                          style={{ background: 'none', border: 'none', ...m, fontSize: 11, color: '#8C8070', cursor: 'pointer' }}>
+                          style={{ background: 'none', border: 'none', ...m, fontSize: 13, color: '#8C8070', cursor: 'pointer' }}>
                           cancel
                         </button>
                       </div>
@@ -1145,7 +1128,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   </div>
                 ) : (
                   <button onClick={() => setAddContact({ sectionKey: key, firstName: '', lastName: '', businessName: '', phone: '' })}
-                    style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0 0 0' }}>
+                    style={{ ...m, fontSize: 12, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: '6px 0 0 0' }}>
                     + ADD CONTACT
                   </button>
                 )}
@@ -1155,7 +1138,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         )
       })}
       {contacts?.length === 0 && !building.pm_name && (
-        <div style={{ ...m, fontSize: 12, color: '#8C8070' }}>No contacts found.</div>
+        <div style={{ ...m, fontSize: 14, color: '#8C8070' }}>No contacts found.</div>
       )}
 
       {/* ── CONTRACTORS section — from permitOrgs, grouped by trade ── */}
@@ -1169,14 +1152,14 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               padding: '0 0 6px 0', borderBottom: '2px solid #1C2B2B', marginBottom: 8,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>CONTRACTORS</span>
-                <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{totalContractors}</span>
+                <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>CONTRACTORS</span>
+                <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{totalContractors}</span>
               </div>
-              <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{isExpanded ? '▲' : '▼'}</span>
+              <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{isExpanded ? '▲' : '▼'}</span>
             </button>
             {isExpanded && (
               <>
-                <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>
+                <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>
                   Fire trades = incumbent to displace. All others = referral sources who know the PM.
                 </div>
                 {contractorTradeKeys.map(tt => {
@@ -1185,11 +1168,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   return (
                     <div key={tt} style={{ marginBottom: 14 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                        <span style={{ ...m, fontSize: 8, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
+                        <span style={{ ...m, fontSize: 10, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
                           color: isFire ? '#1C2B2B' : '#8C8070',
                           background: isFire ? '#E8A020' : '#F0EDE8',
                         }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
-                        {isFire && <span style={{ ...m, fontSize: 8, color: '#E8A020', letterSpacing: '0.8px' }}>FIRE INCUMBENT</span>}
+                        {isFire && <span style={{ ...m, fontSize: 10, color: '#E8A020', letterSpacing: '0.8px' }}>FIRE INCUMBENT</span>}
                       </div>
                       {contractors.map((c: ContractorEntry) => (
                         <div key={c.name} style={{
@@ -1197,14 +1180,14 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                           padding: '8px 12px', marginBottom: 6,
                         }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: c.phone ? 2 : 0 }}>
-                            <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
-                            {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                            <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
+                            {c.phone && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{c.phone}</span>}
                           </div>
                           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
                             {c.dates.slice(0, 3).map((d: string, i: number) => (
-                              <span key={i} style={{ ...m, fontSize: 8, color: '#C8C1B3' }}>{fmtDate(d)}</span>
+                              <span key={i} style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>{fmtDate(d)}</span>
                             ))}
-                            {c.dates.length > 3 && <span style={{ ...m, fontSize: 8, color: '#C8C1B3' }}>+{c.dates.length - 3} more</span>}
+                            {c.dates.length > 3 && <span style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>+{c.dates.length - 3} more</span>}
                           </div>
                         </div>
                       ))}
@@ -1249,36 +1232,36 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         <div style={{ width: 6, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 2 }}>
-            <span style={{ ...m, fontSize: 10, color: '#1C2B2B' }}>{SIGNAL_LABELS[sig.signal_type] || sig.signal_type}</span>
-            {charge?.code && <span style={{ ...m, fontSize: 9, color: '#E8A020', fontWeight: 700 }}>{charge.code}</span>}
-            {isEcb && <span style={{ ...m, fontSize: 9, color: '#E8A020', fontWeight: 700 }}>ECB-{sig.raw_data?.ecb_tier || 'B'}</span>}
-            {contractorEngaged && <span style={{ ...m, fontSize: 8, color: '#8C8070', border: '1px solid #C8C1B3', padding: '1px 4px' }}>CONTRACTOR ON SITE</span>}
-            {isSuperseded && <span style={{ ...m, fontSize: 8, color: '#8C8070', border: '1px solid #C8C1B3', padding: '1px 4px' }}>SUPERSEDED</span>}
+            <span style={{ ...m, fontSize: 12, color: '#1C2B2B' }}>{SIGNAL_LABELS[sig.signal_type] || sig.signal_type}</span>
+            {charge?.code && <span style={{ ...m, fontSize: 11, color: '#E8A020', fontWeight: 700 }}>{charge.code}</span>}
+            {isEcb && <span style={{ ...m, fontSize: 11, color: '#E8A020', fontWeight: 700 }}>ECB-{sig.raw_data?.ecb_tier || 'B'}</span>}
+            {contractorEngaged && <span style={{ ...m, fontSize: 10, color: '#8C8070', border: '1px solid #C8C1B3', padding: '1px 4px' }}>CONTRACTOR ON SITE</span>}
+            {isSuperseded && <span style={{ ...m, fontSize: 10, color: '#8C8070', border: '1px solid #C8C1B3', padding: '1px 4px' }}>SUPERSEDED</span>}
           </div>
           {charge && (
-            <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
+            <div style={{ ...m, fontSize: 12, color: '#8C8070', marginBottom: 2 }}>
               {CHARGE_LABELS[charge.code] || charge.description}
               {totalFine > 0 ? ` · $${totalFine.toLocaleString()} fine` : ''}
             </div>
           )}
           {isEcb && (
-            <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
+            <div style={{ ...m, fontSize: 12, color: '#8C8070', marginBottom: 2 }}>
               {sig.raw_data?.violation_description
                 ? sig.raw_data.violation_description.slice(0, 80).toLowerCase().replace(/^./, (c: string) => c.toUpperCase())
                 : 'Sprinkler / fire protection violation'}
             </div>
           )}
           {!charge && !isEcb && sig.raw_data?.job_type && (
-            <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
+            <div style={{ ...m, fontSize: 12, color: '#8C8070', marginBottom: 2 }}>
               {sig.raw_data.job_type}{filingStatus ? ` · ${sig.raw_data.filing_status}` : ''}
             </div>
           )}
           {sig.raw_data?.owner_contact && (
-            <div style={{ ...m, fontSize: 10, color: '#8C8070', marginBottom: 2 }}>
+            <div style={{ ...m, fontSize: 12, color: '#8C8070', marginBottom: 2 }}>
               Filed by: {sig.raw_data.owner_contact}
             </div>
           )}
-          <div style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>
+          <div style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>
             {fmtDate(sig.signal_date)}
             {isProximity && proximityStreet && ` · ${proximityStreet}`}
             {isProximity && proximityType && ` · ${proximityType}`}
@@ -1304,20 +1287,20 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
 
         {/* Header */}
-        <div style={{ background: '#1C2B2B', padding: '0 16px 0 20px', minHeight: 56, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2E3E3E', flexShrink: 0, gap: 12 }}>
+        <div style={{ background: '#1C2B2B', padding: '0 16px 0 20px', minHeight: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #2E3E3E', flexShrink: 0, gap: 12 }}>
           {/* Left: score + address + borough */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flexShrink: 1 }}>
             {displayScore != null && (
-              <span style={{ ...m, fontSize: 11, fontWeight: 700, padding: '3px 8px', flexShrink: 0, ...scoreStyle }}>
+              <span style={{ ...m, fontSize: 14, fontWeight: 700, padding: '4px 10px', flexShrink: 0, ...scoreStyle }}>
                 {displayScore}
               </span>
             )}
             <div style={{ minWidth: 0 }}>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {buildingAddress}
               </h2>
               {boroughFromParcelId(parcelId) && (
-                <div style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '1px', marginTop: 1 }}>
+                <div style={{ ...m, fontSize: 13, color: '#8C8070', letterSpacing: '1px', marginTop: 1 }}>
                   {boroughFromParcelId(parcelId)}
                 </div>
               )}
@@ -1342,23 +1325,23 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: whyCards.length > 0 || comboNote || incumbentNote ? 10 : 0 }}>
               {building.building_sqft && (
                 <div>
-                  <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>SIZE</div>
-                  <div style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{Math.round(building.building_sqft / 1000)}k sqft{building.floors ? ` · ${building.floors} fl` : ''}</div>
+                  <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>SIZE</div>
+                  <div style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{Math.round(building.building_sqft / 1000)}k sqft{building.floors ? ` · ${building.floors} fl` : ''}</div>
                 </div>
               )}
               {totalFines > 0 && (
                 <div>
-                  <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>OPEN FINES</div>
-                  <div style={{ ...m, fontSize: 11, color: openFines > 0 ? '#E8A020' : '#1C2B2B' }}>
+                  <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>OPEN FINES</div>
+                  <div style={{ ...m, fontSize: 13, color: openFines > 0 ? '#E8A020' : '#1C2B2B' }}>
                     ${openFines.toLocaleString()}<span style={{ color: '#8C8070' }}> / ${totalFines.toLocaleString()} total</span>
                   </div>
                 </div>
               )}
               {building.building_website && (
                 <div>
-                  <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>WEBSITE</div>
+                  <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>WEBSITE</div>
                   <a href={building.building_website} target="_blank" rel="noopener noreferrer"
-                    style={{ ...m, fontSize: 11, color: '#2A7A4B', textDecoration: 'underline' }}>
+                    style={{ ...m, fontSize: 13, color: '#2A7A4B', textDecoration: 'underline' }}>
                     {building.building_website.replace(/^https?:\/\//, '').replace(/\/$/, '').substring(0, 32)}
                   </a>
                 </div>
@@ -1366,19 +1349,63 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             </div>
           )}
 
+          {/* Clay web enrichment strip */}
+          {building.web_enrichment_raw && (building.web_enrichment_raw.pm || building.web_enrichment_raw.owner || building.web_enrichment_raw.broker) && (
+            <div style={{ background: '#F0F7F2', border: '1px solid #A8D5B5', padding: '10px 14px', marginBottom: 10, borderRadius: 2 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                <span style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#2A7A4B', fontWeight: 700 }}>🌐 WEB ENRICHED</span>
+                {building.web_enriched_at && (
+                  <span style={{ ...m, fontSize: 11, color: '#5A9070' }}>via Clay · {new Date(building.web_enriched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                {building.web_enrichment_raw.pm && (
+                  <div>
+                    <div style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#5A9070', marginBottom: 2 }}>PM</div>
+                    <div style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{building.web_enrichment_raw.pm}</div>
+                    {building.web_enrichment_raw.pm_confidence != null && (
+                      <div style={{ ...m, fontSize: 11, color: '#2A7A4B' }}>{Math.round(building.web_enrichment_raw.pm_confidence * 100)}% conf{building.web_enrichment_raw.pm_source ? ` · ${building.web_enrichment_raw.pm_source}` : ''}</div>
+                    )}
+                  </div>
+                )}
+                {building.web_enrichment_raw.owner && (
+                  <div>
+                    <div style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#5A9070', marginBottom: 2 }}>OWNER</div>
+                    <div style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{building.web_enrichment_raw.owner}</div>
+                    {building.web_enrichment_raw.owner_confidence != null && (
+                      <div style={{ ...m, fontSize: 11, color: '#2A7A4B' }}>{Math.round(building.web_enrichment_raw.owner_confidence * 100)}% conf{building.web_enrichment_raw.owner_source ? ` · ${building.web_enrichment_raw.owner_source}` : ''}</div>
+                    )}
+                  </div>
+                )}
+                {building.web_enrichment_raw.broker && (
+                  <div>
+                    <div style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#5A9070', marginBottom: 2 }}>BROKER</div>
+                    <div style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{building.web_enrichment_raw.broker}</div>
+                    {building.web_enrichment_raw.broker_confidence != null && (
+                      <div style={{ ...m, fontSize: 11, color: '#2A7A4B' }}>{Math.round(building.web_enrichment_raw.broker_confidence * 100)}% conf</div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {building.web_enrichment_raw.confidence_label && (
+                <div style={{ ...m, fontSize: 11, color: '#5A9070', marginTop: 6 }}>Overall: {building.web_enrichment_raw.confidence_label}</div>
+              )}
+            </div>
+          )}
+
           {/* Score-driven signal cards */}
           {whyCards.length > 0 && (
             <div>
-              <div style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 8 }}>WHY WE'RE CALLING</div>
+              <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 8 }}>WHY WE'RE CALLING</div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {whyCards.map((card, i) => (
                   <div key={i} style={{ borderLeft: `2px solid ${card.color}`, paddingLeft: 8 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
-                      <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: card.color, fontWeight: 700, flexShrink: 0 }}>{card.tag}</span>
-                      <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 600 }}>{card.headline}</span>
-                      {card.detail && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{card.detail}</span>}
+                      <span style={{ ...m, fontSize: 10, letterSpacing: '1px', color: card.color, fontWeight: 700, flexShrink: 0 }}>{card.tag}</span>
+                      <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{card.headline}</span>
+                      {card.detail && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{card.detail}</span>}
                     </div>
-                    <div style={{ ...m, fontSize: 10, color: '#5A5A5A', lineHeight: 1.5 }}>{card.meaning}</div>
+                    <div style={{ ...m, fontSize: 12, color: '#5A5A5A', lineHeight: 1.5 }}>{card.meaning}</div>
                   </div>
                 ))}
               </div>
@@ -1388,21 +1415,21 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           {/* Combo multiplier callout */}
           {comboNote && (
             <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #F0EDE8' }}>
-              <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: '#C0392B', fontWeight: 700 }}>COMBO  </span>
-              <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{comboNote}</span>
+              <span style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#C0392B', fontWeight: 700 }}>COMBO  </span>
+              <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{comboNote}</span>
             </div>
           )}
 
           {/* Competitive angle */}
           {incumbentNote && (
             <div style={{ marginTop: comboNote ? 4 : 8, paddingTop: comboNote ? 0 : 8, borderTop: comboNote ? 'none' : '1px solid #F0EDE8' }}>
-              <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: '#8C8070', fontWeight: 700 }}>COMPETITIVE  </span>
-              <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{incumbentNote}</span>
+              <span style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#8C8070', fontWeight: 700 }}>COMPETITIVE  </span>
+              <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{incumbentNote}</span>
             </div>
           )}
 
           {whyCards.length === 0 && !building.building_sqft && totalFines === 0 && (
-            <div style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>No active signals</div>
+            <div style={{ ...m, fontSize: 12, color: '#C8C1B3' }}>No active signals</div>
           )}
         </div>
 
@@ -1411,7 +1438,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           {([['main', 'OUTREACH'], ['signals', 'SIGNALS'], ['portfolio', 'PORTFOLIO']] as [Tab, string][]).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)} style={{
               flex: 1, padding: '10px 0',
-              ...m, fontSize: 10, letterSpacing: '1.5px',
+              ...m, fontSize: 12, letterSpacing: '1.5px',
               color: tab === key ? '#1C2B2B' : '#8C8070',
               background: 'none', border: 'none',
               borderBottom: tab === key ? '2px solid #1C2B2B' : '2px solid transparent',
@@ -1429,16 +1456,16 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           {tab === 'main' && (
             <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', overflow: 'hidden' }}>
               <div style={{ overflowY: 'auto', padding: '16px 16px 40px 20px', borderRight: '1px solid #C8C1B3' }}>
-                <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 12 }}>WHO TO CALL</div>
+                <div style={{ ...m, fontSize: 11, letterSpacing: '2px', color: '#8C8070', marginBottom: 12 }}>WHO TO CALL</div>
                 {renderContacts()}
               </div>
               <div style={{ overflowY: 'auto', padding: '16px 20px 40px 16px' }}>
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070' }}>TASKS</div>
+                    <div style={{ ...m, fontSize: 11, letterSpacing: '2px', color: '#8C8070' }}>TASKS</div>
                     <button
                       onClick={() => setManualDialInput('')}
-                      style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: '1px solid #E8A020', cursor: 'pointer', padding: '3px 10px' }}
+                      style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#E8A020', background: 'none', border: '1px solid #E8A020', cursor: 'pointer', padding: '3px 10px' }}
                     >DIAL</button>
                   </div>
                   <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
@@ -1446,29 +1473,29 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                   </div>
                 </div>
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>NOTES</div>
+                  <div style={{ ...m, fontSize: 11, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>NOTES</div>
                   <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
                     <BuildingNotes parcelId={parcelId} initialBody={buildingNotes?.body || ''} />
                   </div>
                 </div>
                 <div>
-                  <div style={{ ...m, fontSize: 9, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>ACTIVITY</div>
+                  <div style={{ ...m, fontSize: 11, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>ACTIVITY</div>
                   <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
                     {activityLog?.length > 0 ? activityLog.map((entry: any, i: number) => (
                       <div key={entry.id} style={{ padding: '8px 0', borderBottom: i < activityLog.length - 1 ? '1px solid #C8C1B3' : 'none' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
-                          <span style={{ ...m, fontSize: 9, color: '#F7F4EE', padding: '2px 7px', background: entry.outcome === 'connected' ? '#1C2B2B' : '#8C8070' }}>
+                          <span style={{ ...m, fontSize: 11, color: '#F7F4EE', padding: '2px 7px', background: entry.outcome === 'connected' ? '#1C2B2B' : '#8C8070' }}>
                             {entry.outcome?.toUpperCase() || 'CALL'}
                           </span>
-                          <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>
+                          <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>
                             {fmtDateTime(entry.contacted_at)}
                           </span>
-                          {entry.duration_secs && <span style={{ ...m, fontSize: 10, color: '#8C8070' }}>{Math.floor(entry.duration_secs / 60)}m{entry.duration_secs % 60}s</span>}
+                          {entry.duration_secs && <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{Math.floor(entry.duration_secs / 60)}m{entry.duration_secs % 60}s</span>}
                         </div>
-                        {entry.notes && <div style={{ ...m, fontSize: 11, color: '#1C2B2B', lineHeight: 1.6, marginBottom: 4 }}>{entry.notes}</div>}
+                        {entry.notes && <div style={{ ...m, fontSize: 13, color: '#1C2B2B', lineHeight: 1.6, marginBottom: 4 }}>{entry.notes}</div>}
                         <TranscriptViewer transcript={entry.transcript || null} recordingUrl={entry.recording_url || null} />
                       </div>
-                    )) : <div style={{ ...m, fontSize: 11, color: '#8C8070' }}>No activity yet.</div>}
+                    )) : <div style={{ ...m, fontSize: 13, color: '#8C8070' }}>No activity yet.</div>}
                   </div>
                 </div>
               </div>
@@ -1490,19 +1517,19 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 const isStale = staleness && staleness.includes('stale')
                 return (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>FIRE INCUMBENT</div>
+                    <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>FIRE INCUMBENT</div>
                     <div style={{ background: '#FFFFFF', border: '1px solid #E8A020', padding: '12px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4, flexWrap: 'wrap' }}>
-                        <span style={{ ...m, fontSize: 12, color: '#1C2B2B', fontWeight: 700 }}>{name}</span>
+                        <span style={{ ...m, fontSize: 14, color: '#1C2B2B', fontWeight: 700 }}>{name}</span>
                         {staleness && (
-                          <span style={{ ...m, fontSize: 8, padding: '2px 6px', color: isStale ? '#E8A020' : '#8C8070', border: `1px solid ${isStale ? '#E8A020' : '#8C8070'}` }}>
+                          <span style={{ ...m, fontSize: 10, padding: '2px 6px', color: isStale ? '#E8A020' : '#8C8070', border: `1px solid ${isStale ? '#E8A020' : '#8C8070'}` }}>
                             {staleness.replace(/_/g, ' ').toUpperCase()}
                           </span>
                         )}
-                        {phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{phone}</span>}
+                        {phone && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{phone}</span>}
                       </div>
-                      {lastJob && <div style={{ ...m, fontSize: 10, color: '#8C8070' }}>Last job: {fmtDate(lastJob)}{nJobs ? ` · ${nJobs} jobs on record` : ''}</div>}
-                      <div style={{ ...m, fontSize: 9, color: '#8C8070', marginTop: 4 }}>This is who you're displacing.</div>
+                      {lastJob && <div style={{ ...m, fontSize: 12, color: '#8C8070' }}>Last job: {fmtDate(lastJob)}{nJobs ? ` · ${nJobs} jobs on record` : ''}</div>}
+                      <div style={{ ...m, fontSize: 11, color: '#8C8070', marginTop: 4 }}>This is who you're displacing.</div>
                     </div>
                   </div>
                 )
@@ -1511,9 +1538,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               {openSignals.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>
-                    <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>OPEN</span>
-                    <span style={{ ...m, fontSize: 9, color: '#E8A020' }}>{openSignals.length}</span>
-                    <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>active / unresolved</span>
+                    <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>OPEN</span>
+                    <span style={{ ...m, fontSize: 11, color: '#E8A020' }}>{openSignals.length}</span>
+                    <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>active / unresolved</span>
                   </div>
                   {openSignals.map(renderSignalRow)}
                 </div>
@@ -1522,25 +1549,25 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               {closedSignals.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '2px solid #C8C1B3', marginBottom: 10 }}>
-                    <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', fontWeight: 700 }}>CLOSED</span>
-                    <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{closedSignals.length}</span>
-                    <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>compliance history</span>
+                    <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#8C8070', fontWeight: 700 }}>CLOSED</span>
+                    <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{closedSignals.length}</span>
+                    <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>compliance history</span>
                   </div>
                   {closedSignals.map(renderSignalRow)}
                 </div>
               )}
 
               {thisSignals.length === 0 && (
-                <div style={{ ...m, fontSize: 12, color: '#8C8070', marginBottom: 20 }}>No verified signals for this address.</div>
+                <div style={{ ...m, fontSize: 14, color: '#8C8070', marginBottom: 20 }}>No verified signals for this address.</div>
               )}
 
               {/* Wrong-address signals collapsed at bottom */}
               {wrongAddrSignals.length > 0 && (
                 <div style={{ opacity: 0.5 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '1px dashed #C8C1B3', marginBottom: 10 }}>
-                    <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#8C8070', fontWeight: 700 }}>UNVERIFIED ADDRESS</span>
-                    <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>{wrongAddrSignals.length}</span>
-                    <span style={{ ...m, fontSize: 9, color: '#C8C1B3' }}>signals matched to this parcel but different street address</span>
+                    <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#8C8070', fontWeight: 700 }}>UNVERIFIED ADDRESS</span>
+                    <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{wrongAddrSignals.length}</span>
+                    <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>signals matched to this parcel but different street address</span>
                   </div>
                   {wrongAddrSignals.map(renderSignalRow)}
                 </div>
@@ -1553,21 +1580,21 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
             <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px 40px' }}>
               {building.pm_name && (
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 4 }}>
+                  <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 4 }}>
                     {building.pm_name}
                   </div>
-                  <div style={{ ...m, fontSize: 9, color: '#8C8070', marginBottom: 12 }}>
+                  <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 12 }}>
                     Common contractors across this PM's portfolio — call these to reach the PM or understand their vendor relationships.
                   </div>
                   {pmContractorTradeKeys.length === 0 && (
-                    <div style={{ ...m, fontSize: 11, color: '#8C8070' }}>No portfolio contractor data yet for this PM.</div>
+                    <div style={{ ...m, fontSize: 13, color: '#8C8070' }}>No portfolio contractor data yet for this PM.</div>
                   )}
                   {pmContractorTradeKeys.map(tt => {
                     const isFire = FIRE_TRADES.has(tt)
                     return (
                       <div key={tt} style={{ marginBottom: 16 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                          <span style={{ ...m, fontSize: 8, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
+                          <span style={{ ...m, fontSize: 10, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
                             color: isFire ? '#1C2B2B' : '#8C8070',
                             background: isFire ? '#E8A020' : '#F0EDE8',
                           }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
@@ -1575,9 +1602,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                         {pmCommonContractors[tt].map((c: any) => (
                           <div key={c.name} style={{ background: '#FFFFFF', border: `1px solid ${isFire ? '#E8A020' : '#C8C1B3'}`, padding: '8px 12px', marginBottom: 6 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                              <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
-                              <span style={{ ...m, fontSize: 9, color: '#C8C1B3', background: '#F7F4EE', padding: '1px 5px' }}>{c.parcel_count} buildings</span>
-                              {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                              <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
+                              <span style={{ ...m, fontSize: 11, color: '#C8C1B3', background: '#F7F4EE', padding: '1px 5px' }}>{c.parcel_count} buildings</span>
+                              {c.phone && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{c.phone}</span>}
                             </div>
                           </div>
                         ))}
@@ -1587,13 +1614,13 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 </div>
               )}
               {!building.pm_name && (
-                <div style={{ ...m, fontSize: 11, color: '#8C8070' }}>No PM identified for this building.</div>
+                <div style={{ ...m, fontSize: 13, color: '#8C8070' }}>No PM identified for this building.</div>
               )}
 
               {/* Per-building contractors for this property */}
               {contractorTradeKeys.length > 0 && (
                 <div>
-                  <div style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #C8C1B3', marginBottom: 12 }}>
+                  <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #C8C1B3', marginBottom: 12 }}>
                     CONTRACTORS AT THIS BUILDING
                   </div>
                   {contractorTradeKeys.map(tt => {
@@ -1602,7 +1629,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                     return (
                       <div key={tt} style={{ marginBottom: 14 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                          <span style={{ ...m, fontSize: 8, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
+                          <span style={{ ...m, fontSize: 10, letterSpacing: '1.2px', fontWeight: 700, padding: '2px 6px',
                             color: isFire ? '#1C2B2B' : '#8C8070',
                             background: isFire ? '#E8A020' : '#F0EDE8',
                           }}>{TRADE_LABEL[tt] || tt.toUpperCase()}</span>
@@ -1610,12 +1637,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                         {contractors.map((c: ContractorEntry) => (
                           <div key={c.name} style={{ background: '#FFFFFF', border: `1px solid ${isFire ? '#E8A020' : '#C8C1B3'}`, padding: '8px 12px', marginBottom: 6 }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 2 }}>
-                              <span style={{ ...m, fontSize: 11, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
-                              {c.phone && <span style={{ ...m, fontSize: 9, color: '#8C8070' }}>{c.phone}</span>}
+                              <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{c.name}</span>
+                              {c.phone && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{c.phone}</span>}
                             </div>
                             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                               {c.dates.slice(0, 3).map((d: string, i: number) => (
-                                <span key={i} style={{ ...m, fontSize: 8, color: '#C8C1B3' }}>{fmtDate(d)}</span>
+                                <span key={i} style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>{fmtDate(d)}</span>
                               ))}
                             </div>
                           </div>
@@ -1634,11 +1661,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       {manualDialInput !== null && !activeDial && (
         <div style={{ width: 360, flexShrink: 0, background: '#1C2B2B', borderLeft: '2px solid #E8A020', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #2E3E3E', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
-            <span style={{ ...m, fontSize: 10, letterSpacing: '2px', color: '#8C8070' }}>MANUAL DIAL</span>
+            <span style={{ ...m, fontSize: 12, letterSpacing: '2px', color: '#8C8070' }}>MANUAL DIAL</span>
             <button onClick={() => setManualDialInput(null)} style={{ background: 'none', border: 'none', color: '#8C8070', cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: 0 }}>×</button>
           </div>
           <div style={{ padding: '16px 20px', borderBottom: '1px solid #2E3E3E', flexShrink: 0 }}>
-            <p style={{ ...m, fontSize: 11, color: '#8C8070', margin: '0 0 10px 0' }}>{buildingAddress}</p>
+            <p style={{ ...m, fontSize: 13, color: '#8C8070', margin: '0 0 10px 0' }}>{buildingAddress}</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ flex: 1, background: '#0E1A1A', border: '1px solid #2E3E3E', padding: '8px 12px', ...m, fontSize: 16, color: '#F7F4EE', letterSpacing: '2px', minHeight: 36 }}>
                 {manualDialInput || <span style={{ color: '#2E3E3E' }}>—</span>}
@@ -1667,7 +1694,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 setActiveDial({ phoneNumber: e164, contactId: '', contactName: 'Manual Dial' })
                 setManualDialInput(null)
               }}
-              style={{ marginTop: 4, background: manualDialInput ? '#E8A020' : '#2E3E3E', border: 'none', color: manualDialInput ? '#1C2B2B' : '#8C8070', ...m, fontSize: 11, fontWeight: 700, letterSpacing: '1.5px', padding: '13px 0', cursor: manualDialInput ? 'pointer' : 'default' }}
+              style={{ marginTop: 4, background: manualDialInput ? '#E8A020' : '#2E3E3E', border: 'none', color: manualDialInput ? '#1C2B2B' : '#8C8070', ...m, fontSize: 13, fontWeight: 700, letterSpacing: '1.5px', padding: '13px 0', cursor: manualDialInput ? 'pointer' : 'default' }}
             >CALL</button>
           </div>
         </div>

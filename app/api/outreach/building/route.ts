@@ -32,7 +32,7 @@ export async function GET(request: Request) {
     supabase.from('signals').select('id, signal_type, signal_date, is_open, source, raw_data').eq('parcel_id', parcel_id).order('is_open', { ascending: false }).order('signal_date', { ascending: false }).limit(150),
     supabase.from('leads').select('*').eq('parcel_id', parcel_id).maybeSingle(),
     // Organizations: PM, owner orgs with phone numbers
-    supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),
+    supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source, website').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),
     // Permit applicant orgs with trade_type — source for CONTRACTORS section
     supabase.from('organizations').select('id, business_name, trade_type, phone, source_date, source').eq('parcel_id', parcel_id).eq('org_type', 'permit_applicant').not('trade_type', 'is', null).order('source_date', { ascending: false }).limit(300),
   ])

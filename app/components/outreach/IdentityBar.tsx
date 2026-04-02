@@ -67,11 +67,11 @@ function CompactIdentityBar({ building }: { building: IdentityBarProps['building
         return (
           <div key={s.label} style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <span style={{ ...m, fontSize: 7, letterSpacing: '1.5px', color: '#5C7070' }}>{s.label}</span>
-              {agree && <span style={{ fontSize: 8, color: '#2A7A4B' }}>✓</span>}
-              {conflict && <span style={{ fontSize: 8, color: '#E8A020' }}>⚠</span>}
+              <span style={{ ...m, fontSize: 9, letterSpacing: '1.5px', color: '#5C7070' }}>{s.label}</span>
+              {agree && <span style={{ fontSize: 10, color: '#2A7A4B' }}>✓</span>}
+              {conflict && <span style={{ fontSize: 10, color: '#E8A020' }}>⚠</span>}
             </div>
-            <span style={{ ...m, fontSize: 10, fontWeight: 700, color: '#C8C1B3', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
+            <span style={{ ...m, fontSize: 12, fontWeight: 700, color: '#C8C1B3', whiteSpace: 'nowrap', letterSpacing: '0.5px' }}>
               {displayName.toUpperCase()}
             </span>
           </div>
@@ -102,46 +102,46 @@ function IdentitySlot({ label, stitched, web, webConf }: SlotProps) {
   return (
     <div style={{ minWidth: 140, flex: 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-        <span style={{ ...m, fontSize: 8, letterSpacing: '1.5px', color: '#8C8070' }}>{label}</span>
-        {agree && <span style={{ fontSize: 10, color: '#2A7A4B' }}>✓</span>}
-        {conflict && <span style={{ fontSize: 10, color: '#E8A020' }}>⚠</span>}
+        <span style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070' }}>{label}</span>
+        {agree && <span style={{ fontSize: 12, color: '#2A7A4B' }}>✓</span>}
+        {conflict && <span style={{ fontSize: 12, color: '#E8A020' }}>⚠</span>}
       </div>
 
       {agree && (
-        <div style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{stitched}</div>
+        <div style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{stitched}</div>
       )}
 
       {conflict && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <div>
-            <span style={{ ...m, fontSize: 8, color: '#8C8070', marginRight: 4 }}>GOV</span>
-            <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{stitched}</span>
+            <span style={{ ...m, fontSize: 10, color: '#8C8070', marginRight: 4 }}>GOV</span>
+            <span style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{stitched}</span>
           </div>
           <div>
-            <span style={{ ...m, fontSize: 8, color: '#8C8070', marginRight: 4 }}>WEB</span>
-            <span style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{web}</span>
+            <span style={{ ...m, fontSize: 10, color: '#8C8070', marginRight: 4 }}>WEB</span>
+            <span style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{web}</span>
           </div>
         </div>
       )}
 
       {!hasBoth && stitched && (
         <div>
-          <div style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{stitched}</div>
-          <div style={{ ...m, fontSize: 8, color: '#C8C1B3' }}>gov only</div>
+          <div style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{stitched}</div>
+          <div style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>gov only</div>
         </div>
       )}
 
       {!hasBoth && web && !stitched && (
         <div>
-          <div style={{ ...m, fontSize: 11, color: '#1C2B2B' }}>{web}</div>
-          <div style={{ ...m, fontSize: 8, color: confColor }}>
+          <div style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{web}</div>
+          <div style={{ ...m, fontSize: 10, color: confColor }}>
             web · {webConf != null ? `${Math.round(webConf * 100)}%` : '—'}
           </div>
         </div>
       )}
 
       {!stitched && !web && (
-        <div style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>—</div>
+        <div style={{ ...m, fontSize: 13, color: '#C8C1B3' }}>—</div>
       )}
     </div>
   )
@@ -185,7 +185,7 @@ export default function IdentityBar({ building, compact }: IdentityBarProps) {
         </div>
       </div>
       {building.web_enriched_at && (
-        <div style={{ ...m, fontSize: 8, color: '#C8C1B3', marginTop: 8 }}>
+        <div style={{ ...m, fontSize: 10, color: '#C8C1B3', marginTop: 8 }}>
           web enriched {new Date(building.web_enriched_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </div>
       )}

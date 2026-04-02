@@ -1416,73 +1416,69 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         </div>
 
         {/* Why we're calling bar */}
-        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '10px 20px', flexShrink: 0 }}>
-          {/* Size + Fines mini row */}
+        <div style={{ background: '#FFFFFF', borderBottom: '1px solid #C8C1B3', padding: '8px 20px', flexShrink: 0 }}>
+          {/* Inline stats line */}
           {(building.building_sqft || totalFines > 0 || building.building_website) && (
-            <div style={{ display: 'flex', gap: 20, flexWrap: 'wrap', alignItems: 'flex-end', marginBottom: whyCards.length > 0 || comboNote || incumbentNote ? 10 : 0 }}>
+            <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: whyCards.length > 0 || comboNote || incumbentNote ? 6 : 0, display: 'flex', flexWrap: 'wrap', gap: 4, alignItems: 'center' }}>
               {building.building_sqft && (
-                <div>
-                  <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>SIZE</div>
-                  <div style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>{Math.round(building.building_sqft / 1000)}k sqft{building.floors ? ` · ${building.floors} fl` : ''}</div>
-                </div>
+                <span style={{ color: '#1C2B2B' }}>{Math.round(building.building_sqft / 1000)}k sqft{building.floors ? ` · ${building.floors} fl` : ''}</span>
               )}
+              {building.building_sqft && totalFines > 0 && <span>·</span>}
               {totalFines > 0 && (
-                <div>
-                  <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>OPEN FINES</div>
-                  <div style={{ ...m, fontSize: 13, color: openFines > 0 ? '#E8A020' : '#1C2B2B' }}>
-                    ${openFines.toLocaleString()}<span style={{ color: '#8C8070' }}> / ${totalFines.toLocaleString()} total</span>
-                  </div>
-                </div>
+                <span>
+                  <span style={{ color: openFines > 0 ? '#E8A020' : '#1C2B2B', fontWeight: openFines > 0 ? 700 : 400 }}>${openFines.toLocaleString()} open</span>
+                  <span style={{ color: '#C8C1B3' }}> / ${totalFines.toLocaleString()} total</span>
+                </span>
               )}
+              {building.building_website && (totalFines > 0 || building.building_sqft) && <span>·</span>}
               {building.building_website && (
-                <div>
-                  <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 1 }}>WEBSITE</div>
-                  <a href={building.building_website} target="_blank" rel="noopener noreferrer"
-                    style={{ ...m, fontSize: 13, color: '#2A7A4B', textDecoration: 'underline' }}>
-                    {building.building_website.replace(/^https?:\/\//, '').replace(/\/$/, '').substring(0, 32)}
-                  </a>
-                </div>
+                <a href={building.building_website} target="_blank" rel="noopener noreferrer"
+                  style={{ ...m, fontSize: 11, color: '#2A7A4B', textDecoration: 'underline' }}>
+                  {building.building_website.replace(/^https?:\/\//, '').replace(/\/$/, '').substring(0, 28)} ↗
+                </a>
               )}
             </div>
           )}
 
-          {/* Score-driven signal cards */}
+          {/* Score-driven signal cards — horizontal */}
           {whyCards.length > 0 && (
             <div>
-              <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 8 }}>WHY WE'RE CALLING</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 6 }}>WHY WE'RE CALLING</div>
+              <div style={{ display: 'flex', gap: 0 }}>
                 {whyCards.map((card, i) => (
-                  <div key={i} style={{ borderLeft: `2px solid ${card.color}`, paddingLeft: 8 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 2 }}>
-                      <span style={{ ...m, fontSize: 10, letterSpacing: '1px', color: card.color, fontWeight: 700, flexShrink: 0 }}>{card.tag}</span>
-                      <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 600 }}>{card.headline}</span>
-                      {card.detail && <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>{card.detail}</span>}
-                    </div>
-                    <div style={{ ...m, fontSize: 12, color: '#5A5A5A', lineHeight: 1.5 }}>{card.meaning}</div>
+                  <div key={i} style={{
+                    flex: 1, minWidth: 0,
+                    borderLeft: `3px solid ${card.color}`,
+                    paddingLeft: 10,
+                    paddingRight: 12,
+                  }}>
+                    <div style={{ ...m, fontSize: 10, letterSpacing: '0.8px', color: card.color, fontWeight: 700, marginBottom: 2 }}>{card.tag}</div>
+                    <div style={{ ...m, fontSize: 12, color: '#1C2B2B', fontWeight: 600, lineHeight: 1.3, marginBottom: 3 }}>{card.headline}</div>
+                    {card.detail && <div style={{ ...m, fontSize: 11, color: '#8C8070' }}>{card.detail}</div>}
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Combo multiplier callout */}
-          {comboNote && (
-            <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid #F0EDE8' }}>
-              <span style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#C0392B', fontWeight: 700 }}>COMBO  </span>
-              <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{comboNote}</span>
-            </div>
-          )}
-
-          {/* Competitive angle */}
-          {incumbentNote && (
-            <div style={{ marginTop: comboNote ? 4 : 8, paddingTop: comboNote ? 0 : 8, borderTop: comboNote ? 'none' : '1px solid #F0EDE8' }}>
-              <span style={{ ...m, fontSize: 10, letterSpacing: '1px', color: '#8C8070', fontWeight: 700 }}>COMPETITIVE  </span>
-              <span style={{ ...m, fontSize: 12, color: '#8C8070' }}>{incumbentNote}</span>
+          {/* Combo + competitive — single compact line */}
+          {(comboNote || incumbentNote) && (
+            <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
+              {comboNote && (
+                <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>
+                  <span style={{ color: '#C0392B', fontWeight: 700 }}>COMBO </span>{comboNote}
+                </span>
+              )}
+              {incumbentNote && (
+                <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>
+                  <span style={{ fontWeight: 700 }}>COMPETITIVE </span>{incumbentNote}
+                </span>
+              )}
             </div>
           )}
 
           {whyCards.length === 0 && !building.building_sqft && totalFines === 0 && (
-            <div style={{ ...m, fontSize: 12, color: '#C8C1B3' }}>No active signals</div>
+            <div style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>No active signals</div>
           )}
         </div>
 

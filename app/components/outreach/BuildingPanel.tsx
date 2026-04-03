@@ -227,8 +227,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   useEffect(() => { load() }, [load])
   useEffect(() => {
-    if (_building?.contact_order) setContactOrder(_building.contact_order)
-  }, [_building?.contact_order])
+    if (data?.building?.contact_order) setContactOrder(data.building.contact_order)
+  }, [data?.building?.contact_order])
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

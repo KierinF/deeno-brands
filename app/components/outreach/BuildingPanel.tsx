@@ -562,7 +562,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   for (const c of (contacts || [])) {
     if (c.is_bad_data) continue
     // Hide AI-classified entities from PM/owner groups — they're company name fragments, not people
-    if (c.ai_entity_type === 'entity' && (c.contact_type === 'property_manager' || c.contact_type === 'owner')) continue
+    if (c.ai_entity_type === 'entity' && !c.business_name && (c.contact_type === 'property_manager' || c.contact_type === 'owner')) continue
     let t = (c.contact_type || 'other').toLowerCase()
     if (t === 'permit_applicant') t = 'trade_referral'
     if (!contactsByType[t]) contactsByType[t] = []
@@ -642,8 +642,16 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   }
 
   async function saveOrgWebsite(orgId: string, website: string) {
+    const raw = website.trim()
+    let normalized: string | null = null
+    let domain: string | null = null
+    if (raw) {
+      // Strip protocol and www, keep path for website; root domain for website_domain
+      normalized = raw.replace(/^https?:\/\//, '').replace(/^www\./, '')
+      domain = normalized.split('/')[0].split('?')[0]
+    }
     const supabase = (await import('@/lib/supabase/client')).createClient()
-    await supabase.from('organizations').update({ website: website.trim() || null }).eq('id', orgId)
+    await supabase.from('organizations').update({ website: normalized, website_domain: domain }).eq('id', orgId)
     setEditingOrgId(null)
     setEditWebsiteValue('')
     load()
@@ -930,9 +938,12 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           return null
         }
 
-        // Owner orgs from organizations table
+        // Owner and PM orgs from organizations table
         const ownerOrgs = key === 'owner'
           ? (orgs || []).filter((o: any) => o.org_type === 'owner' && o.business_name)
+          : []
+        const pmOrgs = key === 'property_manager'
+          ? (orgs || []).filter((o: any) => o.org_type === 'property_manager' && o.business_name)
           : []
 
         // Clay owner — show if not already represented
@@ -952,7 +963,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         )
         const showClayBroker = !!(clayBroker && !clayBrokerAlreadyShown)
 
-        if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0 && !showClayOwner && !showClayBroker && !showClayPm) return null
+        if (group.length === 0 && !showPmOrg && ownerOrgs.length === 0 && pmOrgs.length === 0 && !showClayOwner && !showClayBroker && !showClayPm) return null
 
         const isExpanded = expandedGroups.has(key)
         const COLLAPSE_AT = key === 'trade_referral' ? 2 : 99
@@ -1003,7 +1014,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           ...trueStandalone.map(c => ({ type: 'person', contact: c })),
         ]
 
-        // For owner section: merge ownerOrgs into allEntries for unified confidence-based sorting
+        // For owner/PM sections: merge orgs into allEntries for unified confidence-based sorting
         if (key === 'owner') {
           for (const o of ownerOrgs) {
             if (!allEntries.some((e: any) => e.type === 'company' && normalizeName(e.name) === normalizeName(o.business_name))) {
@@ -1013,6 +1024,19 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 latestDate: null, isFire: false, permitLabel: null, isPinned: false,
               })
             }
+          }
+        }
+        if (key === 'property_manager') {
+          for (const o of pmOrgs) {
+            const normO = normalizeName(o.business_name)
+            // Skip if already shown via showPmOrg (building.pm_name) or already in allEntries
+            if (showPmOrg && normalizeName(building.pm_name) === normO) continue
+            if (allEntries.some((e: any) => e.type === 'company' && normalizeName(e.name) === normO)) continue
+            allEntries.push({
+              type: 'company', name: o.business_name, displayName: o.business_name,
+              contacts: [], fallbackOrg: o, confOverride: o.confidence,
+              latestDate: null, isFire: false, permitLabel: null, isPinned: false,
+            })
           }
         }
 

@@ -227,6 +227,9 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
 
   useEffect(() => { load() }, [load])
   useEffect(() => {
+    if (_building?.contact_order) setContactOrder(_building.contact_order)
+  }, [_building?.contact_order])
+  useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         if (manualDialInput !== null) { setManualDialInput(null); return }
@@ -589,14 +592,17 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
     const n = new Set(prev); n.has(key) ? n.delete(key) : n.add(key); return n
   })
 
-  function moveEntry(groupKey: string, currentKeys: string[], targetKey: string, direction: 'up' | 'down') {
+  async function moveEntry(groupKey: string, currentKeys: string[], targetKey: string, direction: 'up' | 'down') {
     const idx = currentKeys.indexOf(targetKey)
     if (idx < 0) return
     const next = [...currentKeys]
     if (direction === 'up' && idx > 0) { [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]] }
     else if (direction === 'down' && idx < next.length - 1) { [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]] }
     else return
-    setContactOrder(prev => ({ ...prev, [groupKey]: next }))
+    const newOrder = { ...contactOrder, [groupKey]: next }
+    setContactOrder(newOrder)
+    const supabase = (await import('@/lib/supabase/client')).createClient()
+    await supabase.from('building_intelligence').update({ contact_order: newOrder }).eq('parcel_id', parcelId)
   }
 
   async function markContactBad(contactId: string) {

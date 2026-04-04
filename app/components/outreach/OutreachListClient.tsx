@@ -86,6 +86,7 @@ type Props = {
   contacts: ContactRow[]
   filter: FilterTab
   tasksParcelIds: string[]
+  contactInfoParcelIds: string[]
 }
 
 const TABS: { key: FilterTab; label: string }[] = [
@@ -111,6 +112,7 @@ export default function OutreachListClient({
   contacts,
   filter,
   tasksParcelIds,
+  contactInfoParcelIds,
 }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -118,10 +120,13 @@ export default function OutreachListClient({
   const [expandedOrgs, setExpandedOrgs] = useState<Set<string>>(new Set())
   const [contractorFilter, setContractorFilter] = useState<'all' | 'fire'>('all')
   const [boroughFilter, setBoroughFilter] = useState<Set<string>>(new Set(ALL_BOROUGHS))
+  const [contactFilter, setContactFilter] = useState<'all' | 'has_contact'>('all')
   const [dialInput, setDialInput] = useState<string | null>(null)
   const [activeDial, setActiveDial] = useState<{ phoneNumber: string } | null>(null)
   const tasksSet = new Set(tasksParcelIds)
   const mono = { fontFamily: "'DM Mono', monospace" }
+
+  const contactInfoSet = useMemo(() => new Set(contactInfoParcelIds), [contactInfoParcelIds])
 
   const rowsByParcel = useMemo(() => {
     const m: Record<string, Row> = {}
@@ -169,6 +174,7 @@ export default function OutreachListClient({
             ...buildingFines(buildings),
           }
         })
+        .filter(g => contactFilter === 'all' || g.buildings.some(b => contactInfoSet.has(b.parcel_id)))
         .sort((a, b) =>
           filter === 'incumbents'
             ? (b.latestJob ?? '').localeCompare(a.latestJob ?? '')
@@ -207,6 +213,7 @@ export default function OutreachListClient({
         }
       })
       .filter(g => g.buildings.length > 0)
+      .filter(g => contactFilter === 'all' || g.buildings.some(b => contactInfoSet.has(b.parcel_id)))
       .sort((a, b) =>
         filter === 'brokers'
           ? b.openFines - a.openFines || b.buildings.length - a.buildings.length
@@ -214,7 +221,7 @@ export default function OutreachListClient({
             ? (b.latestJob ?? '').localeCompare(a.latestJob ?? '') || b.buildings.length - a.buildings.length
             : b.buildings.length - a.buildings.length || b.topScore - a.topScore
       )
-  }, [filter, initialRows, contacts, rowsByParcel, search, contractorFilter])
+  }, [filter, initialRows, contacts, rowsByParcel, search, contractorFilter, contactFilter, contactInfoSet, boroughFilter])
 
   const filteredRows = useMemo(() => {
     if (filter !== 'properties') return []
@@ -222,11 +229,12 @@ export default function OutreachListClient({
     return initialRows.filter(r => {
       const borough = boroughFromParcelId(r.parcel_id)
       if (!boroughFilter.has(borough)) return false
+      if (contactFilter === 'has_contact' && !contactInfoSet.has(r.parcel_id)) return false
       if (!q) return true
       return (r.address || '').toLowerCase().includes(q) ||
              (r.pm_name || '').toLowerCase().includes(q)
     })
-  }, [filter, initialRows, search, boroughFilter])
+  }, [filter, initialRows, search, boroughFilter, contactFilter, contactInfoSet])
 
   const total = filter === 'properties' ? filteredRows.length : orgGroups.length
   const offset = page * PAGE_SIZE
@@ -278,6 +286,24 @@ export default function OutreachListClient({
             </button>
           )
         })}
+      </div>
+      <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+        {(['all', 'has_contact'] as const).map(opt => (
+          <button
+            key={opt}
+            onClick={() => { setContactFilter(opt); setPage(0) }}
+            style={{
+              ...mono, fontSize: 9, letterSpacing: '1.5px',
+              padding: '3px 8px',
+              border: '1px solid #C8C1B3',
+              background: contactFilter === opt ? '#1C2B2B' : '#FFFFFF',
+              color: contactFilter === opt ? '#E8A020' : '#8C8070',
+              cursor: 'pointer',
+            }}
+          >
+            {opt === 'all' ? 'ALL' : 'HAS CONTACT'}
+          </button>
+        ))}
       </div>
       {filter === 'contractors' && (
         <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>

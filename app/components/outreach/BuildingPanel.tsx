@@ -576,7 +576,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   const orgsByNorm: Record<string, any> = {}
   for (const o of (orgs || [])) {
     const k = normalizeName(o.business_name || '')
-    if (k) orgsByNorm[k] = o
+    if (k && !orgsByNorm[k]) orgsByNorm[k] = o
   }
 
   function findOrgForName(name: string) {

@@ -573,18 +573,25 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
   }
 
   // Match orgs to contacts by normalized name
+  // ownerPmOrgsByNorm: only owner/PM rows — checked first so editing always targets the right org type
+  const ownerPmOrgsByNorm: Record<string, any> = {}
   const orgsByNorm: Record<string, any> = {}
   for (const o of (orgs || [])) {
     const k = normalizeName(o.business_name || '')
-    if (k && !orgsByNorm[k]) orgsByNorm[k] = o
+    if (!k) continue
+    if ((o.org_type === 'owner' || o.org_type === 'property_manager') && !ownerPmOrgsByNorm[k]) ownerPmOrgsByNorm[k] = o
+    if (!orgsByNorm[k]) orgsByNorm[k] = o
   }
 
   function findOrgForName(name: string) {
     if (!name) return null
     const k = normalizeName(name)
+    if (ownerPmOrgsByNorm[k]) return ownerPmOrgsByNorm[k]
     if (orgsByNorm[k]) return orgsByNorm[k]
     const prefix = k.substring(0, 12)
     if (prefix.length < 6) return null
+    const ownerPmFuzzy = Object.entries(ownerPmOrgsByNorm).find(([ok]) => ok.startsWith(prefix) || prefix.startsWith(ok.substring(0, 12)))?.[1]
+    if (ownerPmFuzzy) return ownerPmFuzzy
     return Object.entries(orgsByNorm).find(([ok]) => ok.startsWith(prefix) || prefix.startsWith(ok.substring(0, 12)))?.[1] ?? null
   }
 

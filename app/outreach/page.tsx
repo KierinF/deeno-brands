@@ -47,6 +47,8 @@ async function getListData(filter: FilterTab) {
   // Fetch addresses from properties for all lead parcel_ids (fallback for non-Manhattan buildings
   // where building_intelligence has no row)
   const leadParcelIds = (leadsData || []).map((l: any) => l.parcel_id)
+  const leadParcelSet = new Set<string>(leadParcelIds)
+
   const propAddressData: any[] = []
   for (let i = 0; i < leadParcelIds.length; i += 500) {
     const { data } = await supabase
@@ -83,7 +85,9 @@ async function getListData(filter: FilterTab) {
     }
   }
 
-  // Build contact info set: parcel_ids that have at least one phone or website
+  // Build contact info set: parcel_ids that have at least one phone or website.
+  // Fetch globally (no .in() filter) to avoid the 1000-row default limit truncating
+  // batches where a single parcel has many org rows.
   const contactInfoSet = new Set<string>()
 
   // PM phone from leads
@@ -91,25 +95,41 @@ async function getListData(filter: FilterTab) {
     if (lead.pm_phone) contactInfoSet.add(lead.parcel_id)
   }
 
-  // Organization phone or website
-  for (let i = 0; i < leadParcelIds.length; i += 500) {
-    const { data } = await supabase
+  // Organizations with phone — fetch all, filter to lead parcels in memory
+  const orgsWithPhone = await fetchAllRows((start) =>
+    supabase
       .from('organizations')
       .select('parcel_id')
-      .in('parcel_id', leadParcelIds.slice(i, i + 500))
-      .or('phone.not.is.null,website.not.is.null')
-    for (const r of data || []) contactInfoSet.add(r.parcel_id)
+      .not('phone', 'is', null)
+      .range(start, start + FETCH_CHUNK - 1) as any
+  )
+  for (const r of orgsWithPhone) {
+    if (leadParcelSet.has(r.parcel_id)) contactInfoSet.add(r.parcel_id)
   }
 
-  // Phone numbers table (any active number linked to the parcel)
-  for (let i = 0; i < leadParcelIds.length; i += 500) {
-    const { data } = await supabase
+  // Organizations with website — fetch all, filter to lead parcels in memory
+  const orgsWithWebsite = await fetchAllRows((start) =>
+    supabase
+      .from('organizations')
+      .select('parcel_id')
+      .not('website', 'is', null)
+      .range(start, start + FETCH_CHUNK - 1) as any
+  )
+  for (const r of orgsWithWebsite) {
+    if (leadParcelSet.has(r.parcel_id)) contactInfoSet.add(r.parcel_id)
+  }
+
+  // Active phone numbers — fetch all, filter to lead parcels in memory
+  const activePhoneNumbers = await fetchAllRows((start) =>
+    supabase
       .from('phone_numbers')
       .select('parcel_id')
-      .in('parcel_id', leadParcelIds.slice(i, i + 500))
       .not('parcel_id', 'is', null)
       .neq('status', 'stale')
-    for (const r of data || []) if (r.parcel_id) contactInfoSet.add(r.parcel_id)
+      .range(start, start + FETCH_CHUNK - 1) as any
+  )
+  for (const r of activePhoneNumbers) {
+    if (r.parcel_id && leadParcelSet.has(r.parcel_id)) contactInfoSet.add(r.parcel_id)
   }
 
   // Build rows from leads (leads-first — only scored buildings appear)

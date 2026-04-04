@@ -656,8 +656,11 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       normalized = raw.replace(/^https?:\/\//, '').replace(/^www\./, '')
       domain = normalized.split('/')[0].split('?')[0]
     }
-    const supabase = (await import('@/lib/supabase/client')).createClient()
-    await supabase.from('organizations').update({ website: normalized, website_domain: domain }).eq('id', orgId)
+    await fetch('/api/outreach/org', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: orgId, website: normalized, website_domain: domain }),
+    })
     setEditingOrgId(null)
     setEditWebsiteValue('')
     load()

@@ -1039,7 +1039,8 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           for (const o of pmOrgs) {
             const normO = normalizeName(o.business_name)
             // Skip if already shown via showPmOrg (building.pm_name) or already in allEntries
-            if (showPmOrg && normalizeName(building.pm_name) === normO) continue
+            // Also skip if this org is being used as the fallback for the pm_name block (name mismatch case)
+            if (showPmOrg && (normalizeName(building.pm_name) === normO || (pmOrgs[0] && o.id === pmOrgs[0].id && !findOrgForName(building.pm_name)))) continue
             if (allEntries.some((e: any) => e.type === 'company' && normalizeName(e.name) === normO)) continue
             allEntries.push({
               type: 'company', name: o.business_name, displayName: o.business_name,
@@ -1127,7 +1128,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 <div style={{ ...m, fontSize: 11, color: '#8C8070', marginBottom: 8, lineHeight: 1.5 }}>{hint}</div>
 
                 {showClayPm && renderCompanyBlock(clayPmRaw!, clayT2Persons, undefined, clayPmConf != null ? Math.round(clayPmConf * 100) : null, null, null, false, clayPmConf)}
-                {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, undefined, building.pm_confidence, null, null, t2Persons.length > 0, govPmWebConf)}
+                {showPmOrg && renderCompanyBlock(building.pm_name, t2Persons, pmOrgs[0], building.pm_confidence, null, null, t2Persons.length > 0, govPmWebConf)}
                 {showPmOrg && pmContractorTradeKeys.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
                     <button onClick={() => toggleGroup('pm_contractors')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px 0', display: 'flex', alignItems: 'center', gap: 6 }}>

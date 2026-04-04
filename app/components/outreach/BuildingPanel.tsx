@@ -657,13 +657,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
       domain = normalized.split('/')[0].split('?')[0]
     }
     const supabase = (await import('@/lib/supabase/client')).createClient()
-    // Find all org rows at this parcel with the same normalized name and update them all
-    const targetOrg = (orgs || []).find((o: any) => o.id === orgId)
-    const targetNorm = targetOrg ? normalizeName(targetOrg.business_name || '') : null
-    const matchingIds = targetNorm
-      ? (orgs || []).filter((o: any) => normalizeName(o.business_name || '') === targetNorm).map((o: any) => o.id)
-      : [orgId]
-    await supabase.from('organizations').update({ website: normalized, website_domain: domain }).in('id', matchingIds)
+    await supabase.from('organizations').update({ website: normalized, website_domain: domain }).eq('id', orgId)
     setEditingOrgId(null)
     setEditWebsiteValue('')
     load()

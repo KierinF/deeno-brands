@@ -29,7 +29,7 @@ async function getListData(filter: FilterTab) {
   const leadsData = await fetchAllRows((start) =>
     supabase
       .from('leads')
-      .select('parcel_id, id, status, score, pm_name, pm_confidence, incumbent_name, incumbent_staleness, last_called_at, call_count, next_followup_at')
+      .select('parcel_id, id, status, score, pm_name, pm_confidence, pm_phone, incumbent_name, incumbent_staleness, last_called_at, call_count, next_followup_at')
       .range(start, start + FETCH_CHUNK - 1) as any
   )
 
@@ -81,6 +81,35 @@ async function getListData(filter: FilterTab) {
       sigViolMap[sig.parcel_id].open_violation_count++
       sigViolMap[sig.parcel_id].open_fines_total += chargeTotal
     }
+  }
+
+  // Build contact info set: parcel_ids that have at least one phone or website
+  const contactInfoSet = new Set<string>()
+
+  // PM phone from leads
+  for (const lead of leadsData || []) {
+    if (lead.pm_phone) contactInfoSet.add(lead.parcel_id)
+  }
+
+  // Organization phone or website
+  for (let i = 0; i < leadParcelIds.length; i += 500) {
+    const { data } = await supabase
+      .from('organizations')
+      .select('parcel_id')
+      .in('parcel_id', leadParcelIds.slice(i, i + 500))
+      .or('phone.not.is.null,website.not.is.null')
+    for (const r of data || []) contactInfoSet.add(r.parcel_id)
+  }
+
+  // Phone numbers table (any active number linked to the parcel)
+  for (let i = 0; i < leadParcelIds.length; i += 500) {
+    const { data } = await supabase
+      .from('phone_numbers')
+      .select('parcel_id')
+      .in('parcel_id', leadParcelIds.slice(i, i + 500))
+      .not('parcel_id', 'is', null)
+      .neq('status', 'stale')
+    for (const r of data || []) if (r.parcel_id) contactInfoSet.add(r.parcel_id)
   }
 
   // Build rows from leads (leads-first — only scored buildings appear)
@@ -148,7 +177,7 @@ async function getListData(filter: FilterTab) {
 
   const tasksSet = new Set((todayTasks || []).map((t) => t.parcel_id))
 
-  return { rows, contacts, tasksSet: Array.from(tasksSet) }
+  return { rows, contacts, tasksSet: Array.from(tasksSet), contactInfoParcelIds: Array.from(contactInfoSet) }
 }
 
 export default async function OutreachPage({
@@ -176,7 +205,7 @@ export default async function OutreachPage({
       ? rawFilter
       : 'properties'
 
-  const { rows, contacts, tasksSet } = await getListData(filter)
+  const { rows, contacts, tasksSet, contactInfoParcelIds } = await getListData(filter)
 
   return (
     <OutreachListClient
@@ -184,6 +213,7 @@ export default async function OutreachPage({
       contacts={contacts}
       filter={filter}
       tasksParcelIds={tasksSet}
+      contactInfoParcelIds={contactInfoParcelIds}
     />
   )
 }

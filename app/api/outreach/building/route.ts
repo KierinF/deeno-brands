@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     { data: tasks },
     { data: signals },
     { data: lead },
-    { data: orgs },
+    { data: parcelOrgs },
     { data: permitOrgs },
   ] = await Promise.all([
     supabase.from('building_intelligence').select('*').eq('parcel_id', parcel_id).maybeSingle(),
@@ -31,11 +31,30 @@ export async function GET(request: Request) {
     // Fetch up to 150 signals — order open first, then by date, so violations aren't buried by proximity fires
     supabase.from('signals').select('id, signal_type, signal_date, is_open, source, raw_data').eq('parcel_id', parcel_id).order('is_open', { ascending: false }).order('signal_date', { ascending: false }).limit(150),
     supabase.from('leads').select('*').eq('parcel_id', parcel_id).maybeSingle(),
-    // Organizations: PM, owner orgs with phone numbers
-    supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source, website').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(20),
+    // Organizations: PM, owner orgs for this parcel
+    supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source, website, website_domain').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(200),
     // Permit applicant orgs with trade_type — source for CONTRACTORS section
     supabase.from('organizations').select('id, business_name, trade_type, phone, source_date, source').eq('parcel_id', parcel_id).eq('org_type', 'permit_applicant').not('trade_type', 'is', null).order('source_date', { ascending: false }).limit(300),
   ])
+
+  // Also fetch orgs that entity contacts link to but live on a different parcel
+  const linkedOrgIds = (contacts || [])
+    .filter((c: any) => c.organization_id && c.ai_entity_type === 'entity')
+    .map((c: any) => c.organization_id)
+    .filter((id: string, i: number, arr: string[]) => arr.indexOf(id) === i) // dedupe
+  const parcelOrgIds = new Set((parcelOrgs || []).map((o: any) => o.id))
+  const missingOrgIds = linkedOrgIds.filter((id: string) => !parcelOrgIds.has(id))
+
+  let linkedOrgs: any[] = []
+  if (missingOrgIds.length > 0) {
+    const { data } = await supabase
+      .from('organizations')
+      .select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source, website, website_domain')
+      .in('id', missingOrgIds)
+    linkedOrgs = data || []
+  }
+
+  const orgs = [...(parcelOrgs || []), ...linkedOrgs]
 
   // Collect org_profile_ids from both organizations and contacts (web_enriched contacts link directly)
   const orgProfileIds = [

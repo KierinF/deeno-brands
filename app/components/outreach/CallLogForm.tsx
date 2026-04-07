@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-type Outcome = 'connected' | 'voicemail' | 'no-answer' | 'bad-number'
+type Outcome = 'connected' | 'voicemail' | 'no_answer' | 'bad_number'
 type Dispo = 'none' | 'meeting_booked' | 'not_interested' | 'nurture'
 
 type Props = {
@@ -17,8 +17,8 @@ type Props = {
 const OUTCOMES: { key: Outcome; label: string }[] = [
   { key: 'connected',  label: 'CONNECTED' },
   { key: 'voicemail',  label: 'VOICEMAIL' },
-  { key: 'no-answer',  label: 'NO ANSWER' },
-  { key: 'bad-number', label: 'BAD NUMBER' },
+  { key: 'no_answer',  label: 'NO ANSWER' },
+  { key: 'bad_number', label: 'BAD NUMBER' },
 ]
 
 // Dispositions only shown when outcome = connected.
@@ -58,10 +58,16 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSa
       if (callSid) logEntry.twilio_call_sid = callSid
 
       if (callSid) {
-        await supabase
+        // Try to update the row created by Twilio status callback
+        const { data } = await supabase
           .from('outreach_log')
           .update({ outcome, notes: notes || null })
           .eq('twilio_call_sid', callSid)
+          .select('id')
+        // If no row was found (status callback never fired), insert instead
+        if (!data || data.length === 0) {
+          await supabase.from('outreach_log').insert(logEntry)
+        }
       } else {
         await supabase.from('outreach_log').insert(logEntry)
       }

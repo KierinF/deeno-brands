@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 type Props = {
@@ -9,9 +9,24 @@ type Props = {
 }
 
 export default function BuildingNotes({ parcelId, initialBody }: Props) {
-  const [body, setBody] = useState('')
+  const storageKey = `note-draft-${parcelId}`
+  const [body, setBody] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(storageKey) || ''
+    }
+    return ''
+  })
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const supabase = createClient()
+
+  // Persist draft to localStorage on every change
+  useEffect(() => {
+    if (body) {
+      localStorage.setItem(storageKey, body)
+    } else {
+      localStorage.removeItem(storageKey)
+    }
+  }, [body, storageKey])
 
   async function handleSave() {
     const text = body.trim()
@@ -25,6 +40,7 @@ export default function BuildingNotes({ parcelId, initialBody }: Props) {
       direction: 'outbound',
     })
     setBody('')
+    localStorage.removeItem(storageKey)
     setStatus('saved')
     setTimeout(() => setStatus('idle'), 2000)
   }

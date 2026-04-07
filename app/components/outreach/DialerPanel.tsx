@@ -41,6 +41,7 @@ export default function DialerPanel({
   const [callSid, setCallSid] = useState<string | null>(null)
   const [seconds, setSeconds] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [showKeypad, setShowKeypad] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deviceRef = useRef<any>(null)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,6 +113,7 @@ export default function DialerPanel({
       call.on('disconnect', () => {
         console.log('[Twilio] call disconnected')
         setState('ended')
+        setShowKeypad(false)
         if (timerRef.current) clearInterval(timerRef.current)
       })
       call.on('error', (err: { message?: string; code?: number | string; name?: string }) => {
@@ -119,6 +121,7 @@ export default function DialerPanel({
         const code = err.code ? ` [${err.code}]` : ''
         setError((err.message || err.name || 'Call error') + code)
         setState('ended')
+        setShowKeypad(false)
         if (timerRef.current) clearInterval(timerRef.current)
       })
     } catch (err: unknown) {
@@ -130,9 +133,16 @@ export default function DialerPanel({
     }
   }
 
+  function sendDTMF(digit: string) {
+    if (callRef.current) {
+      callRef.current.sendDigits(digit)
+    }
+  }
+
   function hangUp() {
     if (callRef.current) callRef.current.disconnect()
     setState('ended')
+    setShowKeypad(false)
     if (timerRef.current) clearInterval(timerRef.current)
   }
 
@@ -184,7 +194,7 @@ export default function DialerPanel({
       </div>
 
       {/* Controls */}
-      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, borderBottom: state === 'ended' ? '1px solid #2E3E3E' : 'none', flexShrink: 0 }}>
+      <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, borderBottom: (state === 'ended' || (state === 'connected' && showKeypad)) ? '1px solid #2E3E3E' : 'none', flexShrink: 0 }}>
         {state === 'idle' && (
           <button onClick={initAndCall} style={{ width: '100%', padding: '14px', background: '#E8A020', color: '#1C2B2B', border: 'none', ...m, fontSize: 12, letterSpacing: '2px', fontWeight: 700, cursor: 'pointer' }}>
             CALL NOW
@@ -202,6 +212,19 @@ export default function DialerPanel({
               <button onClick={dropVoicemail} style={{ flex: 1, padding: '11px', background: 'transparent', color: '#C8C1B3', border: '1px solid #2E3E3E', ...m, fontSize: 10, letterSpacing: '1.5px', cursor: 'pointer' }}>
                 DROP VM
               </button>
+              <button
+                onClick={() => setShowKeypad(!showKeypad)}
+                style={{
+                  flex: 1, padding: '11px',
+                  background: showKeypad ? '#E8A020' : 'transparent',
+                  color: showKeypad ? '#1C2B2B' : '#C8C1B3',
+                  border: showKeypad ? 'none' : '1px solid #2E3E3E',
+                  ...m, fontSize: 10, letterSpacing: '1.5px', cursor: 'pointer',
+                  fontWeight: showKeypad ? 700 : 400,
+                }}
+              >
+                KEYPAD
+              </button>
               <button onClick={hangUp} style={{ flex: 1, padding: '11px', background: '#C0392B', color: '#F7F4EE', border: 'none', ...m, fontSize: 10, letterSpacing: '1.5px', cursor: 'pointer', fontWeight: 700 }}>
                 HANG UP
               </button>
@@ -210,6 +233,28 @@ export default function DialerPanel({
         )}
         {error && <p style={{ ...m, fontSize: 11, color: '#C0392B', textAlign: 'center', margin: 0 }}>{error}</p>}
       </div>
+
+      {/* DTMF Keypad — visible during connected call */}
+      {state === 'connected' && showKeypad && (
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #2E3E3E', flexShrink: 0 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {[['1','2','3'],['4','5','6'],['7','8','9'],['*','0','#']].map((row, ri) => (
+              <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+                {row.map(k => (
+                  <button
+                    key={k}
+                    onClick={() => sendDTMF(k)}
+                    style={{
+                      background: '#2E3E3E', border: 'none', color: '#F7F4EE',
+                      ...m, fontSize: 18, padding: '12px 0', cursor: 'pointer',
+                    }}
+                  >{k}</button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Call log form */}
       {state === 'ended' && (

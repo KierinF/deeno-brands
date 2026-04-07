@@ -26,12 +26,15 @@ async function getListData(filter: FilterTab) {
   const supabase = await createClient()
 
   // Fetch from the outreach_list view — replaces separate leads + BI + properties queries
-  // Also fetch tasks in parallel
+  // ORDER BY parcel_id is critical: without deterministic ordering, .range() pagination
+  // can return the same row in multiple pages (Postgres doesn't guarantee order without ORDER BY).
+  // Also fetch tasks in parallel.
   const [listData, { data: todayTasks }] = await Promise.all([
     fetchAllRows((start) =>
       supabase
         .from('outreach_list')
         .select('*')
+        .order('parcel_id')
         .range(start, start + FETCH_CHUNK - 1) as any
     ),
     supabase
@@ -111,6 +114,7 @@ async function getListData(filter: FilterTab) {
           .in('contact_type', ['trade_referral', 'permit_applicant'])
           .neq('is_bad_data', true)
           .not('business_name', 'is', null)
+          .order('parcel_id')
           .range(start, start + FETCH_CHUNK - 1) as any
       )
     } else {
@@ -122,6 +126,7 @@ async function getListData(filter: FilterTab) {
           .eq('contact_type', contactType)
           .neq('is_bad_data', true)
           .not('business_name', 'is', null)
+          .order('parcel_id')
           .range(start, start + FETCH_CHUNK - 1) as any
       )
     }

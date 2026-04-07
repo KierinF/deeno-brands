@@ -18,10 +18,17 @@ type Props = {
   onClose: () => void
 }
 
+function toE164(input: string): string {
+  const digits = input.replace(/\D/g, '')
+  if (digits.length === 10) return `+1${digits}`
+  if (digits.length === 11 && digits[0] === '1') return `+${digits}`
+  return input.startsWith('+') ? `+${digits}` : input.trim()
+}
+
 export default function DialerPanel({
   parcelId,
   contactName,
-  phoneNumber,
+  phoneNumber: rawPhoneNumber,
   buildingAddress,
   signalBrief,
   leadId,
@@ -29,6 +36,7 @@ export default function DialerPanel({
   onCallStarted,
   onClose,
 }: Props) {
+  const phoneNumber = toE164(rawPhoneNumber)
   const [state, setState] = useState<DialerState>('idle')
   const [callSid, setCallSid] = useState<string | null>(null)
   const [seconds, setSeconds] = useState(0)

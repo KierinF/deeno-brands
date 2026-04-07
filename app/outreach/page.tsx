@@ -25,120 +25,46 @@ async function fetchAllRows(fetcher: (start: number) => Promise<{ data: any[] | 
 async function getListData(filter: FilterTab) {
   const supabase = await createClient()
 
-  // Fetch all leads (scored buildings only) — this is the primary data source
-  const leadsData = await fetchAllRows((start) =>
+  // Fetch from the outreach_list view — single query replaces leads + BI + properties joins
+  const [listData, todayTasks] = await Promise.all([
+    fetchAllRows((start) =>
+      supabase
+        .from('outreach_list')
+        .select('*')
+        .range(start, start + FETCH_CHUNK - 1) as any
+    ),
     supabase
-      .from('leads')
-      .select('parcel_id, id, status, score, pm_name, pm_confidence, pm_phone, has_pm_contact, incumbent_name, incumbent_staleness, last_called_at, call_count, next_followup_at')
-      .range(start, start + FETCH_CHUNK - 1) as any
-  )
+      .from('tasks')
+      .select('parcel_id')
+      .lte('due_date', new Date().toISOString().split('T')[0])
+      .is('completed_at', null),
+  ])
 
-  // Fetch building_intelligence for address + fines data
-  const biData = await fetchAllRows((start) =>
-    supabase
-      .from('building_intelligence')
-      .select('parcel_id, address, open_violation_count, incumbent_last_job, open_fines_total, total_fines')
-      .not('building_class', 'like', 'Y%')
-      .range(start, start + FETCH_CHUNK - 1) as any
-  )
+  // Build rows + contact info set from the view data
+  const contactInfoParcelIds: string[] = []
 
-  const biMap = Object.fromEntries((biData || []).map((b: any) => [b.parcel_id, b]))
-
-  // Fetch addresses from properties for all lead parcel_ids (fallback for non-Manhattan buildings
-  // where building_intelligence has no row)
-  const leadParcelIds = (leadsData || []).map((l: any) => l.parcel_id)
-
-  const propAddressData: any[] = []
-  for (let i = 0; i < leadParcelIds.length; i += 500) {
-    const { data } = await supabase
-      .from('properties')
-      .select('parcel_id, address')
-      .in('parcel_id', leadParcelIds.slice(i, i + 500))
-    if (data) propAddressData.push(...data)
-  }
-  const propMap = Object.fromEntries(propAddressData.map((p: any) => [p.parcel_id, p.address]))
-
-  // For parcels with no BI row, or BI row with no fines populated (outer boroughs), compute from signals
-  const outerParcelIds = leadParcelIds.filter((id: string) => {
-    const bi = biMap[id]
-    return !bi || (!bi.open_fines_total && !bi.total_fines)
-  })
-  const violationSigData: any[] = []
-  for (let i = 0; i < outerParcelIds.length; i += 500) {
-    const { data } = await supabase
-      .from('signals')
-      .select('parcel_id, signal_type, is_open, raw_data')
-      .in('parcel_id', outerParcelIds.slice(i, i + 500))
-      .in('signal_type', ['violation_fire', 'violation_ecb'])
-    if (data) violationSigData.push(...data)
-  }
-  const sigViolMap: Record<string, { open_violation_count: number; open_fines_total: number; total_fines: number }> = {}
-  for (const sig of violationSigData) {
-    if (!sigViolMap[sig.parcel_id]) sigViolMap[sig.parcel_id] = { open_violation_count: 0, open_fines_total: 0, total_fines: 0 }
-    const charges: any[] = sig.raw_data?.charges || []
-    const chargeTotal = charges.reduce((sum: number, c: any) => sum + (parseFloat(c.amount) || 0), 0)
-    sigViolMap[sig.parcel_id].total_fines += chargeTotal
-    if (sig.is_open) {
-      sigViolMap[sig.parcel_id].open_violation_count++
-      sigViolMap[sig.parcel_id].open_fines_total += chargeTotal
+  const rows = (listData || []).map((row: any) => {
+    if (row.has_contact_info || row.pm_phone || row.has_pm_contact) {
+      contactInfoParcelIds.push(row.parcel_id)
     }
-  }
-
-  // Build contact info set from leads data we already fetched (no extra queries).
-  // pm_phone or has_pm_contact means we have contact info for that building.
-  const contactInfoSet = new Set<string>()
-  for (const lead of leadsData || []) {
-    if (lead.pm_phone || lead.has_pm_contact) contactInfoSet.add(lead.parcel_id)
-  }
-
-  // Also check phone_numbers table — small table (< 2k rows), single paginated fetch
-  const activePhoneNumbers = await fetchAllRows((start) =>
-    supabase
-      .from('phone_numbers')
-      .select('parcel_id')
-      .not('parcel_id', 'is', null)
-      .neq('status', 'stale')
-      .range(start, start + FETCH_CHUNK - 1) as any
-  )
-  for (const r of activePhoneNumbers) {
-    if (r.parcel_id) contactInfoSet.add(r.parcel_id)
-  }
-
-  // Check organizations for owner/PM phone or website — use a single batched query
-  // that only selects DISTINCT parcel_id to keep result size small
-  const parcelIdsNotYetMatched = leadParcelIds.filter((id: string) => !contactInfoSet.has(id))
-  for (let i = 0; i < parcelIdsNotYetMatched.length; i += 500) {
-    const batchIds = parcelIdsNotYetMatched.slice(i, i + 500)
-    const { data } = await supabase
-      .from('organizations')
-      .select('parcel_id')
-      .in('parcel_id', batchIds)
-      .or('phone.not.is.null,website.not.is.null')
-      .limit(500)
-    for (const r of data || []) contactInfoSet.add(r.parcel_id)
-  }
-
-  // Build rows from leads (leads-first — only scored buildings appear)
-  const rows = (leadsData || []).map((lead: any) => {
-    const bi = biMap[lead.parcel_id] || {}
     return {
-      parcel_id:            lead.parcel_id,
-      address:              bi.address || propMap[lead.parcel_id] || lead.parcel_id,
-      signal_score:         lead.score,
-      pm_name:              lead.pm_name,
-      pm_confidence:        lead.pm_confidence,
-      open_violation_count: bi.open_violation_count || sigViolMap[lead.parcel_id]?.open_violation_count || null,
-      open_fines_total:     bi.open_fines_total     || sigViolMap[lead.parcel_id]?.open_fines_total     || null,
-      total_fines:          bi.total_fines           || sigViolMap[lead.parcel_id]?.total_fines           || null,
-      incumbent_name:       lead.incumbent_name,
-      incumbent_staleness:  lead.incumbent_staleness,
-      incumbent_last_job:   bi.incumbent_last_job ?? null,
+      parcel_id:            row.parcel_id,
+      address:              row.address || row.parcel_id,
+      signal_score:         row.score,
+      pm_name:              row.pm_name,
+      pm_confidence:        row.pm_confidence,
+      open_violation_count: row.open_violation_count || null,
+      open_fines_total:     row.open_fines_total || null,
+      total_fines:          row.total_fines || null,
+      incumbent_name:       row.incumbent_name,
+      incumbent_staleness:  row.incumbent_staleness,
+      incumbent_last_job:   row.incumbent_last_job ?? null,
       lead: {
-        id:               lead.id,
-        status:           lead.status,
-        last_called_at:   lead.last_called_at,
-        call_count:       lead.call_count,
-        next_followup_at: lead.next_followup_at,
+        id:               row.lead_id,
+        status:           row.status,
+        last_called_at:   row.last_called_at,
+        call_count:       row.call_count,
+        next_followup_at: row.next_followup_at,
       },
     }
   })
@@ -173,17 +99,9 @@ async function getListData(filter: FilterTab) {
     }
   }
 
-  // Get tasks due today (for badge)
-  const today = new Date().toISOString().split('T')[0]
-  const { data: todayTasks } = await supabase
-    .from('tasks')
-    .select('parcel_id')
-    .lte('due_date', today)
-    .is('completed_at', null)
+  const tasksSet = new Set((todayTasks.data || []).map((t) => t.parcel_id))
 
-  const tasksSet = new Set((todayTasks || []).map((t) => t.parcel_id))
-
-  return { rows, contacts, tasksSet: Array.from(tasksSet), contactInfoParcelIds: Array.from(contactInfoSet) }
+  return { rows, contacts, tasksSet: Array.from(tasksSet), contactInfoParcelIds }
 }
 
 export default async function OutreachPage({

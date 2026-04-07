@@ -9,17 +9,22 @@ type Props = {
 }
 
 export default function BuildingNotes({ parcelId, initialBody }: Props) {
-  const [body, setBody] = useState(initialBody)
+  const [body, setBody] = useState('')
   const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle')
   const supabase = createClient()
 
-  async function handleBlur() {
-    if (body === initialBody && status === 'idle') return
+  async function handleSave() {
+    const text = body.trim()
+    if (!text) return
     setStatus('saving')
-    await supabase.from('building_notes').upsert(
-      { parcel_id: parcelId, body, updated_at: new Date().toISOString() },
-      { onConflict: 'parcel_id' }
-    )
+    await supabase.from('outreach_log').insert({
+      parcel_id: parcelId,
+      outcome: 'note',
+      notes: text,
+      contacted_at: new Date().toISOString(),
+      direction: 'outbound',
+    })
+    setBody('')
     setStatus('saved')
     setTimeout(() => setStatus('idle'), 2000)
   }
@@ -29,9 +34,8 @@ export default function BuildingNotes({ parcelId, initialBody }: Props) {
       <textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
-        onBlur={handleBlur}
-        rows={5}
-        placeholder="Notes about this building..."
+        rows={3}
+        placeholder="Add a note..."
         style={{
           width: '100%',
           padding: '12px',
@@ -46,18 +50,35 @@ export default function BuildingNotes({ parcelId, initialBody }: Props) {
           lineHeight: 1.6,
         }}
       />
-      <div
-        style={{
-          marginTop: 6,
-          height: 16,
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 10,
-          letterSpacing: '1.5px',
-          color: status === 'saved' ? '#E8A020' : '#C8C1B3',
-        }}
-      >
-        {status === 'saving' && 'SAVING...'}
-        {status === 'saved' && 'SAVED'}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+        <button
+          onClick={handleSave}
+          disabled={!body.trim() || status === 'saving'}
+          style={{
+            fontFamily: "'DM Mono', monospace",
+            fontSize: 10,
+            letterSpacing: '1.5px',
+            padding: '5px 14px',
+            background: body.trim() ? '#1C2B2B' : '#C8C1B3',
+            color: body.trim() ? '#E8A020' : '#8C8070',
+            border: 'none',
+            cursor: body.trim() ? 'pointer' : 'default',
+          }}
+        >
+          {status === 'saving' ? 'SAVING...' : 'SAVE NOTE'}
+        </button>
+        {status === 'saved' && (
+          <span
+            style={{
+              fontFamily: "'DM Mono', monospace",
+              fontSize: 10,
+              letterSpacing: '1.5px',
+              color: '#E8A020',
+            }}
+          >
+            SAVED
+          </span>
+        )}
       </div>
     </div>
   )

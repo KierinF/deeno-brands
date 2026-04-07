@@ -25,6 +25,13 @@ function toE164(input: string): string {
   return input.startsWith('+') ? `+${digits}` : input.trim()
 }
 
+const KEYPAD_KEYS: { digit: string; letters: string }[][] = [
+  [{ digit: '1', letters: '' }, { digit: '2', letters: 'ABC' }, { digit: '3', letters: 'DEF' }],
+  [{ digit: '4', letters: 'GHI' }, { digit: '5', letters: 'JKL' }, { digit: '6', letters: 'MNO' }],
+  [{ digit: '7', letters: 'PQRS' }, { digit: '8', letters: 'TUV' }, { digit: '9', letters: 'WXYZ' }],
+  [{ digit: '*', letters: '' }, { digit: '0', letters: '+' }, { digit: '#', letters: '' }],
+]
+
 export default function DialerPanel({
   parcelId,
   contactName,
@@ -234,21 +241,27 @@ export default function DialerPanel({
         {error && <p style={{ ...m, fontSize: 11, color: '#C0392B', textAlign: 'center', margin: 0 }}>{error}</p>}
       </div>
 
-      {/* DTMF Keypad — visible during connected call */}
+      {/* DTMF Keypad with letters — visible during connected call */}
       {state === 'connected' && showKeypad && (
         <div style={{ padding: '16px 20px', borderBottom: '1px solid #2E3E3E', flexShrink: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {[['1','2','3'],['4','5','6'],['7','8','9'],['*','0','#']].map((row, ri) => (
-              <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                {row.map(k => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {KEYPAD_KEYS.map((row, ri) => (
+              <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 }}>
+                {row.map(({ digit, letters }) => (
                   <button
-                    key={k}
-                    onClick={() => sendDTMF(k)}
+                    key={digit}
+                    onClick={() => sendDTMF(digit)}
                     style={{
-                      background: '#2E3E3E', border: 'none', color: '#F7F4EE',
-                      ...m, fontSize: 18, padding: '12px 0', cursor: 'pointer',
+                      background: '#2E3E3E', border: 'none',
+                      cursor: 'pointer', padding: '8px 0',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
                     }}
-                  >{k}</button>
+                  >
+                    <span style={{ ...m, fontSize: 20, color: '#F7F4EE', lineHeight: 1 }}>{digit}</span>
+                    {letters && (
+                      <span style={{ ...m, fontSize: 8, color: '#8C8070', letterSpacing: '2px', lineHeight: 1 }}>{letters}</span>
+                    )}
+                  </button>
                 ))}
               </div>
             ))}

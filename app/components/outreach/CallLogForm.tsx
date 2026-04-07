@@ -38,41 +38,35 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, phon
   const [followupTime, setFollowupTime] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const supabase = createClient()
 
   async function handleSave() {
     if (!outcome) return
     setSaving(true)
+    setError(null)
 
     try {
-      // Build the full note with phone number prefix
       const fullNotes = [
         phoneNumber ? `Called: ${phoneNumber}` : null,
         notes || null,
       ].filter(Boolean).join('\n') || null
 
-      const logEntry: Record<string, unknown> = {
+      const { error: insertError } = await supabase.from('outreach_log').insert({
         outcome,
         notes: fullNotes,
         parcel_id: parcelId,
         contact_id: contactId || null,
         contacted_at: new Date().toISOString(),
         direction: 'outbound',
-      }
-      if (callSid) logEntry.twilio_call_sid = callSid
+        twilio_call_sid: callSid || null,
+      })
 
-      if (callSid) {
-        const { data } = await supabase
-          .from('outreach_log')
-          .update({ outcome, notes: fullNotes })
-          .eq('twilio_call_sid', callSid)
-          .select('id')
-        if (!data || data.length === 0) {
-          await supabase.from('outreach_log').insert(logEntry)
-        }
-      } else {
-        await supabase.from('outreach_log').insert(logEntry)
+      if (insertError) {
+        setError(`Save failed: ${insertError.message}`)
+        setSaving(false)
+        return
       }
 
       // Auto-transition stage based on disposition
@@ -97,6 +91,8 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, phon
       setSaved(true)
       setTimeout(() => onSave(), 800)
     } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      setError(`Save failed: ${msg}`)
       console.error('Save error:', err)
     } finally {
       setSaving(false)
@@ -233,6 +229,10 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, phon
           </div>
         )}
       </div>
+
+      {error && (
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: '#C0392B', margin: 0 }}>{error}</p>
+      )}
 
       <button
         onClick={handleSave}

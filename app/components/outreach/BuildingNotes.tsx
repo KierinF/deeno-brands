@@ -6,9 +6,10 @@ import { createClient } from '@/lib/supabase/client'
 type Props = {
   parcelId: string
   initialBody: string
+  onSaved?: () => void
 }
 
-export default function BuildingNotes({ parcelId, initialBody }: Props) {
+export default function BuildingNotes({ parcelId, initialBody, onSaved }: Props) {
   const storageKey = `note-draft-${parcelId}`
   const [body, setBody] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -42,6 +43,7 @@ export default function BuildingNotes({ parcelId, initialBody }: Props) {
     setBody('')
     localStorage.removeItem(storageKey)
     setStatus('saved')
+    onSaved?.()
     setTimeout(() => setStatus('idle'), 2000)
   }
 

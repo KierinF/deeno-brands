@@ -58,7 +58,6 @@ export default function DialerPanel({
     setState('connecting')
     setError(null)
     console.log('[Twilio] initAndCall — number:', phoneNumber, 'leadId:', leadId)
-    // Warn if number isn't E.164 — Twilio requires +1XXXXXXXXXX
     if (!phoneNumber.startsWith('+')) {
       setError(`Number must be in E.164 format (e.g. +12125550000). Got: ${phoneNumber}`)
       setState('idle')
@@ -101,7 +100,6 @@ export default function DialerPanel({
       callRef.current = call
       console.log('[Twilio] device.connect() returned call object')
 
-      // Auto-transition lead to in_progress when call is initiated
       onCallStarted?.()
 
       call.on('accept', () => {
@@ -222,6 +220,7 @@ export default function DialerPanel({
             leadId={leadId || null}
             contactId={contactId || null}
             callSid={callSid}
+            phoneNumber={phoneNumber}
             onSave={onClose}
           />
         </div>

@@ -1564,7 +1564,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 <div style={{ marginBottom: 16 }}>
                   <div style={{ ...m, fontSize: 11, letterSpacing: '2px', color: '#8C8070', marginBottom: 8 }}>NOTES</div>
                   <div style={{ background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '10px 12px' }}>
-                    <BuildingNotes parcelId={parcelId} initialBody={buildingNotes?.body || ''} />
+                    <BuildingNotes parcelId={parcelId} initialBody={buildingNotes?.body || ''} onSaved={load} />
                   </div>
                 </div>
                 <div>
@@ -1765,7 +1765,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
           signalBrief={signalBrief}
           leadId={lead?.id ?? null}
           onCallStarted={handleCallStarted}
-          onClose={() => setActiveDial(null)}
+          onClose={() => { setActiveDial(null); load() }}
         />
       )}
     </div>

@@ -29,7 +29,7 @@ async function getListData(filter: FilterTab) {
   const leadsData = await fetchAllRows((start) =>
     supabase
       .from('leads')
-      .select('parcel_id, id, status, score, pm_name, pm_confidence, pm_phone, incumbent_name, incumbent_staleness, last_called_at, call_count, next_followup_at')
+      .select('parcel_id, id, status, score, pm_name, pm_confidence, pm_phone, has_pm_contact, incumbent_name, incumbent_staleness, last_called_at, call_count, next_followup_at')
       .range(start, start + FETCH_CHUNK - 1) as any
   )
 
@@ -84,31 +84,14 @@ async function getListData(filter: FilterTab) {
     }
   }
 
-  // Build contact info set: parcel_ids that have at least one phone or website.
-  // Use fetchAllRows with .in() batches: scoped to lead parcels AND properly paginated
-  // so we never hit the default 1000-row truncation.
+  // Build contact info set from leads data we already fetched (no extra queries).
+  // pm_phone or has_pm_contact means we have contact info for that building.
   const contactInfoSet = new Set<string>()
-
-  // PM phone from leads
   for (const lead of leadsData || []) {
-    if (lead.pm_phone) contactInfoSet.add(lead.parcel_id)
+    if (lead.pm_phone || lead.has_pm_contact) contactInfoSet.add(lead.parcel_id)
   }
 
-  // Organizations with phone or website — batched by parcel, paginated within each batch
-  for (let i = 0; i < leadParcelIds.length; i += 500) {
-    const batchIds = leadParcelIds.slice(i, i + 500)
-    const batchData = await fetchAllRows((start) =>
-      supabase
-        .from('organizations')
-        .select('parcel_id')
-        .in('parcel_id', batchIds)
-        .or('phone.not.is.null,website.not.is.null')
-        .range(start, start + FETCH_CHUNK - 1) as any
-    )
-    for (const r of batchData) contactInfoSet.add(r.parcel_id)
-  }
-
-  // Active phone numbers — small table (< 2k rows), single paginated fetch is fine
+  // Also check phone_numbers table — small table (< 2k rows), single paginated fetch
   const activePhoneNumbers = await fetchAllRows((start) =>
     supabase
       .from('phone_numbers')
@@ -119,6 +102,20 @@ async function getListData(filter: FilterTab) {
   )
   for (const r of activePhoneNumbers) {
     if (r.parcel_id) contactInfoSet.add(r.parcel_id)
+  }
+
+  // Check organizations for owner/PM phone or website — use a single batched query
+  // that only selects DISTINCT parcel_id to keep result size small
+  const parcelIdsNotYetMatched = leadParcelIds.filter((id: string) => !contactInfoSet.has(id))
+  for (let i = 0; i < parcelIdsNotYetMatched.length; i += 500) {
+    const batchIds = parcelIdsNotYetMatched.slice(i, i + 500)
+    const { data } = await supabase
+      .from('organizations')
+      .select('parcel_id')
+      .in('parcel_id', batchIds)
+      .or('phone.not.is.null,website.not.is.null')
+      .limit(500)
+    for (const r of data || []) contactInfoSet.add(r.parcel_id)
   }
 
   // Build rows from leads (leads-first — only scored buildings appear)

@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import twilio from 'twilio'
+
+// Return empty TwiML — Twilio requires text/xml from action URLs
+function twimlResponse() {
+  const VoiceResponse = twilio.twiml.VoiceResponse
+  const twiml = new VoiceResponse()
+  return new NextResponse(twiml.toString(), {
+    headers: { 'Content-Type': 'text/xml' },
+  })
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,8 +18,6 @@ export async function POST(request: NextRequest) {
     const callStatus = body.get('CallStatus') as string
     const callDuration = body.get('CallDuration') as string | null
     const direction = body.get('Direction') as string | null
-    const from = body.get('From') as string | null
-    const to = body.get('To') as string | null
 
     // These come from our custom query params
     const url = new URL(request.url)
@@ -17,7 +25,7 @@ export async function POST(request: NextRequest) {
     const contactId = url.searchParams.get('contact_id') || (body.get('contact_id') as string | null)
 
     if (!callSid) {
-      return NextResponse.json({ error: 'Missing CallSid' }, { status: 400 })
+      return twimlResponse()
     }
 
     const supabase = await createClient()
@@ -60,9 +68,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ ok: true })
+    return twimlResponse()
   } catch (err) {
     console.error('Status callback error:', err)
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 })
+    return twimlResponse()
   }
 }

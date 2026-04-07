@@ -11,6 +11,7 @@ type Props = {
   leadId: string | null
   contactId: string | null
   callSid: string | null
+  phoneNumber?: string | null
   onSave: () => void
 }
 
@@ -21,8 +22,6 @@ const OUTCOMES: { key: Outcome; label: string }[] = [
   { key: 'bad_number', label: 'BAD NUMBER' },
 ]
 
-// Dispositions only shown when outcome = connected.
-// Each maps to an automatic stage transition.
 const DISPOS: { key: Dispo; label: string; stage: string | null }[] = [
   { key: 'none',            label: 'NO DISPO',       stage: null },
   { key: 'meeting_booked',  label: 'MEETING BOOKED', stage: 'meeting_booked' },
@@ -30,7 +29,7 @@ const DISPOS: { key: Dispo; label: string; stage: string | null }[] = [
   { key: 'nurture',         label: 'NURTURE',        stage: 'nurture' },
 ]
 
-export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSave }: Props) {
+export default function CallLogForm({ parcelId, leadId, contactId, callSid, phoneNumber, onSave }: Props) {
   const [outcome, setOutcome] = useState<Outcome | null>(null)
   const [dispo, setDispo] = useState<Dispo>('none')
   const [notes, setNotes] = useState('')
@@ -47,9 +46,15 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSa
     setSaving(true)
 
     try {
+      // Build the full note with phone number prefix
+      const fullNotes = [
+        phoneNumber ? `Called: ${phoneNumber}` : null,
+        notes || null,
+      ].filter(Boolean).join('\n') || null
+
       const logEntry: Record<string, unknown> = {
         outcome,
-        notes: notes || null,
+        notes: fullNotes,
         parcel_id: parcelId,
         contact_id: contactId || null,
         contacted_at: new Date().toISOString(),
@@ -58,13 +63,11 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSa
       if (callSid) logEntry.twilio_call_sid = callSid
 
       if (callSid) {
-        // Try to update the row created by Twilio status callback
         const { data } = await supabase
           .from('outreach_log')
-          .update({ outcome, notes: notes || null })
+          .update({ outcome, notes: fullNotes })
           .eq('twilio_call_sid', callSid)
           .select('id')
-        // If no row was found (status callback never fired), insert instead
         if (!data || data.length === 0) {
           await supabase.from('outreach_log').insert(logEntry)
         }
@@ -161,7 +164,7 @@ export default function CallLogForm({ parcelId, leadId, contactId, callSid, onSa
         />
       </div>
 
-      {/* Disposition — only relevant when connected, drives auto stage transition */}
+      {/* Disposition */}
       {outcome === 'connected' && (
         <div>
           <span style={labelStyle}>DISPOSITION</span>

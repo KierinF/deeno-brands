@@ -16,6 +16,15 @@ const TYPE_ORDER: Record<string, number> = {
   violation_respondent: 4,
 }
 
+function outcomeBadgeColor(outcome: string | null): string {
+  switch (outcome) {
+    case 'connected': return '#1C2B2B'
+    case 'voicemail': return '#8C8070'
+    case 'note': return '#2E5D8E'
+    default: return '#C8C1B3'
+  }
+}
+
 export default async function BuildingDetailPage({
   params,
 }: {
@@ -461,7 +470,7 @@ export default async function BuildingDetailPage({
                 margin: '0 0 10px 0',
               }}
             >
-              NOTES
+              ADD NOTE
             </p>
             <BuildingNotes parcelId={parcel_id} initialBody={buildingNotes?.body || ''} />
           </div>
@@ -512,12 +521,7 @@ export default async function BuildingDetailPage({
                           fontSize: 10,
                           letterSpacing: '1px',
                           color: '#F7F4EE',
-                          background:
-                            entry.outcome === 'connected'
-                              ? '#1C2B2B'
-                              : entry.outcome === 'voicemail'
-                              ? '#8C8070'
-                              : '#C8C1B3',
+                          background: outcomeBadgeColor(entry.outcome),
                           padding: '2px 8px',
                         }}
                       >
@@ -531,7 +535,7 @@ export default async function BuildingDetailPage({
                           {Math.floor(entry.duration_secs / 60)}m{entry.duration_secs % 60}s
                         </span>
                       )}
-                      {entry.direction && (
+                      {entry.direction && entry.outcome !== 'note' && (
                         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: '#C8C1B3', letterSpacing: '1px' }}>
                           {entry.direction.toUpperCase()}
                         </span>
@@ -542,10 +546,12 @@ export default async function BuildingDetailPage({
                         {entry.notes}
                       </p>
                     )}
-                    <TranscriptViewer
-                      transcript={entry.transcript || null}
-                      recordingUrl={entry.recording_url || null}
-                    />
+                    {entry.outcome !== 'note' && (
+                      <TranscriptViewer
+                        transcript={entry.transcript || null}
+                        recordingUrl={entry.recording_url || null}
+                      />
+                    )}
                   </div>
                 ))}
               </div>

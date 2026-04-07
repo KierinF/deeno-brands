@@ -200,12 +200,12 @@ type AddContactState = {
 
 type Tab = 'main' | 'signals'
 
-export default function BuildingPanel({ parcelId, onClose }: { parcelId: string; onClose: () => void }) {
+export default function BuildingPanel({ parcelId, onClose, onDialRequest }: { parcelId: string; onClose: () => void; onDialRequest?: (dial: { phoneNumber: string; contactId: string; contactName: string; parcelId: string; buildingAddress: string; signalBrief: string; leadId: string | null }) => void }) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('main')
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['property_manager', 'owner']))
-  const [activeDial, setActiveDial] = useState<ActiveDial | null>(null)
+  const activeDial = null // dialer state now lives in OutreachListClient
   const [manualDialInput, setManualDialInput] = useState<string | null>(null)
   const [addContact, setAddContact] = useState<AddContactState | null>(null)
   const [savingContact, setSavingContact] = useState(false)
@@ -821,10 +821,14 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               : orgPhones
             }
             onUpdate={null}
-            onCallRequest={(phoneNumber) => setActiveDial({
+            onCallRequest={(phoneNumber) => onDialRequest?.({
               phoneNumber,
               contactId: org?.id ?? orgProfile?.id ?? '',
               contactName: companyName,
+              parcelId,
+              buildingAddress,
+              signalBrief,
+              leadId: lead?.id ?? null,
             })}
           />
           {!resolvedPhone && orgPhones.length === 0 && (
@@ -907,10 +911,14 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 contactId={contact.id}
                 numbers={cphones}
                 onUpdate={null}
-                onCallRequest={(phoneNumber) => setActiveDial({
+                onCallRequest={(phoneNumber) => onDialRequest?.({
                   phoneNumber,
                   contactId: contact.id,
                   contactName: name,
+                  parcelId,
+                  buildingAddress,
+                  signalBrief,
+                  leadId: lead?.id ?? null,
                 })}
               />
             </div>
@@ -1225,10 +1233,14 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                           contactId={entry.contact.id}
                           numbers={(phoneNumbers || []).filter((p: any) => p.contact_id === entry.contact.id)}
                           onUpdate={null}
-                          onCallRequest={(phoneNumber) => setActiveDial({
+                          onCallRequest={(phoneNumber) => onDialRequest?.({
                             phoneNumber,
                             contactId: entry.contact.id,
                             contactName: `${entry.contact.first_name} ${entry.contact.last_name || ''}`.trim(),
+                            parcelId,
+                            buildingAddress,
+                            signalBrief,
+                            leadId: lead?.id ?? null,
                           })}
                         />
                       </div>
@@ -1712,7 +1724,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
                 if (!manualDialInput) return
                 const digits = manualDialInput.replace(/\D/g, '')
                 const e164 = digits.length === 10 ? `+1${digits}` : digits.length === 11 && digits[0] === '1' ? `+${digits}` : manualDialInput
-                setActiveDial({ phoneNumber: e164, contactId: '', contactName: 'Manual Dial' })
+                onDialRequest?.({ phoneNumber: e164, contactId: '', contactName: 'Manual Dial', parcelId, buildingAddress, signalBrief, leadId: lead?.id ?? null })
                 setManualDialInput(null)
               }}
               style={{ marginTop: 4, background: manualDialInput ? '#E8A020' : '#2E3E3E', border: 'none', color: manualDialInput ? '#1C2B2B' : '#8C8070', ...m, fontSize: 13, fontWeight: 700, letterSpacing: '1.5px', padding: '13px 0', cursor: manualDialInput ? 'pointer' : 'default' }}
@@ -1765,20 +1777,7 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
         </div>
       )}
 
-      {/* Dialer side panel — renders alongside content, not as overlay */}
-      {activeDial && (
-        <DialerPanel
-          parcelId={parcelId}
-          contactId={activeDial.contactId}
-          contactName={activeDial.contactName}
-          phoneNumber={activeDial.phoneNumber}
-          buildingAddress={buildingAddress}
-          signalBrief={signalBrief}
-          leadId={lead?.id ?? null}
-          onCallStarted={handleCallStarted}
-          onClose={() => { setActiveDial(null); load() }}
-        />
-      )}
+      {/* Dialer now rendered by OutreachListClient so it survives property changes */}
     </div>
   )
 }

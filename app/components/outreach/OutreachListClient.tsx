@@ -122,7 +122,15 @@ export default function OutreachListClient({
   const [boroughFilter, setBoroughFilter] = useState<Set<string>>(new Set(ALL_BOROUGHS))
   const [contactFilter, setContactFilter] = useState<'all' | 'has_contact'>('all')
   const [dialInput, setDialInput] = useState<string | null>(null)
-  const [activeDial, setActiveDial] = useState<{ phoneNumber: string } | null>(null)
+  const [activeDial, setActiveDial] = useState<{
+    phoneNumber: string
+    contactId?: string
+    contactName?: string
+    parcelId?: string
+    buildingAddress?: string
+    signalBrief?: string
+    leadId?: string | null
+  } | null>(null)
   const tasksSet = new Set(tasksParcelIds)
   const mono = { fontFamily: "'DM Mono', monospace" }
 
@@ -665,6 +673,7 @@ export default function OutreachListClient({
               key={selectedId}
               parcelId={selectedId}
               onClose={() => setSelectedId(null)}
+              onDialRequest={(dial) => setActiveDial(dial)}
             />
           </div>
         )}
@@ -677,13 +686,13 @@ export default function OutreachListClient({
         }}>
           {activeDial ? (
             <DialerPanel
-              parcelId={selectedId || ''}
-              contactId=""
-              contactName="Manual Dial"
+              parcelId={activeDial.parcelId || selectedId || ''}
+              contactId={activeDial.contactId || ''}
+              contactName={activeDial.contactName || 'Manual Dial'}
               phoneNumber={activeDial.phoneNumber}
-              buildingAddress={selectedId ? (initialRows.find(r => r.parcel_id === selectedId)?.address || '') : ''}
-              signalBrief=""
-              leadId={null}
+              buildingAddress={activeDial.buildingAddress || (selectedId ? (initialRows.find(r => r.parcel_id === selectedId)?.address || '') : '')}
+              signalBrief={activeDial.signalBrief || ''}
+              leadId={activeDial.leadId ?? null}
               onClose={() => { setActiveDial(null); setDialInput(null) }}
             />
           ) : (

@@ -1440,9 +1440,20 @@ export default function BuildingPanel({ parcelId, onClose }: { parcelId: string;
               </span>
             )}
             <div style={{ minWidth: 0 }}>
-              <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {buildingAddress}
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 22, letterSpacing: '2px', color: '#F7F4EE', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {buildingAddress}
+                </h2>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(buildingAddress + ', ' + (boroughFromParcelId(parcelId) || 'New York') + ', NY')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Open in Google Maps"
+                  style={{ ...m, fontSize: 9, color: '#8C8070', background: '#2E3E3E', border: 'none', padding: '3px 7px', textDecoration: 'none', flexShrink: 0, letterSpacing: '1px' }}
+                >
+                  MAP
+                </a>
+              </div>
               {boroughFromParcelId(parcelId) && (
                 <div style={{ ...m, fontSize: 13, color: '#8C8070', letterSpacing: '1px', marginTop: 1 }}>
                   {boroughFromParcelId(parcelId)}

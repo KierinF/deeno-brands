@@ -29,7 +29,6 @@ type Props = {
 
 const SOURCES = ['manual', 'scraped', 'web_enriched', 'whitepages', 'linkedin', 'other']
 
-// Normalize to E.164 for US numbers
 function toE164(input: string): string {
   const digits = input.replace(/\D/g, '')
   if (digits.length === 10) return `+1${digits}`
@@ -49,6 +48,8 @@ export default function PhoneNumberManager({
   const [newNumber, setNewNumber] = useState('')
   const [newSource, setNewSource] = useState('manual')
   const [adding, setAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [deleteInput, setDeleteInput] = useState('')
   const supabase = createClient()
@@ -59,29 +60,18 @@ export default function PhoneNumberManager({
     setNumbers((prev) => prev.filter((n) => n.id !== id))
   }
 
-  function deleteNumber(id: string) {
-    if (id.startsWith('org-')) return
-    setPendingDeleteId(id)
-    setDeleteInput('')
+  function startEdit(num: PhoneNumber) {
+    if (num.id.startsWith('org-')) return
+    setEditingId(num.id)
+    setEditValue(num.number)
   }
 
-  async function markStale(id: string) {
-    if (id.startsWith('org-')) return
-    await supabase
-      .from('phone_numbers')
-      .update({ status: 'stale', marked_stale_at: new Date().toISOString() })
-      .eq('id', id)
-    setNumbers((prev) =>
-      prev.map((n) =>
-        n.id === id ? { ...n, status: 'stale', marked_stale_at: new Date().toISOString() } : n
-      )
-    )
-  }
-
-  async function markBad(id: string) {
-    if (id.startsWith('org-')) return
-    await supabase.from('phone_numbers').update({ status: 'bad' }).eq('id', id)
-    setNumbers((prev) => prev.map((n) => (n.id === id ? { ...n, status: 'bad' } : n)))
+  async function saveEdit(id: string) {
+    if (!editValue.trim()) return
+    const normalized = toE164(editValue.trim())
+    await supabase.from('phone_numbers').update({ number: normalized }).eq('id', id)
+    setNumbers((prev) => prev.map((n) => n.id === id ? { ...n, number: normalized } : n))
+    setEditingId(null)
   }
 
   async function addNumber() {
@@ -107,12 +97,6 @@ export default function PhoneNumberManager({
     setAdding(false)
   }
 
-  const statusColor = (status: string | null | undefined) => {
-    if (status === 'stale') return '#8C8070'
-    if (status === 'bad') return '#C0392B'
-    return '#1C2B2B'
-  }
-
   const m = { fontFamily: "'DM Mono', monospace" }
 
   const inputStyle = {
@@ -131,7 +115,7 @@ export default function PhoneNumberManager({
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
           {numbers.map((num) => (
             <div key={num.id} style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              {onCallRequest && num.status !== 'bad' && (
+              {onCallRequest && (
                 <button
                   onClick={() => onCallRequest(num.number)}
                   style={{
@@ -150,42 +134,51 @@ export default function PhoneNumberManager({
                   CALL
                 </button>
               )}
-              <span style={{ ...m, fontSize: 13, color: statusColor(num.status), textDecoration: num.status === 'bad' ? 'line-through' : 'none' }}>
-                {num.number}
-              </span>
-              {num.source && (
-                num.source_url ? (
-                  <a
-                    href={num.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={`Source: ${num.source_url}`}
-                    style={{ ...m, fontSize: 9, letterSpacing: '1px', color: '#C8C1B3', padding: '2px 5px', border: '1px solid #C8C1B3', textDecoration: 'none' }}
-                  >
-                    {num.source.toUpperCase()} ↗
-                  </a>
-                ) : (
-                  <span style={{ ...m, fontSize: 9, letterSpacing: '1px', color: '#C8C1B3', padding: '2px 5px', border: '1px solid #C8C1B3' }}>
-                    {num.source.toUpperCase()}
-                  </span>
-                )
-              )}
-              {num.status && num.status !== 'active' && (
-                <span style={{ ...m, fontSize: 9, letterSpacing: '1px', color: num.status === 'bad' ? '#C0392B' : '#8C8070', padding: '2px 5px', border: `1px solid ${num.status === 'bad' ? '#C0392B' : '#8C8070'}` }}>
-                  {num.status.toUpperCase()}
-                </span>
-              )}
-              {num.status !== 'stale' && num.status !== 'bad' && !num.id.startsWith('org-') && (
+              {editingId === num.id ? (
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <input
+                    autoFocus
+                    type="tel"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(num.id); if (e.key === 'Escape') setEditingId(null) }}
+                    style={{ ...inputStyle, width: 140 }}
+                  />
+                  <button onClick={() => saveEdit(num.id)} style={{ ...m, fontSize: 9, color: '#E8A020', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>save</button>
+                  <button onClick={() => setEditingId(null)} style={{ ...m, fontSize: 9, color: '#8C8070', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>cancel</button>
+                </div>
+              ) : (
                 <>
-                  <button onClick={() => markStale(num.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#8C8070', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                    stale
-                  </button>
-                  <button onClick={() => markBad(num.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                    bad
-                  </button>
-                  <button onClick={() => deleteNumber(num.id)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
-                    delete
-                  </button>
+                  <span style={{ ...m, fontSize: 13, color: '#1C2B2B' }}>
+                    {num.number}
+                  </span>
+                  {num.source && (
+                    num.source_url ? (
+                      <a
+                        href={num.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title={`Source: ${num.source_url}`}
+                        style={{ ...m, fontSize: 9, letterSpacing: '1px', color: '#C8C1B3', padding: '2px 5px', border: '1px solid #C8C1B3', textDecoration: 'none' }}
+                      >
+                        {num.source.toUpperCase()} ↗
+                      </a>
+                    ) : (
+                      <span style={{ ...m, fontSize: 9, letterSpacing: '1px', color: '#C8C1B3', padding: '2px 5px', border: '1px solid #C8C1B3' }}>
+                        {num.source.toUpperCase()}
+                      </span>
+                    )
+                  )}
+                  {!num.id.startsWith('org-') && (
+                    <>
+                      <button onClick={() => startEdit(num)} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#8C8070', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                        edit
+                      </button>
+                      <button onClick={() => { setPendingDeleteId(num.id); setDeleteInput('') }} style={{ background: 'none', border: 'none', ...m, fontSize: 9, color: '#C0392B', cursor: 'pointer', padding: 0, textDecoration: 'underline' }}>
+                        delete
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>

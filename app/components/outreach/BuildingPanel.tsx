@@ -200,7 +200,7 @@ type AddContactState = {
 
 type Tab = 'main' | 'signals'
 
-export default function BuildingPanel({ parcelId, onClose, onDialRequest }: { parcelId: string; onClose: () => void; onDialRequest?: (dial: { phoneNumber: string; contactId: string; contactName: string; parcelId: string; buildingAddress: string; signalBrief: string; leadId: string | null }) => void }) {
+export default function BuildingPanel({ parcelId, onClose, onDialRequest, refreshTrigger }: { parcelId: string; onClose: () => void; onDialRequest?: (dial: { phoneNumber: string; contactId: string; contactName: string; parcelId: string; buildingAddress: string; signalBrief: string; leadId: string | null }) => void; refreshTrigger?: number }) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('main')
@@ -226,6 +226,7 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest }: { pa
   }, [parcelId])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => { if (refreshTrigger) load() }, [refreshTrigger]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (data?.building?.contact_order) setContactOrder(data.building.contact_order)
   }, [data?.building?.contact_order])

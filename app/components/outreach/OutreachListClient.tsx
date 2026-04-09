@@ -131,6 +131,7 @@ export default function OutreachListClient({
     signalBrief?: string
     leadId?: string | null
   } | null>(null)
+  const [panelRefresh, setPanelRefresh] = useState(0)
   const tasksSet = new Set(tasksParcelIds)
   const mono = { fontFamily: "'DM Mono', monospace" }
 
@@ -674,6 +675,7 @@ export default function OutreachListClient({
               parcelId={selectedId}
               onClose={() => setSelectedId(null)}
               onDialRequest={(dial) => setActiveDial(dial)}
+              refreshTrigger={panelRefresh}
             />
           </div>
         )}
@@ -693,7 +695,7 @@ export default function OutreachListClient({
               buildingAddress={activeDial.buildingAddress || (selectedId ? (initialRows.find(r => r.parcel_id === selectedId)?.address || '') : '')}
               signalBrief={activeDial.signalBrief || ''}
               leadId={activeDial.leadId ?? null}
-              onClose={() => { setActiveDial(null); setDialInput(null) }}
+              onClose={() => { setActiveDial(null); setDialInput(null); setPanelRefresh(n => n + 1) }}
             />
           ) : (
             <div style={{

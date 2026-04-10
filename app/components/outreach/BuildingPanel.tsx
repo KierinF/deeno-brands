@@ -589,16 +589,15 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
     return null
   }
 
-  const signalsByBin: Record<string, any[]> = {}
-  const unmatchedSignals: any[] = []
+  // Build a lookup: signal id → building address (for display as tag on each signal row)
+  const signalBuildingAddr: Record<string, string> = {}
   if (hasMultipleBuildings) {
-    for (const b of buildingsList) signalsByBin[b.bin] = []
+    const binToAddr: Record<string, string> = {}
+    for (const b of buildingsList) binToAddr[b.bin] = b.address
     for (const sig of thisSignals) {
       const bin = matchSignalToBuilding(sig)
-      if (bin && signalsByBin[bin]) {
-        signalsByBin[bin].push(sig)
-      } else {
-        unmatchedSignals.push(sig)
+      if (bin && binToAddr[bin]) {
+        signalBuildingAddr[sig.id] = binToAddr[bin]
       }
     }
   }
@@ -1691,62 +1690,53 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
                 )
               })()}
 
-              {/* Buildings on this lot — shown when multiple BINs exist */}
+              {/* Lot summary — only when multiple buildings */}
               {hasMultipleBuildings && (
-                <div style={{ marginBottom: 20 }}>
-                  <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>
-                    BUILDINGS ON THIS LOT ({buildingsList.length})
+                <div style={{ marginBottom: 16, background: '#F7F4EE', border: '1px solid #C8C1B3', padding: '10px 14px' }}>
+                  <div style={{ ...m, fontSize: 10, letterSpacing: '1.5px', color: '#8C8070', marginBottom: 6 }}>{buildingsList.length} BUILDINGS ON THIS LOT</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {buildingsList.map(b => (
+                      <span key={b.bin} style={{ ...m, fontSize: 11, color: '#1C2B2B', padding: '2px 8px', background: '#FFFFFF', border: '1px solid #C8C1B3' }}>
+                        {b.address}{b.is_primary ? ' *' : ''}
+                      </span>
+                    ))}
                   </div>
-                  {buildingsList.map((b) => {
-                    const bSigs = signalsByBin[b.bin] || []
-                    const bOpen = bSigs.filter((s: any) => s.is_open)
-                    const bClosed = bSigs.filter((s: any) => !s.is_open)
-                    return (
-                      <div key={b.bin} style={{ marginBottom: 16, background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '12px 14px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: bSigs.length > 0 ? 10 : 0 }}>
-                          <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{b.address}</span>
-                          {b.is_primary && <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: '#8C8070', padding: '1px 5px', border: '1px solid #C8C1B3' }}>PRIMARY</span>}
-                          {bOpen.length > 0 && <span style={{ ...m, fontSize: 10, color: '#E8A020' }}>{bOpen.length} open</span>}
-                          {bClosed.length > 0 && <span style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>{bClosed.length} closed</span>}
-                          {bSigs.length === 0 && <span style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>no signals</span>}
-                        </div>
-                        {bOpen.map(renderSignalRow)}
-                        {bClosed.map(renderSignalRow)}
-                      </div>
-                    )
-                  })}
-                  {unmatchedSignals.length > 0 && (
-                    <div style={{ marginBottom: 16, background: '#FFFFFF', border: '1px dashed #C8C1B3', padding: '12px 14px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                        <span style={{ ...m, fontSize: 13, color: '#8C8070', fontWeight: 700 }}>Unmatched to building</span>
-                        <span style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>{unmatchedSignals.length}</span>
-                      </div>
-                      {unmatchedSignals.map(renderSignalRow)}
-                    </div>
-                  )}
                 </div>
               )}
 
-              {/* Flat view — when single building or no buildings data */}
-              {!hasMultipleBuildings && openSignals.length > 0 && (
+              {openSignals.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>
                     <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>OPEN</span>
                     <span style={{ ...m, fontSize: 11, color: '#E8A020' }}>{openSignals.length}</span>
                     <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>active / unresolved</span>
                   </div>
-                  {openSignals.map(renderSignalRow)}
+                  {openSignals.map((sig: any) => (
+                    <div key={sig.id}>
+                      {hasMultipleBuildings && signalBuildingAddr[sig.id] && (
+                        <div style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '1px', marginBottom: 2, marginTop: 4 }}>@ {signalBuildingAddr[sig.id]}</div>
+                      )}
+                      {renderSignalRow(sig)}
+                    </div>
+                  ))}
                 </div>
               )}
 
-              {!hasMultipleBuildings && closedSignals.length > 0 && (
+              {closedSignals.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '2px solid #C8C1B3', marginBottom: 10 }}>
                     <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#8C8070', fontWeight: 700 }}>CLOSED</span>
                     <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{closedSignals.length}</span>
                     <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>compliance history</span>
                   </div>
-                  {closedSignals.map(renderSignalRow)}
+                  {closedSignals.map((sig: any) => (
+                    <div key={sig.id}>
+                      {hasMultipleBuildings && signalBuildingAddr[sig.id] && (
+                        <div style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '1px', marginBottom: 2, marginTop: 4 }}>@ {signalBuildingAddr[sig.id]}</div>
+                      )}
+                      {renderSignalRow(sig)}
+                    </div>
+                  ))}
                 </div>
               )}
 

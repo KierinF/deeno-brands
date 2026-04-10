@@ -84,8 +84,9 @@ export async function GET(request: Request) {
 
   const allPhoneNumbers = [...(phoneNumbers || []), ...(profilePhones || [])]
 
-  // If building_intelligence has no row (non-Manhattan), get address from properties table
-  let address = building?.address ?? null
+  // Prefer DOB primary building address, fall back to BI, then properties
+  const primaryBuilding = (buildings || []).find((b: any) => b.is_primary)
+  let address = primaryBuilding?.address ?? building?.address ?? null
   if (!address) {
     const { data: prop } = await supabase
       .from('properties')

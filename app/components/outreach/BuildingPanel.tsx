@@ -1711,12 +1711,12 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
                     <span style={{ ...m, fontSize: 11, color: '#E8A020' }}>{openSignals.length}</span>
                     <span style={{ ...m, fontSize: 11, color: '#8C8070' }}>active / unresolved</span>
                   </div>
-                  {openSignals.map((sig: any) => (
+                  {openSignals.map((sig: any, i: number) => (
                     <div key={sig.id}>
                       {hasMultipleBuildings && signalBuildingAddr[sig.id] && (
                         <div style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '1px', marginBottom: 2, marginTop: 4 }}>@ {signalBuildingAddr[sig.id]}</div>
                       )}
-                      {renderSignalRow(sig)}
+                      {renderSignalRow(sig, i)}
                     </div>
                   ))}
                 </div>
@@ -1729,12 +1729,12 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
                     <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{closedSignals.length}</span>
                     <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>compliance history</span>
                   </div>
-                  {closedSignals.map((sig: any) => (
+                  {closedSignals.map((sig: any, i: number) => (
                     <div key={sig.id}>
                       {hasMultipleBuildings && signalBuildingAddr[sig.id] && (
                         <div style={{ ...m, fontSize: 9, color: '#8C8070', letterSpacing: '1px', marginBottom: 2, marginTop: 4 }}>@ {signalBuildingAddr[sig.id]}</div>
                       )}
-                      {renderSignalRow(sig)}
+                      {renderSignalRow(sig, i)}
                     </div>
                   ))}
                 </div>

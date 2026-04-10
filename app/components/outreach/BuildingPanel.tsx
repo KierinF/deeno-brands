@@ -246,7 +246,7 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
   if (loading) return <div style={{ ...m, fontSize: 14, color: '#8C8070', padding: 32 }}>Loading...</div>
   if (!data?.lead && !data?.address) return <div style={{ ...m, fontSize: 14, color: '#8C8070', padding: 32 }}>Not found.</div>
 
-  const { building: _building, address: buildingAddress, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles, permitOrgs } = data
+  const { building: _building, address: buildingAddress, contacts, phoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles, permitOrgs, buildings } = data
   // Merge building_intelligence with lead fallbacks so non-Manhattan buildings (no bi row) still render
   const building = {
     ..._building,
@@ -559,6 +559,49 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
     .sort((a: any, b: any) => (b.signal_date || '').localeCompare(a.signal_date || ''))
   const closedSignals = thisSignals.filter((s: any) => !s.is_open)
     .sort((a: any, b: any) => (b.signal_date || '').localeCompare(a.signal_date || ''))
+
+  // Group signals by BIN when buildings data is available
+  const buildingsList = (buildings || []) as { bin: string; address: string; is_primary: boolean }[]
+  const hasMultipleBuildings = buildingsList.length > 1
+
+  function matchSignalToBuilding(sig: any): string | null {
+    if (!hasMultipleBuildings) return null
+    const rd = sig.raw_data || {}
+    // Try BIN match first
+    const sigBin = rd.bin || ''
+    if (sigBin) {
+      const match = buildingsList.find(b => b.bin === sigBin)
+      if (match) return match.bin
+    }
+    // Try address match — normalize and compare house number + first street word
+    const sigAddr = (rd.address || rd.violation_address || '').toUpperCase().trim()
+    if (sigAddr) {
+      const sigMatch = sigAddr.match(/^(\d[\d\-]*)\s+(.+)/)
+      if (sigMatch) {
+        for (const b of buildingsList) {
+          const bMatch = (b.address || '').toUpperCase().match(/^(\d[\d\-]*)\s+(.+)/)
+          if (bMatch && sigMatch[1] === bMatch[1] && sigMatch[2].split(/\s+/)[0] === bMatch[2].split(/\s+/)[0]) {
+            return b.bin
+          }
+        }
+      }
+    }
+    return null
+  }
+
+  const signalsByBin: Record<string, any[]> = {}
+  const unmatchedSignals: any[] = []
+  if (hasMultipleBuildings) {
+    for (const b of buildingsList) signalsByBin[b.bin] = []
+    for (const sig of thisSignals) {
+      const bin = matchSignalToBuilding(sig)
+      if (bin && signalsByBin[bin]) {
+        signalsByBin[bin].push(sig)
+      } else {
+        unmatchedSignals.push(sig)
+      }
+    }
+  }
 
   // Group contacts by type, then sub-group by company (exclude bad data)
   // permit_applicant merges into trade_referral (both shown as CONTRACTORS)
@@ -1648,7 +1691,44 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
                 )
               })()}
 
-              {openSignals.length > 0 && (
+              {/* Buildings on this lot — shown when multiple BINs exist */}
+              {hasMultipleBuildings && (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>
+                    BUILDINGS ON THIS LOT ({buildingsList.length})
+                  </div>
+                  {buildingsList.map((b) => {
+                    const bSigs = signalsByBin[b.bin] || []
+                    const bOpen = bSigs.filter((s: any) => s.is_open)
+                    const bClosed = bSigs.filter((s: any) => !s.is_open)
+                    return (
+                      <div key={b.bin} style={{ marginBottom: 16, background: '#FFFFFF', border: '1px solid #C8C1B3', padding: '12px 14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: bSigs.length > 0 ? 10 : 0 }}>
+                          <span style={{ ...m, fontSize: 13, color: '#1C2B2B', fontWeight: 700 }}>{b.address}</span>
+                          {b.is_primary && <span style={{ ...m, fontSize: 8, letterSpacing: '1px', color: '#8C8070', padding: '1px 5px', border: '1px solid #C8C1B3' }}>PRIMARY</span>}
+                          {bOpen.length > 0 && <span style={{ ...m, fontSize: 10, color: '#E8A020' }}>{bOpen.length} open</span>}
+                          {bClosed.length > 0 && <span style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>{bClosed.length} closed</span>}
+                          {bSigs.length === 0 && <span style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>no signals</span>}
+                        </div>
+                        {bOpen.map(renderSignalRow)}
+                        {bClosed.map(renderSignalRow)}
+                      </div>
+                    )
+                  })}
+                  {unmatchedSignals.length > 0 && (
+                    <div style={{ marginBottom: 16, background: '#FFFFFF', border: '1px dashed #C8C1B3', padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                        <span style={{ ...m, fontSize: 13, color: '#8C8070', fontWeight: 700 }}>Unmatched to building</span>
+                        <span style={{ ...m, fontSize: 10, color: '#C8C1B3' }}>{unmatchedSignals.length}</span>
+                      </div>
+                      {unmatchedSignals.map(renderSignalRow)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Flat view — when single building or no buildings data */}
+              {!hasMultipleBuildings && openSignals.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '2px solid #1C2B2B', marginBottom: 10 }}>
                     <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#1C2B2B', fontWeight: 700 }}>OPEN</span>
@@ -1659,7 +1739,7 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
                 </div>
               )}
 
-              {closedSignals.length > 0 && (
+              {!hasMultipleBuildings && closedSignals.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '2px solid #C8C1B3', marginBottom: 10 }}>
                     <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#8C8070', fontWeight: 700 }}>CLOSED</span>
@@ -1672,18 +1752,6 @@ export default function BuildingPanel({ parcelId, onClose, onDialRequest, refres
 
               {thisSignals.length === 0 && (
                 <div style={{ ...m, fontSize: 14, color: '#8C8070', marginBottom: 20 }}>No verified signals for this address.</div>
-              )}
-
-              {/* Wrong-address signals collapsed at bottom */}
-              {wrongAddrSignals.length > 0 && (
-                <div style={{ opacity: 0.5 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingBottom: 6, borderBottom: '1px dashed #C8C1B3', marginBottom: 10 }}>
-                    <span style={{ ...m, fontSize: 11, letterSpacing: '1.5px', color: '#8C8070', fontWeight: 700 }}>UNVERIFIED ADDRESS</span>
-                    <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>{wrongAddrSignals.length}</span>
-                    <span style={{ ...m, fontSize: 11, color: '#C8C1B3' }}>signals matched to this parcel but different street address</span>
-                  </div>
-                  {wrongAddrSignals.map(renderSignalRow)}
-                </div>
               )}
             </div>
           )}

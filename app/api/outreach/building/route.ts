@@ -21,6 +21,7 @@ export async function GET(request: Request) {
     { data: lead },
     { data: parcelOrgs },
     { data: permitOrgs },
+    { data: buildings },
   ] = await Promise.all([
     supabase.from('building_intelligence').select('*').eq('parcel_id', parcel_id).maybeSingle(),
     supabase.from('contacts').select('*').eq('parcel_id', parcel_id).order('confidence', { ascending: false }),
@@ -35,6 +36,8 @@ export async function GET(request: Request) {
     supabase.from('organizations').select('id, org_profile_id, business_name, org_type, phone, management_signal_type, confidence, source, website, website_domain').eq('parcel_id', parcel_id).order('confidence', { ascending: false }).limit(200),
     // Permit applicant orgs with trade_type — source for CONTRACTORS section
     supabase.from('organizations').select('id, business_name, trade_type, phone, source_date, source').eq('parcel_id', parcel_id).eq('org_type', 'permit_applicant').not('trade_type', 'is', null).order('source_date', { ascending: false }).limit(300),
+    // BIN-level buildings on this lot
+    supabase.from('buildings').select('bin, address, is_primary').eq('parcel_id', parcel_id).order('is_primary', { ascending: false }),
   ])
 
   // Also fetch orgs that entity contacts link to but live on a different parcel
@@ -92,5 +95,5 @@ export async function GET(request: Request) {
     address = prop?.address ?? parcel_id
   }
 
-  return NextResponse.json({ building, address, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles, permitOrgs })
+  return NextResponse.json({ building, address, contacts, phoneNumbers: allPhoneNumbers, activityLog, buildingNotes, tasks, signals, lead, orgs, orgProfiles, permitOrgs, buildings })
 }

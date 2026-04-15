@@ -1,21 +1,16 @@
 "use client";
 
-import { useState } from "react";
-
 const verticals = [
-  { title: "HVAC", image: "/hvac.png", href: "/commercial-hvac", bg: "#1C2B2B" },
-  { title: "Commercial Cleaning", image: "/commercial-cleaning.png", href: "/commercial-cleaning", bg: "#1A2535" },
-  { title: "Tree Care", image: null, href: "/commercial-tree-care", bg: "#1A3020" },
-  { title: "Waste Management", image: "/waste-management.png", href: "/commercial-waste-management", bg: "#252520" },
-  { title: "Landscaping", image: "/landscaping.png", href: "/commercial-landscaping", bg: "#2D5A3D" },
-  { title: "Pest Control", image: "/pest-removal.png", href: "/commercial-pest-control", bg: "#1C2B2B" },
-  { title: "Plumbing", image: "/plumbing.png", href: "/commercial-plumbing", bg: "#1C2B2B" },
-  { title: "Roofing", image: "/roofing.png", href: "/commercial-roofing", bg: "#1C2B2B" },
+  { title: "HVAC", bg: "#1C2B2B" },
+  { title: "Fire Protection", bg: "#3A1F1F" },
+  { title: "Janitorial / Cleaning", bg: "#1A2535" },
+  { title: "Medical Gas Inspection & Testing", bg: "#1A3020" },
+  { title: "Hazardous Waste Removal", bg: "#2A2318" },
+  { title: "Cooling Tower Water Treatment", bg: "#15303A" },
+  { title: "Other", bg: "#252520", span: 2 },
 ];
 
 export default function IndustrySelector() {
-  const [hovered, setHovered] = useState<number | null>(null);
-
   return (
     <section
       id="industries"
@@ -55,61 +50,38 @@ export default function IndustrySelector() {
         </p>
       </div>
 
-      {/* 2×4 grid */}
+      {/* Grid: 4 cols top row (4 tiles), bottom row 4 cols with last tile spanning 2 */}
       <div
         className="rsp-industry-cards"
         style={{
           flex: 1,
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gridTemplateRows: "repeat(2, 1fr)",
+          gridAutoRows: "minmax(160px, 1fr)",
           gap: 6,
           padding: "0 6px 6px",
         }}
       >
         {verticals.map((v, i) => (
-          <a
+          <div
             key={i}
-            href={v.href}
             className="rsp-industry-card"
             style={{
               position: "relative",
               overflow: "hidden",
               borderRadius: 10,
-              textDecoration: "none",
-              cursor: "pointer",
               background: v.bg,
               minHeight: 160,
+              gridColumn: v.span ? `span ${v.span}` : undefined,
             }}
-            onMouseEnter={() => setHovered(i)}
-            onMouseLeave={() => setHovered(null)}
           >
-            {/* Background image */}
-            {v.image && (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  backgroundImage: `url(${v.image})`,
-                  backgroundSize: "contain",
-                  backgroundPosition: "center bottom",
-                  backgroundRepeat: "no-repeat",
-                  opacity: hovered === i ? 1 : 0.85,
-                  transition: "opacity 0.35s ease",
-                }}
-              />
-            )}
-
             {/* Dark gradient overlay */}
             <div
               style={{
                 position: "absolute",
                 inset: 0,
                 background:
-                  hovered === i
-                    ? "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.40) 55%, rgba(0,0,0,0.78) 100%)"
-                    : "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%)",
-                transition: "background 0.35s ease",
+                  "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%)",
               }}
             />
 
@@ -129,27 +101,14 @@ export default function IndustrySelector() {
                   fontWeight: 700,
                   fontSize: "clamp(14px, 1.4vw, 20px)",
                   color: "#FFFFFF",
-                  lineHeight: 1.2,
+                  lineHeight: 1.25,
                   textShadow: "0 1px 8px rgba(0,0,0,0.6)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
                 }}
               >
                 {v.title}
               </h3>
-              {/* Amber underline on hover */}
-              <div
-                style={{
-                  height: 2,
-                  background: "#E8A020",
-                  marginTop: 6,
-                  width: hovered === i ? "40px" : "0px",
-                  transition: "width 0.35s ease 0.05s",
-                }}
-              />
             </div>
-          </a>
+          </div>
         ))}
       </div>
     </section>

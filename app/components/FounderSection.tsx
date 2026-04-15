@@ -48,13 +48,13 @@ export default function FounderSection() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20, color: "#8C8070", fontSize: 16, lineHeight: 1.85 }}>
               <p>
-                I watched him run an excellent operation and lose accounts to guys who were worse at the work. Not because he wasn&apos;t good enough. Because he was too busy being the business to build anything around it. He was on the tools. Managing the crew. Doing the estimates. Handling whatever came up that day. And somewhere in all of that the finding and the growing just never got done. Nobody was doing it. It wasn&apos;t anybody&apos;s job.
+                I watched him run an excellent operation and lose accounts to guys who were worse at the work. Not because he wasn&apos;t good enough. Because he was too busy being the business to build anything around it. He was on the tools, handling whatever came up that day. And somewhere in all of that the growth just never got done.
               </p>
               <p style={{ color: "#1C2B2B", fontWeight: 600, fontSize: 17 }}>
                 He was better than the guys getting the contracts. He just couldn&apos;t get in the room.
               </p>
               <p>
-                I spent half a decade taking some of the fastest growing software companies in the country from six figures to eight by building revenue systems. The infrastructure that takes a company from guessing to growing predictably. The kind of growth function that runs whether the founder is selling or not.
+                I spent half a decade taking some of the fastest growing software companies in the country from six figures to eight by building revenue systems. Building the infrastructure that takes a company from guessing to growing predictably. One that runs whether the founder is selling or not.
               </p>
               <p>
                 At some point I realized I&apos;d spent years building that for companies that already had every advantage. And my dad never had any of it.

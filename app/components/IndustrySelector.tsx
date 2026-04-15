@@ -2,12 +2,13 @@
 
 const verticals = [
   { title: "HVAC", bg: "#1C2B2B" },
+  { title: "Plumbing", bg: "#15303A" },
   { title: "Fire Protection", bg: "#3A1F1F" },
   { title: "Janitorial / Cleaning", bg: "#1A2535" },
   { title: "Medical Gas Inspection & Testing", bg: "#1A3020" },
   { title: "Hazardous Waste Removal", bg: "#2A2318" },
-  { title: "Cooling Tower Water Treatment", bg: "#15303A" },
-  { title: "Other", bg: "#252520", span: 2 },
+  { title: "Cooling Tower Water Treatment", bg: "#1C2B2B" },
+  { title: "Other", bg: "#252520" },
 ];
 
 export default function IndustrySelector() {
@@ -23,7 +24,6 @@ export default function IndustrySelector() {
         overflow: "hidden",
       }}
     >
-      {/* Section header */}
       <div style={{ padding: "40px 40px 20px" }}>
         <h2
           style={{
@@ -50,14 +50,13 @@ export default function IndustrySelector() {
         </p>
       </div>
 
-      {/* Grid: 4 cols top row (4 tiles), bottom row 4 cols with last tile spanning 2 */}
       <div
         className="rsp-industry-cards"
         style={{
           flex: 1,
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
-          gridAutoRows: "minmax(160px, 1fr)",
+          gridTemplateRows: "repeat(2, 1fr)",
           gap: 6,
           padding: "0 6px 6px",
         }}
@@ -72,10 +71,8 @@ export default function IndustrySelector() {
               borderRadius: 10,
               background: v.bg,
               minHeight: 160,
-              gridColumn: v.span ? `span ${v.span}` : undefined,
             }}
           >
-            {/* Dark gradient overlay */}
             <div
               style={{
                 position: "absolute",
@@ -84,8 +81,6 @@ export default function IndustrySelector() {
                   "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%)",
               }}
             />
-
-            {/* Industry name */}
             <div
               style={{
                 position: "absolute",

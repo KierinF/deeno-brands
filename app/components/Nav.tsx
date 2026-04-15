@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 
 const links = [
+  { label: "About", href: "/#about" },
   { label: "How It Works", href: "/#process" },
   { label: "Results", href: "/#proof" },
-  { label: "About", href: "/#about" },
 ];
 
 export default function Nav() {
@@ -56,7 +56,6 @@ export default function Nav() {
           justifyContent: "space-between",
         }}
       >
-        {/* Logo */}
         <a href="/" style={{ textDecoration: "none" }}>
           <span
             style={{
@@ -70,7 +69,6 @@ export default function Nav() {
           </span>
         </a>
 
-        {/* Desktop links */}
         <div
           className="hidden md:flex"
           style={{ alignItems: "center", gap: 8 }}
@@ -97,7 +95,6 @@ export default function Nav() {
           ))}
         </div>
 
-        {/* Desktop CTAs */}
         <div className="hidden md:flex" style={{ alignItems: "center", gap: 8 }}>
           <a
             href="/client-login"
@@ -145,7 +142,6 @@ export default function Nav() {
           </a>
         </div>
 
-        {/* Mobile toggle */}
         <button
           className="md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
@@ -164,7 +160,6 @@ export default function Nav() {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {mobileOpen && (
         <div
           style={{

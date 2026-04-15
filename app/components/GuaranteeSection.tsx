@@ -2,9 +2,8 @@
 
 const stats = [
   { value: "1", label: "Client per trade per market" },
-  { value: "Agreed", label: "Meeting target in writing before we start" },
-  { value: "30", label: "Days to your first meeting" },
-  { value: "Yours", label: "After ninety days" },
+  { value: "30", label: "Days free if we miss our agreed target" },
+  { value: "90", label: "Days to a proven system. No lock in after that" },
 ];
 
 export default function GuaranteeSection() {
@@ -65,7 +64,7 @@ export default function GuaranteeSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: "repeat(3, 1fr)",
             gap: 1,
             background: "rgba(247,244,238,0.06)",
             border: "1px solid rgba(247,244,238,0.06)",
@@ -77,16 +76,16 @@ export default function GuaranteeSection() {
               key={i}
               style={{
                 padding: "36px 28px",
-                borderRight: i < 3 ? "1px solid rgba(247,244,238,0.06)" : "none",
+                borderRight: i < 2 ? "1px solid rgba(247,244,238,0.06)" : "none",
               }}
             >
               <div
                 style={{
                   fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: "clamp(28px, 3vw, 44px)",
+                  fontSize: "clamp(32px, 3.5vw, 52px)",
                   color: "#E8A020",
                   lineHeight: 1,
-                  marginBottom: 10,
+                  marginBottom: 12,
                 }}
               >
                 {s.value}
@@ -94,8 +93,8 @@ export default function GuaranteeSection() {
               <div
                 style={{
                   fontFamily: "'DM Mono', monospace",
-                  fontSize: 10,
-                  color: "rgba(247,244,238,0.55)",
+                  fontSize: 11,
+                  color: "rgba(247,244,238,0.6)",
                   letterSpacing: "1.5px",
                   textTransform: "uppercase",
                   lineHeight: 1.5,

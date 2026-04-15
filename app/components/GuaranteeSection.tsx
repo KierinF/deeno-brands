@@ -1,10 +1,10 @@
 "use client";
 
 const stats = [
-  { value: "1", label: "Client per market", caption: "Your territory. Exclusive from day one." },
-  { value: "Agreed", label: "Meeting target", caption: "Miss it? We work free until we hit it." },
-  { value: "30", label: "Days to first meeting", caption: "Most clients see results in week three." },
-  { value: "100%", label: "Commercial focus", caption: "Not homeowner leads. Not mixed pipelines. Never." },
+  { value: "1", label: "Client per trade per market" },
+  { value: "Agreed", label: "Meeting target in writing before we start" },
+  { value: "30", label: "Days to your first meeting" },
+  { value: "Yours", label: "After ninety days" },
 ];
 
 export default function GuaranteeSection() {
@@ -44,38 +44,19 @@ export default function GuaranteeSection() {
               marginBottom: 48,
             }}
           >
-            The Deeno guarantee.
+            The Deeno Guarantee.
           </h2>
-          <div style={{ maxWidth: 680, display: "flex", flexDirection: "column", gap: 20, fontSize: 17, lineHeight: 1.8 }}>
+          <div style={{ maxWidth: 720, display: "flex", flexDirection: "column", gap: 20, fontSize: 17, lineHeight: 1.8 }}>
             <p style={{ color: "rgba(247,244,238,0.85)", fontWeight: 500 }}>
-              Before we start, we agree on a specific number of qualified meetings for your contract period.
+              Before we start we agree on a number. A specific written number of qualified meetings with real decision makers at the kinds of accounts you actually want to close.
             </p>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-                color: "rgba(247,244,238,0.45)",
-                fontStyle: "italic",
-                fontSize: 16,
-                paddingLeft: 20,
-                borderLeft: "1px solid rgba(247,244,238,0.12)",
-              }}
-            >
-              <p>Not leads.</p>
-              <p>Not conversations.</p>
-              <p>Meetings with the people who can actually sign a commercial contract.</p>
-            </div>
             <p style={{ color: "rgba(247,244,238,0.75)" }}>
-              If we fall short by the end of your contract, we don&apos;t send another invoice.
-            </p>
-            <p style={{ color: "#F7F4EE", fontWeight: 600 }}>
-              We send more meetings — at no cost — until we hit the number we agreed to.
+              If we don&apos;t hit the number by end of month three we don&apos;t send another invoice. We extend at no charge for thirty days and keep working until we hit it.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               <p style={{ color: "#F7F4EE", fontWeight: 700 }}>No renegotiations. No excuses.</p>
               <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: "#E8A020", letterSpacing: "0.5px" }}>
-                Just the number we shook hands on, delivered.
+                The number we shook hands on, delivered.
               </p>
             </div>
           </div>
@@ -105,7 +86,7 @@ export default function GuaranteeSection() {
                   fontSize: "clamp(28px, 3vw, 44px)",
                   color: "#E8A020",
                   lineHeight: 1,
-                  marginBottom: 6,
+                  marginBottom: 10,
                 }}
               >
                 {s.value}
@@ -113,17 +94,14 @@ export default function GuaranteeSection() {
               <div
                 style={{
                   fontFamily: "'DM Mono', monospace",
-                  fontSize: 9,
-                  color: "rgba(247,244,238,0.35)",
-                  letterSpacing: "2px",
+                  fontSize: 10,
+                  color: "rgba(247,244,238,0.55)",
+                  letterSpacing: "1.5px",
                   textTransform: "uppercase",
-                  marginBottom: 10,
+                  lineHeight: 1.5,
                 }}
               >
                 {s.label}
-              </div>
-              <div style={{ fontSize: 12, color: "rgba(247,244,238,0.55)", lineHeight: 1.5 }}>
-                {s.caption}
               </div>
             </div>
           ))}

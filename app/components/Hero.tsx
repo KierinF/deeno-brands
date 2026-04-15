@@ -68,12 +68,12 @@ export default function Hero() {
           transform: mounted ? "none" : "translateY(12px)",
           transition: "opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s",
         }}>
-          Your calendar has gaps<br />
-          <span style={{ color: "#E8A020" }}>you don&apos;t talk about.</span>
+          Your reputation got you here.<br />
+          <span style={{ color: "#E8A020" }}>It won&apos;t get you there.</span>
         </h1>
 
         <p style={{
-          maxWidth: 520,
+          maxWidth: 620,
           color: "#8C8070",
           fontSize: 18,
           lineHeight: 1.7,
@@ -82,7 +82,7 @@ export default function Hero() {
           transform: mounted ? "none" : "translateY(12px)",
           transition: "opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s",
         }}>
-          We contact facility managers, property owners, and GCs in your market — and book them onto your calendar. You show up. You close.
+          We build the growth engine for businesses that keep America running. We find your next accounts, close them, and keep them. You run the business.
         </p>
 
         <div style={{
@@ -115,7 +115,7 @@ export default function Hero() {
               (e.currentTarget as HTMLAnchorElement).style.transform = "none";
             }}
           >
-            BOOK MY FREE PIPELINE AUDIT →
+            CHECK IF YOUR MARKET IS STILL OPEN →
           </a>
         </div>
 
@@ -139,7 +139,7 @@ export default function Hero() {
         }}>
           <span style={{ display: "block", width: 24, height: 1, background: "#C8C1B3" }} />
           <p style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: "#8C8070" }}>
-            One client per trade per market. Once your territory is claimed, it&apos;s closed.
+            One operator per trade per market. Once your territory is claimed, it&apos;s closed.
           </p>
         </div>
       </div>

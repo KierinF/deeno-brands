@@ -8,7 +8,7 @@ export default function ProofSection() {
           gap: "80px",
           alignItems: "start",
         }}>
-          {/* Left: scarcity / first-mover */}
+          {/* Left: headline + narrative */}
           <div>
             <div style={{
               fontFamily: "'DM Mono', monospace",
@@ -32,32 +32,20 @@ export default function ProofSection() {
               lineHeight: 0.95,
               marginBottom: 40,
             }}>
-              The operators who move first,<br />
-              <span style={{ color: "#E8A020" }}>own the market.</span>
+              What the system<br />
+              <span style={{ color: "#E8A020" }}>actually produces.</span>
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: 20, fontSize: 16, lineHeight: 1.75 }}>
-              <p style={{ color: "#8C8070" }}>We take one client per trade per territory.</p>
-              <p style={{ color: "#8C8070" }}>
-                The campaigns running now are locking up markets that won&apos;t be available next month.
-              </p>
-              <p style={{ color: "#8C8070" }}>
-                When your territory closes, the operator who claimed it has a pipeline partner their competitors don&apos;t.
-              </p>
               <p style={{ color: "#1C2B2B", fontWeight: 600, fontSize: 17 }}>
-                That&apos;s not a consolation prize for moving early. It&apos;s the whole model.
+                One client per trade per market is not a sales tactic. It is the model.
+              </p>
+              <p style={{ color: "#8C8070" }}>
+                We cannot build a growth engine for two competing plumbers in the same city. When a territory closes it closes. The operator who claims it first gets something their competitors cannot buy later — a fully running system locked to their market.
+              </p>
+              <p style={{ color: "#8C8070" }}>
+                These are the results that system is producing.
               </p>
             </div>
-            <p style={{
-              marginTop: 40,
-              fontFamily: "'DM Mono', monospace",
-              fontSize: 11,
-              color: "#8C8070",
-              lineHeight: 1.7,
-            }}>
-              Results from active campaigns are published as they&apos;re confirmed.{" "}
-              <a href="#contact" style={{ color: "#E8A020", textDecoration: "none" }}>Ask us on the audit call</a>
-              {" "}what current campaigns are producing.
-            </p>
           </div>
 
           {/* Right: case study */}
@@ -82,7 +70,7 @@ export default function ProofSection() {
                   textTransform: "uppercase",
                   marginBottom: 4,
                 }}>
-                  The Hamptons, NY · Tree Care
+                  Private Equity · Essential Business Acquisitions · National
                 </div>
                 <div style={{
                   fontFamily: "'Bebas Neue', sans-serif",
@@ -90,7 +78,7 @@ export default function ProofSection() {
                   color: "#1C2B2B",
                   letterSpacing: "1.5px",
                 }}>
-                  Hamptons Tree &amp; Shrub Care
+                  Search Fund Ventures
                 </div>
               </div>
               <div style={{
@@ -104,36 +92,24 @@ export default function ProofSection() {
                 background: "rgba(232,160,32,0.06)",
                 whiteSpace: "nowrap",
               }}>
-                Campaign Active
+                Ongoing
               </div>
             </div>
 
             {/* Body */}
             <div style={{ padding: "28px" }}>
-              <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.7, marginBottom: 24 }}>
-                Boutique tree care and shrub management serving estate and commercial properties across the Hamptons. Strong local reputation, limited commercial pipeline.
+              <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.7, marginBottom: 16 }}>
+                Search Fund Ventures acquires essential service businesses across the United States. They needed a consistent pipeline of qualified acquisition targets — owner operators open to a conversation about selling.
+              </p>
+              <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.7, marginBottom: 16 }}>
+                We built their outbound system from scratch. ICP defined around owner operated essential businesses at the right revenue threshold. Sequences written for business owners, not buyers. Every reply handled by us.
+              </p>
+              <p style={{ fontSize: 14, color: "#1C2B2B", fontWeight: 600, lineHeight: 1.7, marginBottom: 16 }}>
+                In ninety days: 45 qualified meetings with business owners. 14 active acquisitions currently in progress.
               </p>
               <p style={{ fontSize: 14, color: "#8C8070", lineHeight: 1.7, marginBottom: 28 }}>
-                We built their commercial ICP targeting HOA property managers, estate managers, and commercial facility directors across Southampton, East Hampton, and Bridgehampton.
+                After three months the system was working. They chose to keep building.
               </p>
-
-              {/* Channels */}
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 28 }}>
-                {["Direct mail", "Cold calling"].map((ch) => (
-                  <span key={ch} style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 9,
-                    letterSpacing: "1.5px",
-                    textTransform: "uppercase",
-                    color: "#E8A020",
-                    border: "1px solid rgba(232,160,32,0.25)",
-                    padding: "3px 8px",
-                    background: "rgba(232,160,32,0.06)",
-                  }}>
-                    {ch}
-                  </span>
-                ))}
-              </div>
 
               {/* Stats */}
               <div style={{
@@ -144,10 +120,10 @@ export default function ProofSection() {
                 border: "1px solid #C8C1B3",
               }}>
                 {[
-                  { label: "Campaign launched", value: "March 2026" },
-                  { label: "Territory", value: "Exclusive" },
-                  { label: "Target buyers", value: "HOAs + Estates" },
-                  { label: "Results", value: "Reporting soon" },
+                  { label: "Campaign launched", value: "December 2025" },
+                  { label: "Target", value: "Owner operated essentials" },
+                  { label: "Meetings in 90 days", value: "45" },
+                  { label: "Active acquisitions", value: "14" },
                 ].map((s, i) => (
                   <div key={i} style={{ background: "#F7F4EE", padding: "16px 18px" }}>
                     <div style={{

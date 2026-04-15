@@ -18,15 +18,15 @@ export default function EssentialSection() {
             marginBottom: 40,
           }}
         >
-          On a slow Tuesday, when your guys are texting you for work—
+          On a slow Tuesday when your guys are texting you asking if there&apos;s work —
         </h2>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 24, fontSize: 18, lineHeight: 1.8 }}>
           <p style={{ color: "rgba(247,244,238,0.75)" }}>
-            The last thing you want is an empty calendar.
+            That&apos;s not a slow market. That&apos;s not bad luck. That&apos;s what a business looks like that can&apos;t run in the background finding the next job while you&apos;re busy working the current one.
           </p>
           <p style={{ color: "rgba(247,244,238,0.75)" }}>
-            The guys getting the commercial contracts aren&apos;t better operators than you. They just got in front of the right people first.
+            The moment you stop pushing it slows down. You built something real and somewhere along the way it became a trap.
           </p>
           <p style={{
             color: "#E8A020",
@@ -35,7 +35,7 @@ export default function EssentialSection() {
             letterSpacing: "0.5px",
             paddingTop: 8,
           }}>
-            Getting you in front of those people — that&apos;s what we do.
+            You keep America running. You shouldn&apos;t have to wonder where the next job is coming from.
           </p>
         </div>
       </div>

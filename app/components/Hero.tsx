@@ -51,7 +51,7 @@ export default function Hero() {
           transition: "opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s",
         }}>
           Your reputation got you here.<br />
-          <span style={{ color: "#E8A020" }}>It won&apos;t get you there.</span>
+          <span style={{ color: "#E8A020" }}>But it can only get you so far.</span>
         </h1>
 
         <p style={{

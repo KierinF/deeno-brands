@@ -59,10 +59,20 @@ export default function CTA() {
   };
 
   const whatYouGet = [
-    "A live territory check — available or waitlisted, confirmed on the call",
-    "The names and titles of the decision-makers holding the contracts you want",
-    "Your commercial buyer segments mapped by geography",
-    "A preview of your first outbound campaign — channels, copy approach, list size",
+    "A live territory check. Open or waitlisted, confirmed on the call.",
+    "A clear picture of who the right accounts are in your market and what they are worth.",
+    "An honest assessment of where your pipeline is leaking and why.",
+    "A preview of what your growth system looks like in your specific industry and geography.",
+  ];
+
+  const industryOptions = [
+    "HVAC",
+    "Fire Protection",
+    "Janitorial/Cleaning",
+    "Medical Gas Inspection & Testing",
+    "Hazardous Waste Removal",
+    "Cooling Tower Water Treatment",
+    "Other",
   ];
 
   return (
@@ -101,16 +111,15 @@ export default function CTA() {
           >
             Your market may still be open.
           </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, maxWidth: 580 }}>
-            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.7 }}>One client per trade, per geography.</p>
-            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.7 }}>
-              When a territory closes, the next operator in that trade goes on a waitlist.
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, maxWidth: 640 }}>
+            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.75 }}>
+              One client per industry, per geography. When a territory closes the next operator in that industry goes on a waitlist.
             </p>
-            <p style={{ fontSize: 16, color: "#1C2B2B", fontWeight: 500, lineHeight: 1.7 }}>
-              Book a free 30-minute Commercial Pipeline Audit.
+            <p style={{ fontSize: 16, color: "#1C2B2B", fontWeight: 500, lineHeight: 1.75 }}>
+              Book a free 30 minute Growth Audit.
             </p>
-            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.7 }}>
-              Whether we work together or not, you&apos;ll leave with a clear picture of your commercial opportunity and whether your market is still available.
+            <p style={{ fontSize: 15, color: "#8C8070", lineHeight: 1.75 }}>
+              Whether we work together or not you leave with a clear picture of your market opportunity and whether your territory is still open.
             </p>
           </div>
         </div>
@@ -249,15 +258,15 @@ export default function CTA() {
                   />
                 </div>
                 <div>
-                  <label style={labelStyle}>Your Trade</label>
+                  <label style={labelStyle}>Your Industry</label>
                   <select
                     name="trade" required
                     style={{ ...inputStyle, appearance: "none" }}
                     onFocus={(e) => (e.target.style.borderColor = "rgba(232,160,32,0.5)")}
                     onBlur={(e) => (e.target.style.borderColor = "#C8C1B3")}
                   >
-                    <option value="">Select trade...</option>
-                    {["HVAC", "Commercial Cleaning", "Tree Care", "Waste Management", "Landscaping", "Pest Control", "Plumbing", "Roofing", "Other"].map((t) => (
+                    <option value="">Select industry...</option>
+                    {industryOptions.map((t) => (
                       <option key={t} value={t}>{t}</option>
                     ))}
                   </select>

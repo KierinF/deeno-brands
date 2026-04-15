@@ -1,12 +1,12 @@
 "use client";
 
 const industries = [
-  "Commercial HVAC",
-  "Commercial Electrical",
-  "Commercial Plumbing",
-  "Commercial Landscaping",
-  "Commercial Pest Control",
-  "Commercial Roofing",
+  "HVAC",
+  "Fire Protection",
+  "Janitorial/Cleaning",
+  "Medical Gas Inspection & Testing",
+  "Hazardous Waste Removal",
+  "Cooling Tower Water Treatment",
 ];
 
 export default function Footer() {
@@ -45,11 +45,13 @@ export default function Footer() {
               fontFamily: "'DM Mono', monospace",
               fontSize: 10,
               letterSpacing: "1.5px",
-              color: "rgba(255,255,255,0.25)",
+              color: "rgba(255,255,255,0.35)",
               textTransform: "uppercase",
+              maxWidth: 380,
+              lineHeight: 1.6,
             }}
           >
-            Commercial Pipeline for Trades
+            The Growth Engine for Businesses that Keep America Running.
           </span>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 8 }}>
             <a
@@ -108,21 +110,16 @@ export default function Footer() {
           >
             {industries.map((ind, i) => (
               <span key={ind}>
-                <a
-                  href="#industries"
+                <span
                   style={{
                     fontFamily: "'DM Mono', monospace",
                     fontSize: 11,
                     letterSpacing: "0.5px",
                     color: "rgba(255,255,255,0.3)",
-                    textDecoration: "none",
-                    transition: "color 0.2s",
                   }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#F7F4EE")}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "rgba(255,255,255,0.3)")}
                 >
                   {ind}
-                </a>
+                </span>
                 {i < industries.length - 1 && (
                   <span style={{ color: "rgba(255,255,255,0.12)", margin: "0 8px" }}>·</span>
                 )}

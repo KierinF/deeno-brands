@@ -1,22 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-
-const industries = [
-  { label: "Commercial HVAC", href: "/commercial-hvac" },
-  { label: "Commercial Cleaning", href: "/commercial-cleaning" },
-  { label: "Commercial Electrical", href: "/commercial-electrical" },
-  { label: "Commercial Plumbing", href: "/commercial-plumbing" },
-  { label: "Commercial Landscaping", href: "/commercial-landscaping" },
-  { label: "Commercial Pest Control", href: "/commercial-pest-control" },
-  { label: "Commercial Roofing", href: "/commercial-roofing" },
-  { label: "Commercial Tree Care", href: "/commercial-tree-care" },
-  { label: "Commercial Waste Management", href: "/commercial-waste-management" },
-];
+import { useState, useEffect } from "react";
 
 const links = [
   { label: "How It Works", href: "/#process" },
-  { label: "Industries", href: "/#industries", dropdown: true },
   { label: "Results", href: "/#proof" },
   { label: "About", href: "/#about" },
 ];
@@ -24,23 +11,11 @@ const links = [
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
-  }, []);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const navBg = scrolled ? "rgba(247,244,238,0.96)" : "transparent";
@@ -100,99 +75,26 @@ export default function Nav() {
           className="hidden md:flex"
           style={{ alignItems: "center", gap: 8 }}
         >
-          {links.map((l) =>
-            l.dropdown ? (
-              <div key={l.label} ref={dropdownRef} style={{ position: "relative" }}>
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  style={{
-                    fontFamily: "'DM Mono', monospace",
-                    fontSize: 11,
-                    letterSpacing: "1.5px",
-                    color: dropdownOpen ? "#1C2B2B" : "#8C8070",
-                    background: "none",
-                    border: "none",
-                    padding: "8px 16px",
-                    cursor: "pointer",
-                    transition: "color 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#1C2B2B")}
-                  onMouseLeave={(e) => {
-                    if (!dropdownOpen) (e.currentTarget as HTMLButtonElement).style.color = "#8C8070";
-                  }}
-                >
-                  {l.label}
-                  <span style={{ fontSize: 8, opacity: 0.6 }}>▾</span>
-                </button>
-                {dropdownOpen && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "100%",
-                      left: 0,
-                      background: "#F7F4EE",
-                      border: "1px solid #C8C1B3",
-                      minWidth: 240,
-                      marginTop: 4,
-                      zIndex: 200,
-                      boxShadow: "0 4px 16px rgba(28,43,43,0.08)",
-                    }}
-                  >
-                    {industries.map((ind) => (
-                      <a
-                        key={ind.label}
-                        href={ind.href}
-                        onClick={() => setDropdownOpen(false)}
-                        style={{
-                          display: "block",
-                          padding: "10px 16px",
-                          fontFamily: "'DM Mono', monospace",
-                          fontSize: 11,
-                          letterSpacing: "1px",
-                          color: "#8C8070",
-                          textDecoration: "none",
-                          borderBottom: "1px solid #EEE9DF",
-                          transition: "color 0.15s, background 0.15s",
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B";
-                          (e.currentTarget as HTMLAnchorElement).style.background = "#EEE9DF";
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = "#8C8070";
-                          (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                        }}
-                      >
-                        {ind.label}
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <a
-                key={l.label}
-                href={l.href}
-                onClick={(e) => handleNavClick(e, l.href)}
-                style={{
-                  fontFamily: "'DM Mono', monospace",
-                  fontSize: 11,
-                  letterSpacing: "1.5px",
-                  color: "#8C8070",
-                  textDecoration: "none",
-                  padding: "8px 16px",
-                  transition: "color 0.2s",
-                }}
-                onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B")}
-                onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#8C8070")}
-              >
-                {l.label}
-              </a>
-            )
-          )}
+          {links.map((l) => (
+            <a
+              key={l.label}
+              href={l.href}
+              onClick={(e) => handleNavClick(e, l.href)}
+              style={{
+                fontFamily: "'DM Mono', monospace",
+                fontSize: 11,
+                letterSpacing: "1.5px",
+                color: "#8C8070",
+                textDecoration: "none",
+                padding: "8px 16px",
+                transition: "color 0.2s",
+              }}
+              onMouseEnter={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#1C2B2B")}
+              onMouseLeave={(e) => ((e.currentTarget as HTMLAnchorElement).style.color = "#8C8070")}
+            >
+              {l.label}
+            </a>
+          ))}
         </div>
 
         {/* Desktop CTAs */}
@@ -288,23 +190,6 @@ export default function Nav() {
               }}
             >
               {l.label}
-            </a>
-          ))}
-          {industries.map((ind) => (
-            <a
-              key={ind.label}
-              href={ind.href}
-              onClick={() => setMobileOpen(false)}
-              style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: 11,
-                letterSpacing: "1px",
-                color: "#6B6055",
-                textDecoration: "none",
-                paddingLeft: 16,
-              }}
-            >
-              → {ind.label}
             </a>
           ))}
           <a

@@ -42,38 +42,37 @@ export default function FounderSection() {
               lineHeight: 0.95,
               marginBottom: 40,
             }}>
-              I built this because I watched my dad fight for the same accounts
-              <span style={{ color: "#E8A020" }}> you&apos;re fighting for.</span>
+              I grew up on job sites.<br />
+              <span style={{ color: "#E8A020" }}>My dad owned a construction company.</span>
             </h2>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20, color: "#8C8070", fontSize: 16, lineHeight: 1.85 }}>
-              <p>I grew up on job sites. My dad owned a construction company.</p>
               <p>
-                I watched him run an excellent operation and fight for every commercial account. He was better than the guys getting the contracts. He just couldn&apos;t get in the room.
+                I watched him run an excellent operation and lose accounts to guys who were worse at the work. Not because he wasn&apos;t good enough. Because he was too busy being the business to build anything around it. He was on the tools. Managing the crew. Doing the estimates. Handling whatever came up that day. And somewhere in all of that the finding and the growing just never got done. Nobody was doing it. It wasn&apos;t anybody&apos;s job.
+              </p>
+              <p style={{ color: "#1C2B2B", fontWeight: 600, fontSize: 17 }}>
+                He was better than the guys getting the contracts. He just couldn&apos;t get in the room.
               </p>
               <p>
-                I got into tech and spent years learning how the best companies in the world find their buyers. The tools exist. The playbooks exist.
+                I spent half a decade taking some of the fastest growing software companies in the country from six figures to eight by building revenue systems. The infrastructure that takes a company from guessing to growing predictably. The kind of growth function that runs whether the founder is selling or not.
               </p>
-              <p style={{ color: "#1C2B2B", fontWeight: 600, fontSize: 17, marginTop: 8 }}>
-                Nobody had brought them to trades.
+              <p>
+                At some point I realized I&apos;d spent years building that for companies that already had every advantage. And my dad never had any of it.
               </p>
               <p style={{
                 fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "clamp(32px, 4vw, 52px)",
+                fontSize: "clamp(28px, 3.4vw, 44px)",
                 color: "#E8A020",
                 letterSpacing: "2px",
                 lineHeight: 1,
-                marginTop: 4,
+                marginTop: 8,
                 marginBottom: 8,
               }}>
-                So I did.
-              </p>
-              <p style={{ color: "#8C8070", marginTop: 8 }}>
-                Deeno is for the operator my dad was — the one who does excellent work and just needs someone to get him in the room.
+                So I came back. That&apos;s what Deeno&apos;s for.
               </p>
               <div style={{ marginTop: 12, paddingTop: 20, borderTop: "1px solid #C8C1B3" }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: "#8C8070", letterSpacing: "1px" }}>
-                  — Kierin
+                  — Kierin, Founder of Deeno
                 </div>
               </div>
             </div>

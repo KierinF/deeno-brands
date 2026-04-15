@@ -26,21 +26,66 @@ export default function IndustrySelector() {
         flexDirection: "column",
         background: "#1C2B2B",
         overflow: "hidden",
+        position: "relative",
       }}
     >
+      {/* Subtle USA flag-inspired decoration — stripes wash + star field */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 280,
+          pointerEvents: "none",
+          backgroundImage:
+            "repeating-linear-gradient(to bottom, rgba(183,28,28,0.06) 0px, rgba(183,28,28,0.06) 14px, transparent 14px, transparent 28px)",
+          maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0))",
+          WebkitMaskImage: "linear-gradient(to bottom, rgba(0,0,0,0.9), rgba(0,0,0,0))",
+        }}
+      />
+      <svg
+        aria-hidden
+        viewBox="0 0 260 140"
+        style={{
+          position: "absolute",
+          top: 36,
+          right: 40,
+          width: 220,
+          height: 120,
+          opacity: 0.09,
+          pointerEvents: "none",
+        }}
+      >
+        <rect x="0" y="0" width="260" height="140" fill="#1a3a7a" rx="2" />
+        {Array.from({ length: 5 }).flatMap((_, row) =>
+          Array.from({ length: 6 }).map((_, col) => (
+            <circle
+              key={`${row}-${col}`}
+              cx={20 + col * 40}
+              cy={18 + row * 26}
+              r={2.6}
+              fill="#F7F4EE"
+            />
+          ))
+        )}
+      </svg>
+
       {/* Section header */}
-      <div style={{ padding: "40px 40px 20px" }}>
+      <div style={{ padding: "40px 40px 20px", position: "relative", zIndex: 1 }}>
         <h2
           style={{
             fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "clamp(52px, 8vw, 110px)",
+            fontSize: "clamp(40px, 5.5vw, 84px)",
             color: "#FFFFFF",
-            letterSpacing: "3px",
+            letterSpacing: "2px",
             lineHeight: 1,
-            marginBottom: 8,
+            marginBottom: 12,
+            maxWidth: 1100,
           }}
         >
-          YOUR INDUSTRY.
+          We Work With Businesses That Keep America Running.
         </h2>
         <p
           style={{
@@ -65,6 +110,8 @@ export default function IndustrySelector() {
           gridTemplateRows: "repeat(2, 1fr)",
           gap: 6,
           padding: "0 6px 6px",
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {verticals.map((v, i) => (

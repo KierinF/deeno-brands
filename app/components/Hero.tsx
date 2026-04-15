@@ -39,24 +39,6 @@ export default function Hero() {
       </div>
 
       <div style={{ maxWidth: "1200px", margin: "0 auto", width: "100%", position: "relative", zIndex: 1 }}>
-        <div style={{
-          fontFamily: "'DM Mono', monospace",
-          fontSize: 11,
-          color: "#E8A020",
-          letterSpacing: "3px",
-          textTransform: "uppercase",
-          marginBottom: 28,
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          opacity: mounted ? 1 : 0,
-          transform: mounted ? "none" : "translateY(8px)",
-          transition: "opacity 0.5s ease, transform 0.5s ease",
-        }}>
-          <span style={{ display: "block", width: 32, height: 1, background: "#E8A020" }} />
-          B2B Pipeline Development — Essential Service Businesses
-        </div>
-
         <h1 style={{
           fontFamily: "'Bebas Neue', sans-serif",
           fontSize: "clamp(52px, 8vw, 110px)",
@@ -73,10 +55,10 @@ export default function Hero() {
         </h1>
 
         <p style={{
-          maxWidth: 620,
+          maxWidth: 680,
           color: "#8C8070",
-          fontSize: 18,
-          lineHeight: 1.7,
+          fontSize: "clamp(20px, 1.6vw, 24px)",
+          lineHeight: 1.65,
           marginBottom: 40,
           opacity: mounted ? 1 : 0,
           transform: mounted ? "none" : "translateY(12px)",

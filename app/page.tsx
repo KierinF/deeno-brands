@@ -6,8 +6,6 @@ import FounderSection from "./components/FounderSection";
 import ClarityBlock from "./components/ClarityBlock";
 import Process from "./components/Process";
 import ProofSection from "./components/ProofSection";
-import ObjectionsSection from "./components/ObjectionsSection";
-import WhyDeeno from "./components/WhyDeeno";
 import GuaranteeSection from "./components/GuaranteeSection";
 import CTA from "./components/CTA";
 import Footer from "./components/Footer";
@@ -23,8 +21,6 @@ export default function Home() {
       <ClarityBlock />
       <Process />
       <ProofSection />
-      <ObjectionsSection />
-      <WhyDeeno />
       <GuaranteeSection />
       <CTA />
       <Footer />

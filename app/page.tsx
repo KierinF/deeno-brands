@@ -3,7 +3,6 @@ import Hero from "./components/Hero";
 import IndustrySelector from "./components/IndustrySelector";
 import EssentialSection from "./components/EssentialSection";
 import FounderSection from "./components/FounderSection";
-import ClarityBlock from "./components/ClarityBlock";
 import Process from "./components/Process";
 import ProofSection from "./components/ProofSection";
 import GuaranteeSection from "./components/GuaranteeSection";
@@ -18,7 +17,6 @@ export default function Home() {
       <IndustrySelector />
       <EssentialSection />
       <FounderSection />
-      <ClarityBlock />
       <Process />
       <ProofSection />
       <GuaranteeSection />

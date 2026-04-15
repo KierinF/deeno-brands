@@ -14,50 +14,49 @@ const steps: Step[] = [
   {
     num: "01",
     timing: "Week 1",
-    title: "Getting clear on the accounts you want",
+    title: "We define success before we build anything",
     paragraphs: [
-      "Before we write a word of copy or pull a single contact, we spend 90 minutes getting clear on the exact accounts you want — buyer type, geography, contract size.",
-      "Then we build a verified contact list from Apollo, Clay, and LinkedIn Sales Navigator.",
+      "Before we write a word of copy or pull a single contact we spend 90 minutes getting completely clear on your market, your ideal accounts, and what a qualified meeting actually means for your business.",
+      "Then we build your verified contact list and set up your CRM. Every account, every deal, every conversation in one place from day one.",
     ],
-    standout: "You approve every name before we contact anyone.",
-    tags: ["ICP mapping", "Contact list", "Market research"],
+    standout: "You approve everything before we contact anyone.",
+    tags: ["ICP mapping", "Contact list", "CRM setup", "Guarantee established"],
   },
   {
     num: "02",
     timing: "Week 2",
-    title: "Campaign build",
+    title: "We build the engine",
     paragraphs: [
-      "We build your full outreach stack from scratch — cold email sequences, LinkedIn messaging, phone scripts, and direct mail pieces — all written for your trade and your buyers.",
-      "You review and approve everything before it goes live.",
+      "Every campaign built from scratch for your trade and your market. Cold email sequences. Phone scripts. LinkedIn messaging. Direct mail. All written in the language your buyers actually respond to.",
+      "Nothing recycled. Nothing from another industry. You review and approve before anything goes live.",
     ],
-    standouts: ["Nothing generic.", "Nothing templated from another industry."],
-    tags: ["Email campaigns", "Cold calling", "LinkedIn", "Direct mail"],
+    tags: ["Email campaigns", "Cold calling", "LinkedIn", "Direct mail", "Pipeline infrastructure"],
   },
   {
     num: "03",
     timing: "Weeks 3\u20134",
-    title: "Launch",
+    title: "We run it",
     paragraphs: [
-      "All four channels go live simultaneously.",
-      "Calls are made. Emails land. LinkedIn messages hit. Direct mail hits desks.",
-      "Every reply is handled by us — objections managed, questions answered, prospects moved toward a meeting.",
+      "Every channel goes live at the same time. Every reply comes back to us. Objections handled. Questions answered. Prospects moved toward a meeting. Every active deal tracked and followed up until it closes or dies.",
+      "You get a weekly report in plain English. What went out. What came back. What\u2019s moving. What\u2019s stalled and why.",
     ],
-    standout: "You get a weekly report in plain English: what went out, what came back, what's in motion.",
-    tags: ["Campaign live", "Reply management", "Weekly reports"],
+    tags: ["Campaign management", "Reply handling", "Pipeline management", "Weekly reporting"],
   },
   {
     num: "04",
-    timing: "Ongoing",
-    title: "Qualified meetings on your calendar",
+    timing: "Months 2\u20133",
+    title: "We prove it",
     paragraphs: [
-      "Before every meeting, we send you a briefing note.",
-      "Company name, decision-maker title, what they need, and full context from the conversation.",
+      "The system is running. Now we make it better.",
+      "Every week we look at what\u2019s working and what isn\u2019t. Which channels are producing. Which sequences are converting. Which account types are at risk. We cut what isn\u2019t working and double down on what is.",
+      "As the outbound engine proves itself we begin building the layers around it. Nurture. Retention. The foundation of a revenue intelligence picture that shows you exactly where your growth is coming from.",
+      "Everything gets documented into a playbook that lives in your business not ours.",
     ],
     standouts: [
-      "You walk in knowing exactly who you're talking to and why they said yes.",
-      "Your only job is to show up and close.",
+      "By the end of month three you have a proven engine, an organized pipeline, and the beginning of something that compounds.",
+      "At that point you decide. Keep us building on it. Or bring it in house. Either way the foundation is yours.",
     ],
-    tags: ["Calendar booking", "Meeting briefs", "Briefing notes"],
+    tags: ["Testing and optimization", "Retention", "Revenue intelligence", "Playbook", "Handoff"],
   },
 ];
 
@@ -95,8 +94,8 @@ export default function Process() {
               lineHeight: 0.95,
             }}
           >
-            FROM ZERO TO BOOKED<br />
-            <span style={{ color: "#E8A020" }}>IN 30 DAYS.</span>
+            HOW WE BUILD YOUR<br />
+            <span style={{ color: "#E8A020" }}>GROWTH ENGINE.</span>
           </h2>
         </div>
 

@@ -1,17 +1,21 @@
 "use client";
 
+import { useState } from "react";
+
 const verticals = [
-  { title: "HVAC", bg: "#1C2B2B" },
-  { title: "Plumbing", bg: "#15303A" },
-  { title: "Fire Protection", bg: "#3A1F1F" },
-  { title: "Janitorial / Cleaning", bg: "#1A2535" },
-  { title: "Medical Gas Inspection & Testing", bg: "#1A3020" },
-  { title: "Hazardous Waste Removal", bg: "#2A2318" },
-  { title: "Cooling Tower Water Treatment", bg: "#1C2B2B" },
-  { title: "Other", bg: "#252520" },
+  { title: "HVAC", image: "/hvac.png", bg: "#1C2B2B" },
+  { title: "Plumbing", image: "/plumbing.png", bg: "#15303A" },
+  { title: "Fire Protection", image: "/fire-protection.jpg", bg: "#3A1F1F" },
+  { title: "Janitorial / Cleaning", image: "/commercial-cleaning.png", bg: "#1A2535" },
+  { title: "Medical Gas Inspection & Testing", image: "/medical-gas.jpg", bg: "#1A3020" },
+  { title: "Hazardous Waste Removal", image: "/waste-management.png", bg: "#2A2318" },
+  { title: "Cooling Tower Water Treatment", image: "/cooling-tower.jpg", bg: "#1C2B2B" },
+  { title: "Other", image: null, bg: "#252520" },
 ];
 
 export default function IndustrySelector() {
+  const [hovered, setHovered] = useState<number | null>(null);
+
   return (
     <section
       id="industries"
@@ -72,13 +76,32 @@ export default function IndustrySelector() {
               background: v.bg,
               minHeight: 160,
             }}
+            onMouseEnter={() => setHovered(i)}
+            onMouseLeave={() => setHovered(null)}
           >
+            {v.image && (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  backgroundImage: `url(${v.image})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  opacity: hovered === i ? 1 : 0.85,
+                  transition: "opacity 0.35s ease",
+                }}
+              />
+            )}
             <div
               style={{
                 position: "absolute",
                 inset: 0,
                 background:
-                  "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%)",
+                  hovered === i
+                    ? "linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.40) 55%, rgba(0,0,0,0.78) 100%)"
+                    : "linear-gradient(to bottom, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.88) 100%)",
+                transition: "background 0.35s ease",
               }}
             />
             <div
@@ -102,6 +125,15 @@ export default function IndustrySelector() {
               >
                 {v.title}
               </h3>
+              <div
+                style={{
+                  height: 2,
+                  background: "#E8A020",
+                  marginTop: 6,
+                  width: hovered === i ? "40px" : "0px",
+                  transition: "width 0.35s ease 0.05s",
+                }}
+              />
             </div>
           </div>
         ))}

@@ -55,9 +55,9 @@ export default function Hero() {
         </h1>
 
         <p style={{
-          maxWidth: 680,
+          maxWidth: 860,
           color: "#8C8070",
-          fontSize: "clamp(20px, 1.6vw, 24px)",
+          fontSize: "clamp(22px, 1.8vw, 28px)",
           lineHeight: 1.5,
           marginBottom: 22,
           opacity: mounted ? 1 : 0,
